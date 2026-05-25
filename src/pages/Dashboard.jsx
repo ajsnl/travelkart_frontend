@@ -1,31 +1,16 @@
-import { useEffect, useState } from "react";
-import { getCurrentUser } from "../services/authService";
-import api from "../api/axios";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
-  const [user, setUser] = useState(null);
+  const { user, loading, isAuthenticated } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
 
+  if (loading) return <h1>Loading...</h1>;
 
-useEffect(() => {
-  const fetchUser = async () => {
-    try {
-      const res = await api.get("/auth/user/me/");
-      console.log(res.data);
-      setUser(res.data);
-    } catch (err) {
-      console.log("Not logged in");
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!isAuthenticated) {
+    navigate("/");
+    return null;
+  }
 
-  fetchUser();
-}, []);
-
-  return (
-    <div>
-      <h1>Dashboard</h1>
-      {user ? <p>Welcome {user.username}</p> : <p>Loading...</p>}
-    </div>
-  );
+  return <h1>Welcome {user?.username}</h1>;
 }

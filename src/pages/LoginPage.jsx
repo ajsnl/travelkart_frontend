@@ -1,26 +1,44 @@
+import { loginUser, getCurrentUser } from "../services/authService";
+import { useDispatch, useSelector } from "react-redux";
+import { setUser } from "../features/auth/authSlice";
 import { useState } from "react";
-import api from "../api/axios";
+import { Navigate, useNavigate } from "react-router-dom";
+
+
+
 
 function Login() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { isAuthenticated, loading } = useSelector((state) => state.auth);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+const handleLogin = async (e) => {
+  e.preventDefault();
 
-    try {
-      await api.post("/auth/login/", { email, password });
+  try {
+    console.log("Logging in...");
 
-      // test user
-      const res = await api.get("/user/me/");
-      console.log(res.data);
+    await loginUser({ email, password });
 
-      window.location.href = "/dashboard";
-    } catch (err) {
-      console.log(err);
-      alert("Login failed");
-    }
-  };
+    console.log("Login success");
+
+    const user = await getCurrentUser();
+    console.log("User:", user);
+
+    dispatch(setUser(user));
+
+    navigate("/dashboard");
+  } catch (err) {
+    console.log("ERROR:", err);
+    alert("Login failed");
+  }}
+
+  if (!loading && isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <div className="min-h-screen flex">

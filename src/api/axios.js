@@ -1,38 +1,118 @@
 import axios from "axios";
 
+
+
 const api = axios.create({
   baseURL: "http://localhost:8000/api",
-  withCredentials: true,
+  withCredentials: true, // 
 });
 
-api.interceptors.response.use(
-  (res) => res,
-  async (err) => {
-    const originalRequest = err.config;
+// CSRF config
+api.defaults.xsrfCookieName = "csrftoken";
+api.defaults.xsrfHeaderName = "X-CSRFToken";
 
-    if (
-      err.response &&
-      err.response.status === 401 &&
-      !originalRequest._retry
-    ) {
-      originalRequest._retry = true;
+// Request interceptor to ensure CSRF cookie is present before state-changing requests
+let csrfRequestPromise = null;
 
-      try {
-        // 🔄 refresh token
-        await api.post("/auth/refresh/"); // ✅ trailing slash
+const fetchCsrfToken = () => {
+  if (!csrfRequestPromise) {
+    // Use the clean global axios instance to bypass custom interceptors and prevent deadlock/recursion
+    csrfRequestPromise = axios.get("http://localhost:8000/api/auth/csrf/", { withCredentials: true })
+      .catch((err) => {
+        console.error("Error fetching CSRF token", err);
+      })
+      .finally(() => {
+        csrfRequestPromise = null;
+      });
+  }
+  return csrfRequestPromise;
+};
 
-        // 🔁 retry original request
-        return api(originalRequest);
-      } catch (refreshError) {
-        console.log("Session expired");
+api.interceptors.request.use(
+  async (config) => {
+    const method = config.method ? config.method.toLowerCase() : "";
+    const stateChangingMethods = ["post", "put", "delete", "patch"];
 
-        // ❌ logout + redirect
-        window.location.href = "/login";
+    if (stateChangingMethods.includes(method)) {
+      // Check if csrf cookie is present
+      const hasCsrfToken = document.cookie
+        .split(";")
+        .some((item) => item.trim().startsWith("csrftoken="));
+
+      if (!hasCsrfToken) {
+        await fetchCsrfToken();
       }
     }
-
-    return Promise.reject(err);
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
 );
 
+
+let isRefreshing = false;
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // ❌ if no response
+    if (!error.response) return Promise.reject(error);
+
+    const url = originalRequest.url;
+
+    //  SKIP THESE APIs
+    if (
+      url.includes("auth/login") ||
+      url.includes("auth/refresh") ||
+      url.includes("auth/signup")
+    ) {
+      return Promise.reject(error);
+    }
+
+    // only handle 401
+    if (error.response.status !== 401) {
+      return Promise.reject(error);
+    }
+
+    //  already retried
+    if (originalRequest._retry) {
+      return Promise.reject(error);
+    }
+
+    //  prevent multiple refresh calls
+    if (isRefreshing) {
+      return Promise.reject(error);
+    }
+
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    try {
+      console.log(" Trying refresh...");
+
+      await api.post("/auth/refresh/");
+
+      isRefreshing = false;
+
+      console.log(" Refresh success");
+
+      return api(originalRequest);
+
+    } catch (err) {
+      isRefreshing = false;
+
+      console.log(" Refresh failed → redirect login");
+
+      // Prevent infinite redirect loops if the user is already on the login page ("/" or "/login")
+      if (window.location.pathname !== "/" && window.location.pathname !== "/login") {
+        window.location.href = "/";
+      }
+
+      return Promise.reject(err);
+    }
+  }
+);
 export default api;
