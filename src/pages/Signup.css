@@ -1,0 +1,286 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@800&display=swap');
+
+.signup-viewport {
+  display: flex;
+  width: 100vw;
+  min-height: 100vh;
+  background-color: #FFFFFF;
+  overflow-x: hidden;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* LEFT SIDE BANNER DISPLAY ELEMENTS */
+.signup-left-banner {
+  width: 50%;
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 64px;
+  background-color: #1E3A8A; /* Base layout color matching login overlay */
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  box-sizing: border-box;
+}
+
+.signup-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: #1E3A8A;
+  mix-blend-mode: overlay;
+  opacity: 0.6;
+  z-index: 1;
+}
+
+.signup-banner-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.signup-left-quote {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: -1.2px;
+  color: #FFFFFF;
+}
+
+.signup-left-middle-stack {
+  max-width: 512px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.signup-left-heading {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  font-size: 48px;
+  line-height: 60px;
+  letter-spacing: -2.4px;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+.signup-left-divider {
+  width: 48px;
+  height: 4px;
+  background-color: #4E82EE;
+  border-radius: 2px;
+  margin-top: 8px;
+}
+
+.signup-left-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  font-size: 32px;
+  line-height: 32px;
+  letter-spacing: -1.2px;
+  color: #FFFFFF;
+}
+
+.signup-logo-icon {
+  width: 28px;
+  height: 28px;
+}
+
+/* RIGHT SIDE FORM INTERACTION MODULES */
+.signup-right-container {
+  width: 50%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #FFFFFF;
+  padding: 40px;
+}
+
+.signup-form-wrapper {
+  width: 100%;
+  max-width: 448px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.font-plus-jakarta { font-family: 'Plus Jakarta Sans', sans-serif; }
+.font-inter { font-family: 'Inter', sans-serif; }
+
+.signup-heading {
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -0.9px;
+  line-height: 40px;
+  color: #00236F;
+  margin: 0;
+}
+
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.signup-field-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.signup-fullname-row {
+  display: flex;
+  gap: 16px;
+}
+
+.signup-input-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #00236F; /* Figma brand label color indicator */
+}
+
+.signup-input-container {
+  position: relative;
+  height: 55px;
+}
+
+.signup-input-field {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0 16px;
+  background-color: #EAEBED; /* Styled exact input background gray matrix */
+  border: 0;
+  border-radius: 12px;
+  font-size: 16px;
+  color: #191C1D;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.signup-input-field::placeholder {
+  color: #A3A4AE;
+}
+
+/* Date Input Custom Alignments */
+.signup-input-field[type="date"] {
+  font-family: 'Inter', sans-serif;
+  color: #191C1D;
+}
+
+.signup-password-toggle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  padding-right: 1rem;
+  display: flex;
+  align-items: center;
+  color: #757682;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.signup-submit-btn {
+  width: 100%;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #00236F;
+  color: #FFFFFF;
+  border-radius: 12px; /* Figma button corners match inputs */
+  font-size: 18px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  margin-top: 8px;
+  box-shadow: 0px 4px 20px rgba(0, 35, 111, 0.04);
+  transition: background-color 0.2s ease;
+}
+
+.signup-submit-btn:hover {
+  background-color: #001D5C;
+}
+
+/* Partition Formatting Elements */
+.signup-divider-row {
+  display: flex;
+  align-items: center;
+}
+
+.signup-divider-line {
+  flex-grow: 1;
+  border-top: 1px solid #EAEBED;
+}
+
+.signup-divider-text {
+  margin-left: 1rem;
+  margin-right: 1rem;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  color: #757682;
+  text-transform: uppercase;
+}
+
+.signup-google-btn {
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background-color: #FFFFFF;
+  border: 1px solid #EAEBED;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #191C1D;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.signup-footer-redirect {
+  text-align: center;
+  font-size: 14px;
+  color: #444651;
+  font-weight: 500;
+}
+
+.signup-redirect-link {
+  color: #00236F;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.signup-footnote-row {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.signup-footnote-link {
+  color: #757682;
+  text-decoration: none;
+}

@@ -1,45 +1,65 @@
 import React, { useEffect } from "react";
 import Login from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
+import Signup from "./pages/Signup";
 
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom"; // ✅ useLocation
 
-// ✅ Redux
+// Redux
 import { useDispatch } from "react-redux";
 import { setUser, logout } from "./features/auth/authSlice";
 
-// ✅ Service
+//  Service
 import { getCurrentUser } from "./services/authService";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ForgotPassword from "./pages/ForgotPassword";
+import VerifyOTP from "./pages/VerifyOTP";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   const dispatch = useDispatch();
+  const location = useLocation(); // ✅GET CURRENT ROUTE
 
-  // 🔥 AUTO LOGIN ON REFRESH
   useEffect(() => {
+    const publicRoutes = [
+  "/",
+  "/signup",
+  "/forgot-password",
+  "/verify-otp",
+  "/reset-password"
+];
+
     const checkAuth = async () => {
       try {
-        const user = await getCurrentUser(); // calls /user/me/
-        dispatch(setUser(user));
+        //  ONLY CHECK AUTH FOR PRIVATE ROUTES
+        if (!publicRoutes.includes(location.pathname)) {
+          const user = await getCurrentUser();
+          dispatch(setUser(user));
+        }
       } catch (err) {
         dispatch(logout());
       }
     };
 
     checkAuth();
-  }, [dispatch]);
+  }, [location.pathname, dispatch]);
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/dashboard" element={
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route
+        path="/dashboard"
+        element={
           <ProtectedRoute>
-             <Dashboard />
+            <Dashboard />
           </ProtectedRoute>
-          } />
-      </Routes>
-    </BrowserRouter>
+        }
+      />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/forgot-password" element={<ForgotPassword/>}/>
+      <Route path="/verify-otp" element={<VerifyOTP/>}/>
+      <Route path="/reset-password" element={<ResetPassword/>}/>
+    </Routes>
   );
 }
 
