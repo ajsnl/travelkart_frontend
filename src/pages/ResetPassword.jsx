@@ -1,10 +1,16 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
+
+import "./ResetPassword.css";
+import forgotBg from "../assets/images/forgotpasswordpage.png";
 
 function ResetPassword() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -13,14 +19,12 @@ function ResetPassword() {
   const handleReset = async (e) => {
     e.preventDefault();
 
-    // ✅ Check if email exists
     if (!email) {
       alert("Session expired. Please restart password reset.");
       navigate("/forgot-password");
       return;
     }
 
-    // ✅ Password match validation
     if (newPassword !== confirmPassword) {
       alert("Passwords do not match");
       return;
@@ -37,55 +41,128 @@ function ResetPassword() {
           confirm_password: confirmPassword,
         },
         {
-          withCredentials: true, // 🔥 important for cookies
+          withCredentials: true,
         }
       );
 
-      alert("Password reset successful");
-
-      // ✅ Clear only temp data
+      alert("Password reset successful 🎉");
       localStorage.removeItem("resetEmail");
-
-      // ✅ Redirect to login
       navigate("/");
-
     } catch (err) {
-      alert(err.response?.data?.error || "Reset failed");
+      alert(err.response?.data?.error || "Reset failed ❌");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <form onSubmit={handleReset} className="p-6 bg-white shadow rounded w-80">
-        <h2 className="text-xl mb-4 text-center">Reset Password</h2>
+    <div className="reset-viewport">
+      
+      {/* LEFT SIDE PANEL - MOUNTAIN REFLECTION ARTWORK */}
+      <div className="reset-left-banner" style={{ backgroundImage: `url(${forgotBg})` }}>
+        <div className="reset-banner-overlay" />
+        
+        <div className="reset-banner-content">
+          <div className="reset-left-quote">
+            “Travel Light. Travel Right.”
+          </div>
 
-        <input
-          type="password"
-          placeholder="New Password"
-          className="border p-2 w-full mb-3"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          required
-        />
+          <div className="reset-left-middle-stack">
+            <h1 className="reset-left-heading">
+              Curated journeys for the modern traveler.
+            </h1>
+            <div className="reset-left-divider" />
+          </div>
 
-        <input
-          type="password"
-          placeholder="Confirm Password"
-          className="border p-2 w-full mb-4"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-        />
+          <div className="reset-left-logo">
+            TravelKart
+          </div>
+        </div>
+      </div>
 
-        <button
-          className="bg-purple-600 text-white px-4 py-2 w-full disabled:opacity-50"
-          disabled={loading}
-        >
-          {loading ? "Resetting..." : "Reset Password"}
-        </button>
-      </form>
+      {/* RIGHT SIDE PANEL - FORCED INPUT DATA CONTAINERS */}
+      <div className="reset-right-container">
+        <div className="reset-form-wrapper">
+          
+          <div className="font-inter">
+            <h2 className="reset-heading font-plus-jakarta">Reset Your Password</h2>
+            <p className="reset-subheading">
+              Enter your new password below to secure your account.
+            </p>
+          </div>
+
+          <form onSubmit={handleReset} className="reset-form font-inter">
+            
+            {/* Field Capture Block: New Password Entry */}
+            <div className="reset-field-wrapper">
+              <label className="reset-input-label">New Password</label>
+              <div className="reset-input-container">
+                <input
+                  type={showNewPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  className="reset-input-field"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setShowNewPassword(!showNewPassword)} 
+                  className="reset-password-toggle"
+                >
+                  {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Field Capture Block: Confirm Passkeys Entry */}
+            <div className="reset-field-wrapper">
+              <label className="reset-input-label">Confirm New Password</label>
+              <div className="reset-input-container">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  className="reset-input-field"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)} 
+                  className="reset-password-toggle"
+                >
+                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Verification Button Triggers */}
+            <div style={{ marginTop: '8px' }}>
+              <button type="submit" className="reset-submit-btn" disabled={loading}>
+                <span>{loading ? "Resetting..." : "Reset Password"}</span>
+                {!loading && <span style={{ fontSize: '18px', lineHeight: 1 }}>→</span>}
+              </button>
+
+              <Link to="/login" className="reset-back-link">
+                <span style={{ fontSize: '16px', lineHeight: 1 }}>←</span>
+                <span>Back to Login</span>
+              </Link>
+            </div>
+          </form>
+        </div>
+
+        {/* Global Structural Disclaimers Footer */}
+        <div className="reset-footer-meta">
+          <span>© 2024 VOYAGE TRAVEL. ALL RIGHTS RESERVED.</span>
+          <div className="reset-footer-links">
+            <Link to="/privacy" className="reset-meta-link">Privacy Policy</Link>
+            <Link to="/terms" className="reset-meta-link">Terms of Service</Link>
+            <Link to="/help" className="reset-meta-link">Support</Link>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

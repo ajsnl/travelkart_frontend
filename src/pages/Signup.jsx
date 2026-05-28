@@ -1,13 +1,17 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import { signupUser } from "../services/authService";
+import { signupUser, googleLogin, getCurrentUser } from "../services/authService";
+import { useDispatch } from "react-redux";
+import { setUser } from "../features/auth/authSlice";
 
 import "./Signup.css";
 import signupBg from "../assets/images/signuppage.png";
+import { GoogleLogin } from "@react-oauth/google";
 
 function Signup() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -213,15 +217,32 @@ function Signup() {
           </div>
 
           {/* Google Actions Anchor */}
-          <button type="button" className="signup-google-btn font-inter">
-            <svg style={{ width: '20px', height: '20px' }} viewBox="0 0 24 24">
-              <path fill="#EA4335" d="M5.266 9.765A7.077 7.077 0 0112 4.909c1.69 0 3.218.6 4.418 1.582L19.91 3C17.782 1.145 15.055 0 12 0 7.33 0 3.357 2.673 1.386 6.577l3.88 3.188z" />
-              <path fill="#4285F4" d="M23.455 12.273c0-.818-.073-1.609-.209-2.373H12v4.509h6.418a5.505 5.505 0 01-2.391 3.609l3.718 2.882c2.173-2.009 3.427-4.964 3.427-8.627z" />
-              <path fill="#FBBC05" d="M5.266 14.235A7.024 7.024 0 014.91 12c0-.791.136-1.555.356-2.265L1.386 6.545A11.948 11.948 0 000 12c0 1.955.464 3.81 1.295 5.464l3.971-3.229z" />
-              <path fill="#34A853" d="M12 24c3.245 0 5.973-1.082 7.964-2.918l-3.718-2.882c-1.027.691-2.345 1.1-4.246 1.1-3.264 0-6.036-2.21-7.027-5.182L1.09 17.336C3.064 21.318 7.209 24 12 24z" />
-            </svg>
-            <span>Google</span>
-          </button>
+          <div className="signup-google-btn">
+          <GoogleLogin
+            theme="outline"
+            size="large"
+            text="continue_with"
+            shape="pill"
+            onSuccess={async (credentialResponse) => {
+              try {
+                const token = credentialResponse.credential;
+
+                const res = await googleLogin(token);
+
+                console.log("Google login success:", res.data);
+
+                const user = await getCurrentUser();
+                dispatch(setUser(user));
+                navigate("/dashboard");
+
+              } catch (err) {
+                console.error(err);
+                alert("Google login failed ❌");
+              }
+            }}
+            onError={() => console.log("Login Failed")}
+          />
+        </div>
 
           {/* Reverse Sign Route Context Anchor */}
           <p className="signup-footer-redirect font-inter">

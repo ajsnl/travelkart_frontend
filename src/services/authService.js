@@ -40,3 +40,10 @@ export const logoutUser = async (navigate) => {
     navigate("/");
   }
 };
+
+export const googleLogin = async (token) => {
+  return api.post("auth/google/", {
+    access_token: token,
+    id_token: token,
+  });
+};

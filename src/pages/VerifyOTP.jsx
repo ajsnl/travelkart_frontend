@@ -1,12 +1,17 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+
+import "./VerifyOTP.css";
+// Shares the exact same background image composition as your forgot password file
+import forgotBg from "../assets/images/forgotpasswordpage.png";
 
 function VerifyOTP() {
   const [otp, setOtp] = useState("");
   const navigate = useNavigate();
 
-  const email = localStorage.getItem("resetEmail");
+  // Retrieve contextual session target parameters safely
+  const email = localStorage.getItem("resetEmail") || "your email";
 
   const handleVerify = async (e) => {
     e.preventDefault();
@@ -17,32 +22,87 @@ function VerifyOTP() {
         otp,
       });
 
-      alert("OTP verified");
+      alert("OTP verified 🎉");
       navigate("/reset-password");
     } catch (err) {
-      alert(err.response?.data?.error || "Invalid OTP");
+      alert(err.response?.data?.error || "Invalid OTP ❌");
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <form onSubmit={handleVerify} className="p-6 bg-white shadow rounded">
-        <h2 className="text-xl mb-4">Enter OTP</h2>
+    <div className="verify-viewport">
+      
+      {/* LEFT SIDE PANEL - MATCHES FORGOT PASSWORD GRAPHIC SCREEN */}
+      <div className="verify-left-banner" style={{ backgroundImage: `url(${forgotBg})` }}>
+        <div className="verify-banner-overlay" />
+        
+        <div className="verify-banner-content">
+          <div className="verify-left-quote">
+            “Travel Light. Travel Right.”
+          </div>
 
-        <input
-          type="text"
-          placeholder="Enter OTP"
-          className="border p-2 w-full mb-4"
-          value={otp}
-          onChange={(e) => setOtp(e.target.value)}
-          maxLength={6}
-          required
-        />
+          <div className="verify-left-middle-stack">
+            <h1 className="verify-left-heading">
+              Curated journeys for the modern traveler.
+            </h1>
+            <div className="verify-left-divider" />
+          </div>
 
-        <button className="bg-green-600 text-white px-4 py-2 w-full">
-          Verify OTP
-        </button>
-      </form>
+          <div className="verify-left-logo">
+            TravelKart
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT SIDE PANEL - VERIFICATION CARD INTERFACE */}
+      <div className="verify-right-container">
+        <div className="verify-form-wrapper">
+          
+          <div className="font-inter">
+            <h2 className="verify-heading font-plus-jakarta">Verify OTP</h2>
+            <p className="verify-subheading">
+              Please enter the security verification code sent to <span className="verify-email-highlight">{email}</span>.
+            </p>
+          </div>
+
+          <form onSubmit={handleVerify} className="verify-form font-inter">
+            
+            {/* Input Capture Block: Token Code String */}
+            <div className="verify-field-wrapper">
+              <label className="verify-input-label">Verification Code</label>
+              <input
+                type="text"
+                placeholder="Enter 6-digit OTP"
+                className="verify-input-field"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                maxLength={6}
+                required
+              />
+            </div>
+
+            {/* Verification Button Triggers */}
+            <div style={{ marginTop: '8px' }}>
+              <button type="submit" className="verify-submit-btn">
+                <span>Verify OTP</span>
+                <span style={{ fontSize: '18px', lineHeight: 1 }}>→</span>
+              </button>
+
+              <Link to="/forgot-password" className="verify-back-link">
+                <span style={{ fontSize: '16px', lineHeight: 1 }}>←</span>
+                <span>Change Email Address</span>
+              </Link>
+            </div>
+          </form>
+        </div>
+
+        {/* Global Structural Disclaimers Footer */}
+        <div className="verify-footer-meta">
+          <span>© 2026 Voyage Travel</span>
+          <a href="/support" className="verify-support-link">Support</a>
+        </div>
+      </div>
+
     </div>
   );
 }

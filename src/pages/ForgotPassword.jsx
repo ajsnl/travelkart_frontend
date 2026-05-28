@@ -1,6 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+
+import "./ForgotPassword.css";
+import forgotBg from "../assets/images/forgotpasswordpage.png";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -16,7 +19,7 @@ function ForgotPassword() {
         email,
       });
 
-      // ✅ store email for next steps
+      // store target context criteria parameters
       localStorage.setItem("resetEmail", email);
 
       alert("OTP sent to your email");
@@ -29,26 +32,78 @@ function ForgotPassword() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <form onSubmit={handleSubmit} className="p-6 bg-white shadow rounded">
-        <h2 className="text-xl mb-4">Forgot Password</h2>
+    <div className="forgot-viewport">
+      
+      {/* LEFT SIDE PANEL - ARTWORK BANNER OVERLAY MATRIX */}
+      <div className="forgot-left-banner" style={{ backgroundImage: `url(${forgotBg})` }}>
+        <div className="forgot-banner-overlay" />
+        
+        <div className="forgot-banner-content">
+          <div className="forgot-left-quote">
+            “Travel Light. Travel Right.”
+          </div>
 
-        <input
-          type="email"
-          placeholder="Enter your email"
-          className="border p-2 w-full mb-4"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+          <div className="forgot-left-middle-stack">
+            <h1 className="forgot-left-heading">
+              Curated journeys for the modern traveler.
+            </h1>
+            <div className="forgot-left-divider" />
+          </div>
 
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 w-full"
-        >
-          {loading ? "Sending..." : "Send OTP"}
-        </button>
-      </form>
+          <div className="forgot-left-logo">
+            TravelKart
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT SIDE PANEL - FORCED PURE FIGMA INTERFACE */}
+      <div className="forgot-right-container">
+        <div className="forgot-form-wrapper">
+          
+          <div className="font-inter">
+            <h2 className="forgot-heading font-plus-jakarta">Forgot Password?</h2>
+            <p className="forgot-subheading">
+              Enter your email address and we'll send you a link to reset your password.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="forgot-form font-inter">
+            
+            {/* Input Element: Underlined Field Matrix mapping */}
+            <div className="forgot-field-wrapper">
+              <label className="forgot-input-label">Email Address</label>
+              <input
+                type="email"
+                placeholder="email@voyage.com"
+                className="forgot-input-field"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            {/* Event Submission Processing buttons element */}
+            <div style={{ marginTop: '8px' }}>
+              <button type="submit" className="forgot-submit-btn" disabled={loading}>
+                <span>{loading ? "Sending Link..." : "Send Reset Link"}</span>
+                {!loading && <span style={{ fontSize: '18px', lineHeight: 1 }}>→</span>}
+              </button>
+
+              <Link to="/login" className="forgot-back-link">
+                <span style={{ fontSize: '16px', lineHeight: 1 }}>←</span>
+                <span>Back to Login</span>
+              </Link>
+            </div>
+          </form>
+        </div>
+
+        {/* System Footer Absolute Elements matching baseline */}
+        <div className="forgot-footer-meta">
+          <span>© 2026 Voyage Travel</span>
+          <a href="/support" className="forgot-support-link">Support</a>
+        </div>
+      </div>
+
     </div>
   );
 }
