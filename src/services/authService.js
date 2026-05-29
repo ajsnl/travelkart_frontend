@@ -47,3 +47,46 @@ export const googleLogin = async (token) => {
     id_token: token,
   });
 };
+
+export const getAddresses = () => {
+  return api.get("auth/addresses/");
+};
+
+export const addAddress = (data) => {
+  return api.post("auth/addresses/", data);
+};
+
+export const deleteAddress = (id) => {
+  return api.delete(`auth/addresses/${id}/`);
+};
+
+export const updateAddress = (id, data) => {
+  return api.put(`auth/addresses/${id}/`, data);
+};
+
+export const setDefaultAddress = (id) => {
+  return api.patch(`auth/addresses/${id}/set_default/`);
+};
+
+export const updateProfile = (data) => {
+  return api.patch("auth/profile/", data);
+};
+
+export const sendEmailOTP = (email = null) => {
+  const payload = email ? { email } : {};
+  return api.post("auth/send-email-otp/", payload);
+};
+
+export const verifyEmailOTP = (otp) => {
+  return api.post("auth/verify-email-otp/", { otp });
+};
+
+export const resendEmailOTP = () => {
+  return api.post("auth/resend-otp/");
+};
+
+export const changePassword = (data) => {
+  return api.post("auth/change-password/", data);
+};
+
+

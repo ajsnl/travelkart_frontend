@@ -15,6 +15,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ForgotPassword from "./pages/ForgotPassword";
 import VerifyOTP from "./pages/VerifyOTP";
 import ResetPassword from "./pages/ResetPassword";
+import ProfilePage from "./pages/ProfilePage";
 
 function App() {
   const dispatch = useDispatch();
@@ -59,6 +60,14 @@ function App() {
       <Route path="/forgot-password" element={<ForgotPassword/>}/>
       <Route path="/verify-otp" element={<VerifyOTP/>}/>
       <Route path="/reset-password" element={<ResetPassword/>}/>
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage/>
+          </ProtectedRoute>
+        }
+        />
     </Routes>
   );
 }

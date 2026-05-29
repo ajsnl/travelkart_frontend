@@ -34,13 +34,22 @@ api.interceptors.request.use(
     const stateChangingMethods = ["post", "put", "delete", "patch"];
 
     if (stateChangingMethods.includes(method)) {
-      // Check if csrf cookie is present
-      const hasCsrfToken = document.cookie
-        .split(";")
-        .some((item) => item.trim().startsWith("csrftoken="));
+      const getCookie = (name) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(";").shift();
+        return null;
+      };
 
-      if (!hasCsrfToken) {
+      let csrfToken = getCookie("csrftoken");
+
+      if (!csrfToken) {
         await fetchCsrfToken();
+        csrfToken = getCookie("csrftoken");
+      }
+
+      if (csrfToken) {
+        config.headers["X-CSRFToken"] = csrfToken;
       }
     }
     return config;
