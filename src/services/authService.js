@@ -89,4 +89,15 @@ export const changePassword = (data) => {
   return api.post("auth/change-password/", data);
 };
 
+// 🔥 Upload Profile Picture
+export const uploadProfileImage = (file) => {
+  const formData = new FormData();
+  formData.append("profile_picture", file);
+
+  return api.patch("auth/upload-profile/", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
 

@@ -107,6 +107,16 @@ const ProfilePage = () => {
     return `Joined ${date.toLocaleDateString("en-US", { month: "long", year: "numeric" })}`;
   };
 
+  const getProfilePictureUrl = () => {
+    if (!user || !user.profile_picture) return "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+    let url = user.profile_picture;
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      url = `http://localhost:8000${url.startsWith("/") ? "" : "/"}${url}`;
+    }
+    const ts = user.updated_at ? new Date(user.updated_at).getTime() : new Date().getTime();
+    return `${url}?t=${ts}`;
+  };
+
   return (
     <div className="profile-dashboard-layout font-inter">
       
@@ -117,7 +127,7 @@ const ProfilePage = () => {
         {user && (
           <div className="sidebar-profile-capsule">
             <img 
-              src={user.avatar || "https://cdn-icons-png.flaticon.com/512/149/149071.png"} 
+              src={getProfilePictureUrl()} 
               alt="Mini Profile Display" 
               className="sidebar-avatar-img"
             />
@@ -160,7 +170,7 @@ const ProfilePage = () => {
               <div className="hero-identity-block">
                 <div className="hero-avatar-wrapper">
                   <img 
-                    src={user.avatar || "https://cdn-icons-png.flaticon.com/512/149/149071.png"} 
+                    src={getProfilePictureUrl()} 
                     alt="User Display Identity" 
                     className="hero-main-avatar"
                   />
@@ -207,7 +217,11 @@ const ProfilePage = () => {
               
               {/* PRIMARY FEED FLOW AREA */}
               <div className="workspace-left-flow-column">
-                <UserInfoCard user={user} onEdit={() => setShowEditModal(true)} />
+                <UserInfoCard 
+                  user={user} 
+                  onEdit={() => setShowEditModal(true)}
+                  refreshUser={fetchUser}
+                />
                 <AddressList />
               </div>
 
