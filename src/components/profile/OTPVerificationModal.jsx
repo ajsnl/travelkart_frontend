@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { resendEmailOTP } from "../../services/authService";
 import { ShieldCheck, RefreshCw } from "lucide-react";
+import { toast } from "react-toastify";
 
 const OTPVerificationModal = ({ email, onSubmit, onClose }) => {
   const [otp, setOtp] = useState("");
@@ -24,15 +25,18 @@ const OTPVerificationModal = ({ email, onSubmit, onClose }) => {
       setError("Please enter a valid 6-digit verification code.");
       return;
     }
-
+    if (!window.confirm("Are you sure you want to verify this OTP?")) return;
+    
     setSubmitting(true);
     setError("");
     setSuccessMsg("");
 
     try {
       await onSubmit(otp);
+      toast.success("OTP Verified")
     } catch (err) {
       console.error("OTP verification error:", err);
+      toast.error("OTP verification is Failed",err)
       setError(err.response?.data?.error || "Invalid verification code. Please try again.");
     } finally {
       setSubmitting(false);
@@ -47,9 +51,11 @@ const OTPVerificationModal = ({ email, onSubmit, onClose }) => {
     try {
       await resendEmailOTP();
       setSuccessMsg("Verification code resent successfully!");
+      toast.success("Verification code resent successfully")
       setCooldown(60);
     } catch (err) {
       console.error("Resend OTP error:", err);
+      toast.error("Resend OTP error",err)
       setError(err.response?.data?.error || "Failed to resend verification code.");
     }
   };

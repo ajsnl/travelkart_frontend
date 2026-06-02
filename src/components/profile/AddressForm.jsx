@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 
 const AddressForm = ({ onSubmit, initialData, onClose }) => {
   const [form, setForm] = useState({
@@ -45,14 +46,17 @@ const AddressForm = ({ onSubmit, initialData, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!window.confirm("Are you sure you want to save this address?")) return;
     setSubmitting(true);
     setFieldErrors({});
     setGeneralError("");
 
     try {
       await onSubmit(form);
+      toast.success("Address Submitted")
     } catch (err) {
       console.error("Address submission error:", err);
+      toast.error("Address Submission error occured",err)
       if (err.response && err.response.data) {
         const data = err.response.data;
         if (typeof data === "object" && !Array.isArray(data)) {

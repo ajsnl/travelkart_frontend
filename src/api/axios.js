@@ -67,7 +67,7 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // ❌ if no response
+    //  if no response
     if (!error.response) return Promise.reject(error);
 
     const url = originalRequest.url;
@@ -115,8 +115,12 @@ api.interceptors.response.use(
 
       console.log(" Refresh failed → redirect login");
 
-      // Prevent infinite redirect loops if the user is already on the login page ("/" or "/login")
-      if (window.location.pathname !== "/" && window.location.pathname !== "/login") {
+      // Prevent infinite redirect loops or if skipAuthRedirect config is set to true
+      if (
+        !originalRequest.skipAuthRedirect &&
+        window.location.pathname !== "/" && 
+        window.location.pathname !== "/login"
+      ) {
         window.location.href = "/";
       }
 

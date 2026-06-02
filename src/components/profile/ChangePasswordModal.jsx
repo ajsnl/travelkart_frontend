@@ -32,20 +32,25 @@ const ChangePasswordModal = ({ onSubmit, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (form.new_password !== form.confirm_password) {
+      setFieldErrors({ confirm_password: ["New passwords do not match"] });
+      return;
+    }
+
+    if (!window.confirm("Are you sure you want to change your password?")) return;
+
     setSubmitting(true);
     setFieldErrors({});
     setGeneralError("");
 
-    if (form.new_password !== form.confirm_password) {
-      setFieldErrors({ confirm_password: ["New passwords do not match"] });
-      setSubmitting(false);
-      return;
-    }
-
     try {
       await onSubmit(form);
+      toast.success("Password Changed")
     } catch (err) {
       console.error("Change password error:", err);
+      toast.error("Change Password Error ",err)
+    
       if (err.response && err.response.data) {
         const data = err.response.data;
         if (typeof data === "object" && !Array.isArray(data)) {

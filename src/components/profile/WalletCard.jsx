@@ -1,5 +1,6 @@
 import React from "react";
 import { Wallet } from "lucide-react";
+import { toast } from "react-toastify";
 
 const WalletCard = () => {
   // Configured default balance context parameters
@@ -21,10 +22,10 @@ const WalletCard = () => {
       </div>
 
       <div className="wallet-interactive-actions-row">
-        <button className="wallet-action-trigger-btn font-inter" onClick={() => alert("Redirecting to secure transaction gateway...")}>
+        <button className="wallet-action-trigger-btn font-inter" onClick={() => toast.info("Redirecting to secure transaction gateway...")}>
           Add Funds
         </button>
-        <button className="wallet-action-trigger-btn font-inter" onClick={() => alert("Fetching historical account details...")}>
+        <button className="wallet-action-trigger-btn font-inter" onClick={() => toast.info("Fetching historical account details...")}>
           History
         </button>
       </div>

@@ -1,17 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
 import "./ForgotPassword.css";
 import forgotBg from "../assets/images/forgotpasswordpage.png";
+import { toast } from "react-toastify";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    localStorage.removeItem("resetEmail");
+    localStorage.removeItem("otpVerified");
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!window.confirm("Are you sure you want to request a password reset link?")) return;
     setLoading(true);
 
     try {
@@ -22,10 +29,11 @@ function ForgotPassword() {
       // store target context criteria parameters
       localStorage.setItem("resetEmail", email);
 
-      alert("OTP sent to your email");
+      toast.success("OTP sent to your email");
       navigate("/verify-otp");
     } catch (err) {
-      alert(err.response?.data?.error || "Something went wrong");
+      toast.error(err.response?.data?.error || "Something went wrong");
+
     } finally {
       setLoading(false);
     }
@@ -89,7 +97,7 @@ function ForgotPassword() {
                 {!loading && <span style={{ fontSize: '18px', lineHeight: 1 }}>→</span>}
               </button>
 
-              <Link to="/login" className="forgot-back-link">
+              <Link to="/" className="forgot-back-link">
                 <span style={{ fontSize: '16px', lineHeight: 1 }}>←</span>
                 <span>Back to Login</span>
               </Link>
@@ -99,7 +107,7 @@ function ForgotPassword() {
 
         {/* System Footer Absolute Elements matching baseline */}
         <div className="forgot-footer-meta">
-          <span>© 2026 Voyage Travel</span>
+          <span>© 2026 TravelKart</span>
           <a href="/support" className="forgot-support-link">Support</a>
         </div>
       </div>

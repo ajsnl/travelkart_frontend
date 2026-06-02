@@ -2,13 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
-  ShoppingBag, 
-  Heart, 
-  Crown, 
   Settings, 
   LogOut, 
   AlertCircle,
-  Lock
+  Lock,
+  ArrowLeft
 } from "lucide-react";
 import { 
   getProfile, 
@@ -28,6 +26,7 @@ import OTPVerificationModal from "../components/profile/OTPVerificationModal";
 import ChangePasswordModal from "../components/profile/ChangePasswordModal";
 
 import "../components/profile/Profile.css";
+import { toast } from "react-toastify";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -73,19 +72,21 @@ const ProfilePage = () => {
 
   const handleVerifyOTP = async (otp) => {
     await verifyEmailOTP(otp);
-    alert("Email verified successfully! 🎉");
+    toast.success("Email verified successfully! ");
     await fetchUser();
     setShowVerifyModal(false);
   };
 
   const handleChangePassword = async (passwordData) => {
     await changePassword(passwordData);
-    alert("Password changed successfully. Please log in again. 🔐");
+    toast.success("Password changed successfully. Please log in again. 🔐");
     await logoutUser(navigate);
   };
 
   const handleLogout = async () => {
-    await logoutUser(navigate);
+    if (window.confirm("Are you sure you want to log out?")) {
+      await logoutUser(navigate);
+    }
   };
 
   if (loading && !user) {
@@ -140,16 +141,10 @@ const ProfilePage = () => {
 
         <nav className="sidebar-navigation-links">
           <button className={`nav-link-btn ${activeTab === "Dashboard" ? "active" : ""}`} onClick={() => setActiveTab("Dashboard")}>
-            <LayoutDashboard size={18} /> <span>Dashboard</span>
+            <LayoutDashboard size={18} /> <span>Profile Overview</span>
           </button>
-          <button className={`nav-link-btn ${activeTab === "Orders" ? "active" : ""}`} onClick={() => setActiveTab("Orders")}>
-            <ShoppingBag size={18} /> <span>Orders</span>
-          </button>
-          <button className={`nav-link-btn ${activeTab === "Wishlist" ? "active" : ""}`} onClick={() => setActiveTab("Wishlist")}>
-            <Heart size={18} /> <span>Wishlist</span>
-          </button>
-          <button className={`nav-link-btn ${activeTab === "Membership" ? "active" : ""}`} onClick={() => setActiveTab("Membership")}>
-            <Crown size={18} /> <span>Membership</span>
+          <button className="nav-link-btn" onClick={() => navigate("/dashboard")}>
+            <ArrowLeft size={18} /> <span>Back to Dashboard</span>
           </button>
           <button className={`nav-link-btn ${activeTab === "Settings" ? "active" : ""}`} onClick={() => {
             setActiveTab("Settings");

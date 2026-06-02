@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 
 const ProfileEditForm = ({ user, onSubmit, onClose }) => {
   const [form, setForm] = useState({
@@ -42,6 +43,7 @@ const ProfileEditForm = ({ user, onSubmit, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!window.confirm("Are you sure you want to save these profile changes?")) return;
     setSubmitting(true);
     setFieldErrors({});
     setGeneralError("");
@@ -55,8 +57,10 @@ const ProfileEditForm = ({ user, onSubmit, onClose }) => {
 
     try {
       await onSubmit(payload);
+      toast.success("Profile Updated")
     } catch (err) {
       console.error("Profile update error:", err);
+      toast.error("Error Occured",err)
       if (err.response && err.response.data) {
         const data = err.response.data;
         if (typeof data === "object" && !Array.isArray(data)) {

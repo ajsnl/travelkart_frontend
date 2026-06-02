@@ -1,4 +1,7 @@
+import { toast } from "react-toastify";
 import api from "../api/axios";
+import { store } from "../store";
+import { logout } from "../features/auth/authSlice";
 
 
 export const loginUser = async (data) => {
@@ -22,8 +25,8 @@ export const signupUser = (data)=>{
 export const getProfile = () => {
   return api.get("auth/profile/");
 };
-export const getCurrentUser = async () => {
-  const res = await api.get("auth/user/me/");
+export const getCurrentUser = async (skipAuthRedirect = false) => {
+  const res = await api.get("auth/user/me/", { skipAuthRedirect });
   return res.data;
 };
 
@@ -32,11 +35,15 @@ export const logoutUser = async (navigate) => {
     await api.get("auth/csrf/"); // 🔥 force cookie
 
     await api.post("auth/logout/");
-
+    toast.success("Logout Success");
+    store.dispatch(logout());
     navigate("/");
+
 
   } catch (error) {
     console.error("Logout failed", error);
+    toast.error("Logout Failed");
+    store.dispatch(logout());
     navigate("/");
   }
 };
@@ -89,7 +96,7 @@ export const changePassword = (data) => {
   return api.post("auth/change-password/", data);
 };
 
-// 🔥 Upload Profile Picture
+
 export const uploadProfileImage = (file) => {
   const formData = new FormData();
   formData.append("profile_picture", file);

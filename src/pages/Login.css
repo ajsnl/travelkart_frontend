@@ -121,12 +121,20 @@
 }
 
 .login-left-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 800;
   font-size: 32px;
   line-height: 32px;
   letter-spacing: -1.2px;
   color: #FFFFFF;
+}
+
+.signup-logo-icon {
+  width: 28px;
+  height: 28px;
 }
 
 /* RIGHT SIDE CONTEXT INTERFACE MODULES */

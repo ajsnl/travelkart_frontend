@@ -1,31 +1,41 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
 import "./VerifyOTP.css";
 // Shares the exact same background image composition as your forgot password file
 import forgotBg from "../assets/images/forgotpasswordpage.png";
+import { toast } from "react-toastify";
 
 function VerifyOTP() {
   const [otp, setOtp] = useState("");
   const navigate = useNavigate();
 
   // Retrieve contextual session target parameters safely
-  const email = localStorage.getItem("resetEmail") || "your email";
+  const email = localStorage.getItem("resetEmail");
+
+  useEffect(() => {
+    if (!email) {
+      toast.error("Please request a password reset link first.");
+      navigate("/forgot-password");
+    }
+  }, [email, navigate]);
 
   const handleVerify = async (e) => {
     e.preventDefault();
+    if (!window.confirm("Are you sure you want to submit the OTP for verification?")) return;
 
     try {
       await axios.post("http://localhost:8000/api/auth/verify-forgot-otp/", {
-        email,
+        email: email || "",
         otp,
       });
 
-      alert("OTP verified 🎉");
+      toast.success("OTP verified ");
+      localStorage.setItem("otpVerified", "true");
       navigate("/reset-password");
     } catch (err) {
-      alert(err.response?.data?.error || "Invalid OTP ❌");
+      toast.error(err.response?.data?.error || "Invalid OTP ❌");
     }
   };
 

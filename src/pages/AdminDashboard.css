@@ -1,0 +1,556 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+
+/* Strict Design Token Variables Mapping Figma Color Space Grid */
+:root {
+  --admin-bg-space: #020408;
+  --admin-surface-card: #0A0F1D;
+  --admin-border-gray: #182235;
+  --admin-text-main: #FFFFFF;
+  --admin-text-dimmed: #64748B;
+  --admin-text-table-th: #475569;
+  
+  /* Status Colors */
+  --figma-active-green: #10B981;
+  --figma-suspended-red: #EF4444;
+  --figma-gold-elite: #FF8F4F;
+  --figma-gold-bg: rgba(255, 143, 79, 0.1);
+  --figma-standard-blue: #3B82F6;
+  --figma-standard-bg: rgba(59, 130, 246, 0.1);
+}
+
+.admin-viewport {
+  min-height: 100vh;
+  background-color: var(--admin-bg-space);
+  color: var(--admin-text-main);
+  padding-bottom: 40px;
+  box-sizing: border-box;
+}
+
+.admin-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  box-sizing: border-box;
+}
+
+/* TOP GLOBAL REGISTRY NAVIGATION BAR */
+.admin-global-navbar {
+  height: 72px;
+  width: 100%;
+  background-color: #050811;
+  border-bottom: 1px solid var(--admin-border-gray);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  box-sizing: border-box;
+  margin-bottom: 24px;
+  
+}
+
+.navbar-left-brand-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  flex-grow: 1;
+}
+
+.brand-logo-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.global-search-container {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+}
+
+.search-icon-inside {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  transform: translateY(-50%);
+  color: var(--admin-text-dimmed);
+  pointer-events: none;
+}
+
+.navbar-search-input {
+  width: 100%;
+  height: 40px;
+  background-color: #0A0F1D;
+  border: 1px solid var(--admin-border-gray);
+  border-radius: 9999px;
+  padding-left: 48px;
+  padding-right: 20px;
+  font-size: 14px;
+  
+  /* CHANGE: This forces your typed text to show up in solid black */
+  color: #000000; 
+  
+  outline: none;
+  font-family: 'Inter', sans-serif;
+  transition: border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.navbar-search-input:focus {
+  border-color: var(--figma-standard-blue);
+}
+
+.navbar-search-input::placeholder {
+  color: #334155;
+}
+
+.navbar-right-utilities {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.navbar-notification-trigger {
+  background: transparent;
+  border: none;
+  color: var(--admin-text-dimmed);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.navbar-notification-trigger:hover {
+  color: var(--admin-text-main);
+  background-color: #111827;
+}
+
+.navbar-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--figma-suspended-red);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.navbar-logout-btn:hover {
+  background-color: var(--figma-suspended-red);
+  color: #FFFFFF;
+}
+
+/* SECTION SUBTITLE HEADINGS */
+.workspace-header-row {
+  margin-top: 8px;
+}
+
+.workspace-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--admin-text-main);
+  margin: 0;
+  letter-spacing: -1px;
+}
+
+/* SUMMATION STATS METRICS BLOCKS GRID */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.stat-card {
+  background-color: var(--admin-surface-card);
+  border: 1px solid var(--admin-border-gray);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.stat-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.total-icon-bg { background-color: rgba(59, 130, 246, 0.15); color: var(--figma-standard-blue); }
+.gold-icon-bg { background-color: rgba(255, 143, 79, 0.15); color: var(--figma-gold-elite); }
+.active-icon-bg { background-color: rgba(16, 115, 249, 0.15); color: #2563EB; }
+.unverified-icon-bg { background-color: rgba(239, 68, 68, 0.15); color: var(--figma-suspended-red); }
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--admin-text-dimmed);
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--admin-text-main);
+  letter-spacing: -0.5px;
+}
+
+/* CONTROLS FILTERS DRILL BAR ROW */
+.controls-bar-row {
+  display: flex;
+  gap: 16px;
+}
+
+.filter-select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.filter-leading-icon {
+  position: absolute;
+  left: 16px;
+  color: var(--admin-text-dimmed);
+  pointer-events: none;
+}
+
+.custom-filter-dropdown {
+  height: 44px;
+  background-color: #050811;
+  border: 1px solid var(--admin-border-gray);
+  border-radius: 8px;
+  padding: 0 40px 0 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--admin-text-dimmed);
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: all 0.2s ease;
+}
+
+.filter-select-wrapper .custom-filter-dropdown {
+  padding-left: 44px;
+}
+
+.custom-filter-dropdown:focus, .custom-filter-dropdown:hover {
+  border-color: #334155;
+  color: var(--admin-text-main);
+}
+
+/* CORE PREMIUM DARK DATA TABLE SYSTEM */
+.table-card-frame {
+  background-color: var(--admin-surface-card);
+  border: 1px solid var(--admin-border-gray);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.figma-dark-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.figma-dark-table th {
+  background-color: #080D1A;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--admin-border-gray);
+}
+
+.figma-dark-table td {
+  padding: 20px 24px;
+  border-bottom: 1px solid #111A2E;
+  font-size: 14px;
+  color: #94A3B8;
+  vertical-align: middle;
+}
+
+.figma-dark-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.figma-dark-table tbody tr:hover td {
+  background-color: rgba(255, 255, 255, 0.01);
+  color: var(--admin-text-main);
+}
+
+/* TABLE PROFILE CELL MODULE ELEMENTS */
+.profile-composite-block {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.profile-avatar-frame {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #1E293B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.avatar-img-source {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder-initials {
+  font-size: 14px;
+  font-weight: 700;
+  color: #64748B;
+}
+
+.profile-meta-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profile-row-fullname {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--admin-text-main);
+}
+
+.profile-row-email-anchor {
+  font-size: 13px;
+  color: var(--admin-text-dimmed);
+}
+
+.table-row-timestamp-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #94A3B8;
+}
+
+/* FIGMA DESIGN TIERS AND MEMBERSHIP BADGES */
+.tier-badge-node {
+  display: inline-flex;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tier-badge-node.tier-gold {
+  background-color: var(--figma-gold-bg);
+  color: var(--figma-gold-elite);
+}
+
+.tier-badge-node.tier-standard {
+  background-color: var(--figma-standard-bg);
+  color: var(--figma-standard-blue);
+}
+
+/* STATUS COLUMN TOGGLE GRAPHICS */
+.status-indicator-node-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-dot-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-dot-indicator.dot-active { background-color: var(--figma-active-green); }
+.status-dot-indicator.dot-suspended { background-color: var(--figma-suspended-red); }
+
+.status-label-node-text {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status-label-node-text.text-active { color: var(--figma-active-green); }
+.status-label-node-text.text-suspended { color: var(--figma-suspended-red); }
+
+/* CONTEXT MENU INTERACTIVE ROW TRIGGERS */
+.actions-cell-alignment-box {
+  display: flex;
+  justify-content: center;
+}
+
+.row-context-menu-btn {
+  background: transparent;
+  border: none;
+  color: var(--admin-text-dimmed);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.row-context-menu-btn:hover {
+  background-color: #111A2E;
+  color: var(--admin-text-main);
+}
+
+.table-empty-row {
+  padding: 48px !important;
+  color: var(--admin-text-dimmed) !important;
+}
+
+/* PAGINATION MODULE BOTTOM CONSOLE BAR */
+.table-pagination-footer-console {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background-color: #050811;
+  border-top: 1px solid var(--admin-border-gray);
+}
+
+.pagination-range-counter-info {
+  font-size: 14px;
+  color: var(--admin-text-dimmed);
+}
+
+.text-white-weight {
+  color: var(--admin-text-main);
+  font-weight: 600;
+}
+
+.pagination-action-controls-button-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.console-pagination-step-btn {
+  width: 36px;
+  height: 36px;
+  background-color: #0A0F1D;
+  border: 1px solid var(--admin-border-gray);
+  color: var(--admin-text-dimmed);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.console-pagination-step-btn:hover:not(:disabled) {
+  border-color: #2D3748;
+  color: var(--admin-text-main);
+}
+
+.console-pagination-step-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.pagination-page-numeric-cluster {
+  display: flex;
+  gap: 4px;
+}
+
+.numeric-page-btn {
+  width: 36px;
+  height: 36px;
+  background-color: transparent;
+  border: none;
+  color: var(--admin-text-dimmed);
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.numeric-page-btn.numeric-active-btn {
+  background-color: var(--figma-standard-blue);
+  color: #FFFFFF;
+}
+
+.numeric-page-btn:hover:not(.numeric-active-btn) {
+  background-color: #111A2E;
+  color: var(--admin-text-main);
+}
+
+/* CORE FOOTER BRAND SIGN OFF BRAND PANEL */
+.admin-footer-branding {
+  text-align: center;
+  padding-top: 40px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #27354A;
+  letter-spacing: 0.2px;
+}
+/* INTERACTIVE CONTENT SUSPEND / ACTIVATE ROW TOGGLES */
+.table-action-toggle-btn {
+  height: 32px;
+  padding: 0 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: 'Inter', sans-serif;
+}
+
+/* Suspend Action Styling State */
+.table-action-toggle-btn.action-suspend {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: var(--figma-suspended-red);
+}
+
+.table-action-toggle-btn.action-suspend:hover {
+  background-color: var(--figma-suspended-red);
+  border-color: var(--figma-suspended-red);
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+/* Activate Action Styling State */
+.table-action-toggle-btn.action-activate {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.2);
+  color: var(--figma-active-green);
+}
+
+.table-action-toggle-btn.action-activate:hover {
+  background-color: var(--figma-active-green);
+  border-color: var(--figma-active-green);
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.table-action-toggle-btn:active {
+  transform: scale(0.97);
+}

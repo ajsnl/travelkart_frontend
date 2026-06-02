@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import { Edit2 } from "lucide-react";
 import { uploadProfileImage } from "../../services/authService";
+import { toast } from "react-toastify";
 
 const UserInfoCard = ({ user, onEdit, refreshUser }) => {
   const fileInputRef = useRef();
@@ -32,21 +33,21 @@ const UserInfoCard = ({ user, onEdit, refreshUser }) => {
 
     try {
       await uploadProfileImage(file);
-      alert("Profile picture updated ✅");
+      toast.success("Profile picture updated ✅");
       refreshUser(); // 🔥 reload profile
     } catch (err) {
       console.error(err);
-      alert("Upload failed ❌");
+      toast.error("Upload failed ❌");
     }
   };
 
   return (
     <div className="profile-data-display-card font-inter">
-      
+
       {/* 🔥 PROFILE IMAGE SECTION */}
       <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "20px" }}>
-        
-        <div style={{ position: "relative", cursor: "pointer" }} onClick={handleImageClick}>
+
+        <div style={{ position: "relative", cursor: "pointer", width: "90px", height: "90px" }} onClick={handleImageClick}>
           <img
             src={getProfilePictureUrl()}
             alt="profile"
@@ -62,12 +63,18 @@ const UserInfoCard = ({ user, onEdit, refreshUser }) => {
           {/* small edit icon */}
           <div style={{
             position: "absolute",
-            bottom: "0",
-            right: "0",
-            background: "#000",
+            bottom: "2px",
+            right: "2px",
+            background: "#1E3A8A",
             color: "#fff",
             borderRadius: "50%",
-            padding: "4px"
+            width: "24px",
+            height: "24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            border: "2px solid #fff",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.15)"
           }}>
             <Edit2 size={12} />
           </div>

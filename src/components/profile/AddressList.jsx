@@ -8,6 +8,7 @@ import {
 } from "../../services/authService";
 import AddressForm from "./AddressForm";
 import { MapPin, Plus, Edit2, Trash2, CheckCircle2 } from "lucide-react";
+import { toast } from "react-toastify";
 
 const AddressList = () => {
   const [addresses, setAddresses] = useState([]);
@@ -20,7 +21,14 @@ const AddressList = () => {
     try {
       setLoading(true);
       const res = await getAddresses();
-      setAddresses(res.data);
+      const defaultAddress = res.data.find(addr => addr.is_default);
+      const otherAddresses = res.data.filter(addr => !addr.is_default);
+
+      const finalList = defaultAddress
+        ? [defaultAddress, ...otherAddresses]
+        : otherAddresses;
+
+      setAddresses(finalList);
       setError(null);
     } catch (err) {
       console.error("Error fetching addresses:", err);
@@ -53,7 +61,7 @@ const AddressList = () => {
       } catch (err) {
         console.error("Error deleting address:", err);
         const backendError = err.response?.data?.error || "Failed to delete address.";
-        alert(backendError);
+        toast.error(backendError);
       }
     }
   };
@@ -64,7 +72,7 @@ const AddressList = () => {
       fetchAddresses();
     } catch (err) {
       console.error("Error setting default address:", err);
-      alert("Failed to set default address.");
+      toast.error("Failed to set default address.");
     }
   };
 

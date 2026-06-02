@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 import "./ResetPassword.css";
 import forgotBg from "../assets/images/forgotpasswordpage.png";
@@ -15,20 +16,30 @@ function ResetPassword() {
 
   const navigate = useNavigate();
   const email = localStorage.getItem("resetEmail");
+  const otpVerified = localStorage.getItem("otpVerified");
+
+  useEffect(() => {
+    if (!email || otpVerified !== "true") {
+      toast.error("Access denied. Please verify OTP first.");
+      navigate("/forgot-password");
+    }
+  }, [email, otpVerified, navigate]);
 
   const handleReset = async (e) => {
     e.preventDefault();
 
-    if (!email) {
-      alert("Session expired. Please restart password reset.");
+    if (!email || otpVerified !== "true") {
+      toast.error("Session expired or invalid. Please restart password reset.");
       navigate("/forgot-password");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      alert("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
+
+    if (!window.confirm("Are you sure you want to reset your password?")) return;
 
     try {
       setLoading(true);
@@ -45,11 +56,12 @@ function ResetPassword() {
         }
       );
 
-      alert("Password reset successful 🎉");
+      toast.success("Password reset successful 🎉");
       localStorage.removeItem("resetEmail");
+      localStorage.removeItem("otpVerified");
       navigate("/");
     } catch (err) {
-      alert(err.response?.data?.error || "Reset failed ❌");
+      toast.error(err.response?.data?.error || "Reset failed ❌");
     } finally {
       setLoading(false);
     }

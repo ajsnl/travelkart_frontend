@@ -1,5 +1,6 @@
 import React from "react";
 import { Star, Lock, CheckCircle2 } from "lucide-react";
+import { toast } from "react-toastify";
 
 const MembershipCard = ({ user }) => {
   if (!user) return null;
@@ -59,7 +60,7 @@ const MembershipCard = ({ user }) => {
       {isGold ? (
         <button 
           className="membership-view-benefits-btn font-inter" 
-          onClick={() => alert("Redirecting to your benefits console...")}
+          onClick={() => toast.info("Redirecting to your benefits console...")}
         >
           View Benefits
         </button>
@@ -67,7 +68,7 @@ const MembershipCard = ({ user }) => {
         <button 
           className="membership-view-benefits-btn font-inter" 
           style={{ backgroundColor: "var(--accent-orange)", color: "#FFFFFF" }}
-          onClick={() => alert("Redirecting to checkout to upgrade to Gold membership...")}
+          onClick={() => toast.info("Redirecting to checkout to upgrade to Gold membership...")}
         >
           Buy Gold
         </button>

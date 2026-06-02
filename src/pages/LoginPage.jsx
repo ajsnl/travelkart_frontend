@@ -5,14 +5,16 @@ import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { loginUser, getCurrentUser, googleLogin } from "../services/authService";
 import { setUser } from "../features/auth/authSlice";
 import { GoogleLogin } from "@react-oauth/google";
+import { toast } from "react-toastify";
 
 import "./Login.css";
 import loginBg from "../assets/images/loginpage.png";
+import TravelKartLogoMain from "../components/brand/TravelKartLogoMain";
 
 function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isAuthenticated, loading } = useSelector((state) => state.auth);
+  const { user, isAuthenticated, loading } = useSelector((state) => state.auth);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,14 +31,24 @@ function Login() {
       console.log("User:", user);
 
       dispatch(setUser(user));
-      navigate("/dashboard");
+      if (user?.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       console.log("ERROR:", err);
-      alert("Login failed");
+      const backendError = err.response?.data?.error || 
+                           err.response?.data?.non_field_errors?.[0] || 
+                           (err.response?.data && typeof err.response.data === "object" ? Object.values(err.response.data).flat()[0] : null);
+      toast.error(backendError || "Login failed");
     }
   };
 
   if (!loading && isAuthenticated) {
+    if (user?.role === "admin") {
+      return <Navigate to="/admin" replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -77,7 +89,8 @@ function Login() {
           </div>
 
           <div className="login-left-logo">
-            TravelKart
+            <TravelKartLogoMain className="signup-logo-icon" color="#FFFFFF" accentColor="#4E82EE" />
+            <span>TravelKart</span>
           </div>
         </div>
       </div>
@@ -94,7 +107,7 @@ function Login() {
 
             <div className="login-tab-bar font-inter">
               <button type="button" className="login-tab-btn-active">Login</button>
-              <button type="button" className="login-tab-btn-inactive">Sign up</button>
+              <button type="button" className="login-tab-btn-inactive" onClick={()=>navigate('/signup')}>Sign up</button>
             </div>
 
             <form onSubmit={handleLogin} className="login-form font-inter">
@@ -161,10 +174,17 @@ function Login() {
                     
                     const user = await getCurrentUser();
                     dispatch(setUser(user));
-                    navigate("/dashboard");
+                    if (user?.role === "admin") {
+                      navigate("/admin");
+                    } else {
+                      navigate("/dashboard");
+                    }
                   } catch (err) {
                     console.error(err);
-                    alert("Google login failed ❌");
+                    const backendError = err.response?.data?.error || 
+                                         err.response?.data?.non_field_errors?.[0] || 
+                                         (err.response?.data && typeof err.response.data === "object" ? Object.values(err.response.data).flat()[0] : null);
+                    toast.error(backendError || "Google login failed ❌");
                   }
                 }}
                 onError={() => console.log("Login Failed")}

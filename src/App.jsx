@@ -3,39 +3,67 @@ import Login from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
 import Signup from "./pages/Signup";
 
-import { Routes, Route, useLocation } from "react-router-dom"; // ✅ useLocation
+import { Routes, Route, useLocation, useNavigate, useNavigationType } from "react-router-dom"; 
 
 // Redux
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setUser, logout } from "./features/auth/authSlice";
 
 //  Service
-import { getCurrentUser } from "./services/authService";
+import { getCurrentUser, logoutUser } from "./services/authService";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ForgotPassword from "./pages/ForgotPassword";
 import VerifyOTP from "./pages/VerifyOTP";
 import ResetPassword from "./pages/ResetPassword";
 import ProfilePage from "./pages/ProfilePage";
+import AdminRoute from "./components/AdminRoute";
+import AdminDashboard from "./pages/AdminDashboard";
+
+// Toast Notifications
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const dispatch = useDispatch();
-  const location = useLocation(); // ✅GET CURRENT ROUTE
+  const location = useLocation(); 
+  const navigationType = useNavigationType(); 
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     const publicRoutes = [
-  "/",
-  "/signup",
-  "/forgot-password",
-  "/verify-otp",
-  "/reset-password"
-];
+      "/",
+      "/signup",
+      "/forgot-password",
+      "/verify-otp",
+      "/reset-password"
+    ];
 
     const checkAuth = async () => {
       try {
         //  ONLY CHECK AUTH FOR PRIVATE ROUTES
         if (!publicRoutes.includes(location.pathname)) {
-          const user = await getCurrentUser();
-          dispatch(setUser(user));
+          const userData = await getCurrentUser();
+          dispatch(setUser(userData));
+        } else if (publicRoutes.includes(location.pathname)) {
+          // If they land on guest routes
+          if (isAuthenticated) {
+            // REDIRECT them back to their dashboard if they are already logged in
+            const target = user?.role === "admin" ? "/admin" : "/dashboard";
+            navigate(target, { replace: true });
+          } else {
+            // Check if they have an active backend session (e.g. after a hard page refresh on landing page)
+            try {
+              const userData = await getCurrentUser(true);
+              if (userData) {
+                dispatch(setUser(userData));
+                const target = userData.role === "admin" ? "/admin" : "/dashboard";
+                navigate(target, { replace: true });
+              }
+            } catch (err) {
+              // Not logged in, let them access guest page
+            }
+          }
         }
       } catch (err) {
         dispatch(logout());
@@ -43,32 +71,43 @@ function App() {
     };
 
     checkAuth();
-  }, [location.pathname, dispatch]);
+  }, [location.pathname, dispatch, isAuthenticated, navigationType, user, navigate]);
 
   return (
-    <Routes>
-      <Route path="/" element={<Login />} />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/forgot-password" element={<ForgotPassword/>}/>
-      <Route path="/verify-otp" element={<VerifyOTP/>}/>
-      <Route path="/reset-password" element={<ResetPassword/>}/>
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <ProfilePage/>
-          </ProtectedRoute>
-        }
+    <>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
         />
-    </Routes>
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword/>}/>
+        <Route path="/verify-otp" element={<VerifyOTP/>}/>
+        <Route path="/reset-password" element={<ResetPassword/>}/>
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage/>
+            </ProtectedRoute>
+          }
+          />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+      </Routes>
+      <ToastContainer position="top-right" autoClose={3000} />
+    </>
   );
 }
 

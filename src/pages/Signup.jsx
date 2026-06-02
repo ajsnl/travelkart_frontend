@@ -1,19 +1,30 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, Navigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { signupUser, googleLogin, getCurrentUser } from "../services/authService";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "../features/auth/authSlice";
+import { toast } from "react-toastify";
 
 import "./Signup.css";
 import signupBg from "../assets/images/signuppage.png";
 import { GoogleLogin } from "@react-oauth/google";
+import TravelKartLogoMain from "../components/brand/TravelKartLogoMain";
 
 function Signup() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { user, isAuthenticated, loading } = useSelector((state) => state.auth);
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  if (!loading && isAuthenticated) {
+    if (user?.role === "admin") {
+      return <Navigate to="/admin" replace />;
+    }
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const [formData, setFormData] = useState({
     email: "",
@@ -41,11 +52,11 @@ function Signup() {
 
   const validateForm = () => {
     if (formData.password !== formData.confirm_password) {
-      alert("Passwords do not match");
+      toast.error("Passwords do not match");
       return false;
     }
     if (formData.password.length < 8) {
-      alert("Password must be at least 8 characters");
+      toast.error("Password must be at least 8 characters");
       return false;
     }
     return true;
@@ -55,14 +66,19 @@ function Signup() {
     e.preventDefault();
     if (!validateForm()) return;
 
+    if (!window.confirm("Are you sure you want to register?")) return;
+
     try {
       const res = await signupUser(formData);
       console.log(res.data);
-      alert("Signup successful 🎉");
+      toast.success("Signup successful 🎉");
       navigate("/");
     } catch (err) {
-      console.error(err.response?.data);
-      alert("Signup failed ❌");
+      console.error("Signup error:", err);
+      const backendError = err.response?.data?.error || 
+                           err.response?.data?.non_field_errors?.[0] || 
+                           (err.response?.data && typeof err.response.data === "object" ? Object.values(err.response.data).flat()[0] : null);
+      toast.error(backendError || "Signup failed ❌");
     }
   };
 
@@ -86,11 +102,7 @@ function Signup() {
           </div>
 
           <div className="signup-left-logo">
-            {/* Embedded inline vector to replicate the Figma Anchor boat ship shape */}
-            <svg className="signup-logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 10.16c0-1.85-1.32-3.36-3-3.36H5c-1.68 0-3 1.51-3 3.36v3.2c0 2.21 1.79 4.08 4 4.08h12c2.21 0 4-1.87 4-4.08v-3.2z" />
-              <path d="M12 2v14M12 2l4 4M12 2L8 6" />
-            </svg>
+            <TravelKartLogoMain className="signup-logo-icon" color="#FFFFFF" accentColor="#4E82EE" />
             <span>TravelKart</span>
           </div>
         </div>
@@ -233,11 +245,18 @@ function Signup() {
 
                 const user = await getCurrentUser();
                 dispatch(setUser(user));
-                navigate("/dashboard");
+                if (user?.role === "admin") {
+                  navigate("/admin");
+                } else {
+                  navigate("/dashboard");
+                }
 
               } catch (err) {
-                console.error(err);
-                alert("Google login failed ❌");
+                console.error("Google login error:", err);
+                const backendError = err.response?.data?.error || 
+                                     err.response?.data?.non_field_errors?.[0] || 
+                                     (err.response?.data && typeof err.response.data === "object" ? Object.values(err.response.data).flat()[0] : null);
+                toast.error(backendError || "Google login failed ❌");
               }
             }}
             onError={() => console.log("Login Failed")}
