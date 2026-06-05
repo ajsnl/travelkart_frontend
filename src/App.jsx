@@ -18,6 +18,9 @@ import ResetPassword from "./pages/ResetPassword";
 import ProfilePage from "./pages/ProfilePage";
 import AdminRoute from "./components/AdminRoute";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminCategory from "./pages/AdminCategory";
+import AdminLayout from "./components/AdminLayout";
+import AdminProduct from "./pages/AdminProduct";
 
 // Toast Notifications
 import { ToastContainer } from "react-toastify";
@@ -101,10 +104,14 @@ function App() {
             path="/admin"
             element={
               <AdminRoute>
-                <AdminDashboard />
+                <AdminLayout />
               </AdminRoute>
             }
-          />
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="categories" element={<AdminCategory />} />
+            <Route path="products" element={<AdminProduct />} />
+          </Route>
       </Routes>
       <ToastContainer position="top-right" autoClose={3000} />
     </>

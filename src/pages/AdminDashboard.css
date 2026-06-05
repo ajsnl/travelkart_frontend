@@ -88,21 +88,24 @@
   padding-left: 48px;
   padding-right: 20px;
   font-size: 14px;
-  
-  /* CHANGE: This forces your typed text to show up in solid black */
-  color: #000000; 
-  
+  color: var(--admin-text-main);
   outline: none;
   font-family: 'Inter', sans-serif;
-  transition: border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .navbar-search-input:focus {
+  background-color: #FFFFFF;
+  color: #0F2D70; /* Premium dark blue text on white background */
   border-color: var(--figma-standard-blue);
 }
 
 .navbar-search-input::placeholder {
-  color: #334155;
+  color: var(--admin-text-dimmed);
+}
+
+.navbar-search-input:focus::placeholder {
+  color: #94A3B8;
 }
 
 .navbar-right-utilities {
