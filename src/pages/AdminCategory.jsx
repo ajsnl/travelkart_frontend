@@ -14,7 +14,7 @@ import {
   Hash
 } from "lucide-react";
 import { 
-  fetchCategories, 
+  adminFetchCategories, 
   createCategory, 
   updateCategory, 
   deleteCategory 
@@ -67,7 +67,7 @@ const AdminCategory = () => {
   const loadCategories = async () => {
     setLoading(true);
     try {
-      const res = await fetchCategories({
+      const res = await adminFetchCategories({
         search,
         page,
       });

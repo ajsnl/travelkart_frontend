@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { fetchProducts, fetchProductById, createProduct, updateProduct, deleteProduct, patchProduct, fetchBrands } from "../services/productService";
-import { fetchCategories } from "../services/categoryService";
+import { adminFetchProducts, adminFetchProductById, createProduct, updateProduct, deleteProduct, patchProduct, adminFetchBrands } from "../services/productService";
+import { adminFetchCategories } from "../services/categoryService";
 import { toast } from "react-toastify";
 import ProductList from "../components/products/ProductList";
 import ProductForm from "../components/products/ProductForm";
@@ -47,7 +47,7 @@ const AdminProduct = () => {
   const loadProducts = async () => {
     setLoading(true);
     try {
-      const res = await fetchProducts({
+      const res = await adminFetchProducts({
         search,
         page,
         category: selectedCategory || undefined,
@@ -65,7 +65,7 @@ const AdminProduct = () => {
 
   const loadCategoriesDropdown = async () => {
     try {
-      const res = await fetchCategories({ page_size: 100 });
+      const res = await adminFetchCategories({ page_size: 100 });
       setCategories(res.data.results || []);
     } catch (err) {
       console.error("Error loading categories for dropdown:", err);
@@ -74,7 +74,7 @@ const AdminProduct = () => {
 
   const loadBrandsDropdown = async () => {
     try {
-      const res = await fetchBrands();
+      const res = await adminFetchBrands();
       setBrands(res.data || []);
     } catch (err) {
       console.error("Error loading brands list:", err);
@@ -115,7 +115,7 @@ const AdminProduct = () => {
   const handleRefreshSelectedProduct = async () => {
     if (!selectedProduct) return;
     try {
-      const res = await fetchProductById(selectedProduct.id);
+      const res = await adminFetchProductById(selectedProduct.id);
       setSelectedProduct(res.data);
       loadProducts(); // Sync list state
     } catch (err) {

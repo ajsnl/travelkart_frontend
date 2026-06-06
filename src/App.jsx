@@ -1,27 +1,16 @@
 import React, { useEffect } from "react";
-import Login from "./pages/LoginPage";
-import Dashboard from "./pages/Dashboard";
-import Signup from "./pages/Signup";
-import Home from "./pages/Home";
-
 import { Routes, Route, useLocation, useNavigate, useNavigationType } from "react-router-dom"; 
 
 // Redux
 import { useDispatch, useSelector } from "react-redux";
 import { setUser, logout } from "./features/auth/authSlice";
 
-//  Service
-import { getCurrentUser, logoutUser } from "./services/authService";
-import ProtectedRoute from "./components/ProtectedRoute";
-import ForgotPassword from "./pages/ForgotPassword";
-import VerifyOTP from "./pages/VerifyOTP";
-import ResetPassword from "./pages/ResetPassword";
-import ProfilePage from "./pages/ProfilePage";
-import AdminRoute from "./components/AdminRoute";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminCategory from "./pages/AdminCategory";
-import AdminLayout from "./components/AdminLayout";
-import AdminProduct from "./pages/AdminProduct";
+// Service
+import { getCurrentUser } from "./services/authService";
+
+// Routes
+import UserRoutes from "./routes/UserRoutes";
+import AdminRoutes from "./routes/AdminRoutes";
 
 // Toast Notifications
 import { ToastContainer } from "react-toastify";
@@ -81,40 +70,8 @@ function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/forgot-password" element={<ForgotPassword/>}/>
-        <Route path="/verify-otp" element={<VerifyOTP/>}/>
-        <Route path="/reset-password" element={<ResetPassword/>}/>
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <ProfilePage/>
-            </ProtectedRoute>
-          }
-          />
-          <Route
-            path="/admin"
-            element={
-              <AdminRoute>
-                <AdminLayout />
-              </AdminRoute>
-            }
-          >
-            <Route index element={<AdminDashboard />} />
-            <Route path="categories" element={<AdminCategory />} />
-            <Route path="products" element={<AdminProduct />} />
-          </Route>
+        <Route path="/admin/*" element={<AdminRoutes />} />
+        <Route path="/*" element={<UserRoutes />} />
       </Routes>
       <ToastContainer position="top-right" autoClose={3000} />
     </>
