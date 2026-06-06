@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import Login from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
 import Signup from "./pages/Signup";
+import Home from "./pages/Home";
 
 import { Routes, Route, useLocation, useNavigate, useNavigationType } from "react-router-dom"; 
 
@@ -36,6 +37,7 @@ function App() {
   useEffect(() => {
     const publicRoutes = [
       "/",
+      "/login",
       "/signup",
       "/forgot-password",
       "/verify-otp",
@@ -79,7 +81,8 @@ function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
         <Route
           path="/dashboard"
           element={
