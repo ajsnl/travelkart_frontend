@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
 import "./ForgotPassword.css";
-import forgotBg from "../assets/images/forgotpasswordpage.png";
+import forgotBg from "../../assets/images/forgotpasswordpage.png";
 import { toast } from "react-toastify";
 
 function ForgotPassword() {

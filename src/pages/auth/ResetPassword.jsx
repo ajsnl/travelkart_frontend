@@ -5,7 +5,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 import "./ResetPassword.css";
-import forgotBg from "../assets/images/forgotpasswordpage.png";
+import forgotBg from "../../assets/images/forgotpasswordpage.png";
 
 function ResetPassword() {
   const [newPassword, setNewPassword] = useState("");

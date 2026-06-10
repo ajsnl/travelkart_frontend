@@ -15,6 +15,8 @@ const VariantCard = ({
   const [stock, setStock] = useState(variant.stock !== undefined ? variant.stock : 10);
   const [images, setImages] = useState(variant.images || []);
   const [isActive, setIsActive] = useState(variant.is_active !== undefined ? variant.is_active : false);
+  const [offerType, setOfferType] = useState(variant.offer_type || "none");
+  const [offerValue, setOfferValue] = useState(variant.offer_value || "0.00");
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -24,6 +26,8 @@ const VariantCard = ({
     setStock(variant.stock !== undefined ? variant.stock : 10);
     setImages(variant.images || []);
     setIsActive(variant.is_active !== undefined ? variant.is_active : false);
+    setOfferType(variant.offer_type || "none");
+    setOfferValue(variant.offer_value || "0.00");
   }, [variant]);
 
   // Image Cropper States
@@ -161,7 +165,9 @@ const VariantCard = ({
       price: parseFloat(price).toFixed(2),
       stock: parseInt(stock),
       is_active: isActive,
-      images
+      images,
+      offer_type: offerType,
+      offer_value: parseFloat(offerValue) || 0.00
     });
   };
 
@@ -260,6 +266,40 @@ const VariantCard = ({
               </span>
             </div>
           </div>
+        </div>
+
+        {/* Variant Level Offer Settings */}
+        <div className="variant-fields-row" style={{ marginTop: '16px' }}>
+          <div className="form-input-group">
+            <label className="form-field-label">Offer Type</label>
+            <select
+              value={offerType}
+              onChange={(e) => setOfferType(e.target.value)}
+              className="form-field-input w-full bg-slate-950 text-slate-300"
+              style={{ height: '38px', padding: '0 12px' }}
+            >
+              <option value="none">No Offer</option>
+              <option value="percentage">Percentage Discount (%)</option>
+              <option value="flat">Flat Discount (Money)</option>
+            </select>
+          </div>
+
+          {offerType !== "none" && (
+            <div className="form-input-group">
+              <label className="form-field-label">
+                {offerType === "percentage" ? "Discount Percentage (%)" : "Discount Flat Value (₹)"}
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={offerValue}
+                onChange={(e) => setOfferValue(e.target.value)}
+                className="form-field-input"
+                placeholder={offerType === "percentage" ? "e.g. 15" : "e.g. 500"}
+              />
+            </div>
+          )}
         </div>
 
         {/* Media row */}

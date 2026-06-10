@@ -8,7 +8,7 @@ import {
   Compass, 
   ArrowRight
 } from "lucide-react";
-
+import ProductCard from "../components/products/ProductCard";
 import "./Home.css";
 
 function Home() {
@@ -21,34 +21,74 @@ function Home() {
     {
       id: "prod-1",
       name: "The Vanguard Carry-On",
-      price: "₹14,499",
-      desc: "Impeccable aircraft-grade shell mobility design architecture.",
-      image: "https://images.unsplash.com/photo-1565026057447-bc90a3dceb87?w=500&auto=format&fit=crop&q=60",
-      badge: null
+      brand: "Nomad",
+      category_name: "Luggage",
+      avg_rating: 4.8,
+      total_ratings_count: 34,
+      short_description: "Impeccable aircraft-grade shell mobility design architecture.",
+      variants: [
+        { is_active: true, price: 14499, original_price: 14499, offer_price: null }
+      ],
+      images: [
+        { is_primary: true, image_url: "https://images.unsplash.com/photo-1565026057447-bc90a3dceb87?w=500&auto=format&fit=crop&q=60" }
+      ],
+      offer_type: "none",
+      offer_value: 0,
+      is_best_seller: false
     },
     {
       id: "prod-2",
       name: "Heritage Weekender",
-      price: "₹8,999",
-      desc: "Full-grain vegetable-tanned classic leather travel bag.",
-      image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&auto=format&fit=crop&q=60",
-      badge: "Best Seller"
+      brand: "Heritage",
+      category_name: "Bags",
+      avg_rating: 4.9,
+      total_ratings_count: 56,
+      short_description: "Full-grain vegetable-tanned classic leather travel bag.",
+      variants: [
+        { is_active: true, price: 12000, original_price: 12000, offer_price: 8999 }
+      ],
+      images: [
+        { is_primary: true, image_url: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&auto=format&fit=crop&q=60" }
+      ],
+      offer_type: "flat",
+      offer_value: 3001,
+      is_best_seller: true
     },
     {
       id: "prod-3",
       name: "Daily Commuter Pack",
-      price: "₹5,249",
-      desc: "Waterproof minimalist configuration with a direct 16-inch laptop chamber.",
-      image: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=500&auto=format&fit=crop&q=60",
-      badge: null
+      brand: "Apex",
+      category_name: "Bags",
+      avg_rating: 4.5,
+      total_ratings_count: 12,
+      short_description: "Waterproof minimalist configuration with a direct 16-inch laptop chamber.",
+      variants: [
+        { is_active: true, price: 6999, original_price: 6999, offer_price: 5249 }
+      ],
+      images: [
+        { is_primary: true, image_url: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=500&auto=format&fit=crop&q=60" }
+      ],
+      offer_type: "percentage",
+      offer_value: 25,
+      is_best_seller: false
     },
     {
       id: "prod-4",
       name: "Voyage Passport Kit",
-      price: "₹2,199",
-      desc: "RFID protected tracking document wallet accent safe.",
-      image: "https://images.unsplash.com/photo-1627163430580-0a724cc6aa51?w=500&auto=format&fit=crop&q=60",
-      badge: null
+      brand: "Secure",
+      category_name: "Accessories",
+      avg_rating: 4.2,
+      total_ratings_count: 8,
+      short_description: "RFID protected tracking document wallet accent safe.",
+      variants: [
+        { is_active: true, price: 2199, original_price: 2199, offer_price: null }
+      ],
+      images: [
+        { is_primary: true, image_url: "https://images.unsplash.com/photo-1627163430580-0a724cc6aa51?w=500&auto=format&fit=crop&q=60" }
+      ],
+      offer_type: "none",
+      offer_value: 0,
+      is_best_seller: false
     }
   ];
 
@@ -219,20 +259,7 @@ function Home() {
 
         <div className="products-showcase-grid font-inter">
           {arrivalsData.map((prod) => (
-            <article className="product-item-card" key={prod.id}>
-              <div className="product-image-container-frame" style={{ backgroundImage: `url(${prod.image})` }}>
-                {prod.badge && <span className="product-badge-overlay-pill">{prod.badge}</span>}
-                <button className="product-favorite-overlay-btn" aria-label="Save Item"><Heart size={16} /></button>
-              </div>
-              <div className="product-meta-details-box">
-                <div className="product-title-row">
-                  <h4 className="product-item-title-name">{prod.name}</h4>
-                  <span className="product-item-price-tag">{prod.price}</span>
-                </div>
-                <p className="product-item-short-description">{prod.desc}</p>
-                <button className="btn-product-add-to-cart">Add to Cart</button>
-              </div>
-            </article>
+            <ProductCard product={prod} key={prod.id} />
           ))}
         </div>
       </section>

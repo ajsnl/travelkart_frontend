@@ -1,13 +1,15 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Home from "../pages/Home";
-import Login from "../pages/LoginPage";
-import Signup from "../pages/Signup";
-import ForgotPassword from "../pages/ForgotPassword";
-import VerifyOTP from "../pages/VerifyOTP";
-import ResetPassword from "../pages/ResetPassword";
+import Login from "../pages/auth/LoginPage";
+import Signup from "../pages/auth/Signup";
+import ForgotPassword from "../pages/auth/ForgotPassword";
+import VerifyOTP from "../pages/auth/VerifyOTP";
+import ResetPassword from "../pages/auth/ResetPassword";
 import Dashboard from "../pages/Dashboard";
 import ProfilePage from "../pages/ProfilePage";
+import Categories from "../pages/Categories";
+import ProductDetail from "../pages/ProductDetail";
 import ProtectedRoute from "../components/ProtectedRoute";
 
 export default function UserRoutes() {
@@ -35,6 +37,9 @@ export default function UserRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/categories" element={<Categories />} />
+      <Route path="/shop" element={<Categories />} />
+      <Route path="/product/:id" element={<ProductDetail />} />
     </Routes>
   );
 }

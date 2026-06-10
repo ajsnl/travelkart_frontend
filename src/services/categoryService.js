@@ -29,4 +29,3 @@ export const updateCategory = (id, data) => {
 export const deleteCategory = (id) => {
   return api.delete(`admin/categories/${id}/`);
 };
-

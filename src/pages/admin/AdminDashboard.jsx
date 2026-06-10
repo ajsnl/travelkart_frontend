@@ -9,7 +9,7 @@ import {
   Ticket, 
   Flag 
 } from "lucide-react";
-import { fetchUsers, toggleUserStatus } from "../services/adminService";
+import { fetchUsers, toggleUserStatus } from "../../services/adminService";
 import "./AdminDashboard.css";
 
 const formatDate = (dateString) => {

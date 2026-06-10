@@ -1225,6 +1225,3 @@ input:checked + .switch-toggle-slider {
 input:checked + .switch-toggle-slider:before {
   transform: translateX(20px);
 }
-
-
-

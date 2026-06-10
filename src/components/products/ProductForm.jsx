@@ -31,7 +31,10 @@ const ProductForm = ({
     est_delivery_time: "3 Business Days",
     attributes: {},
     variants: [],
-    images: []
+    images: [],
+    offer_type: "none",
+    offer_value: 0.00,
+    total_sales: 0
   });
 
   const [options, setOptions] = useState([
@@ -41,6 +44,56 @@ const ProductForm = ({
   const [newOptionValue, setNewOptionValue] = useState({ 0: "", 1: "" });
   const [errors, setErrors] = useState({});
   const isSlugManuallyEdited = useRef(false);
+
+  const [parentCategoryId, setParentCategoryId] = useState("");
+  const [subcategoryId, setSubcategoryId] = useState("");
+
+  // Sync parent and subcategory states whenever category in form data changes
+  useEffect(() => {
+    const currentCatId = formData.category;
+    if (currentCatId) {
+      const matchedCat = categories.find(c => c.id === parseInt(currentCatId));
+      if (matchedCat) {
+        if (matchedCat.parent) {
+          setParentCategoryId(matchedCat.parent);
+          setSubcategoryId(matchedCat.id);
+        } else {
+          setParentCategoryId(matchedCat.id);
+          setSubcategoryId("");
+        }
+        return;
+      }
+    }
+    setParentCategoryId("");
+    setSubcategoryId("");
+  }, [formData.category, categories]);
+
+  const handleParentCategoryChange = (e) => {
+    const parentId = e.target.value;
+    setParentCategoryId(parentId);
+    setSubcategoryId("");
+    
+    // Default form category to parent category if set, else empty
+    setFormData(prev => ({ 
+      ...prev, 
+      category: parentId ? parseInt(parentId) : "" 
+    }));
+    
+    if (errors.category) {
+      setErrors(prev => ({ ...prev, category: "" }));
+    }
+  };
+
+  const handleSubcategoryChange = (e) => {
+    const subId = e.target.value;
+    setSubcategoryId(subId);
+    
+    // Set form category to subcategory if selected, fallback to parent category
+    setFormData(prev => ({ 
+      ...prev, 
+      category: subId ? parseInt(subId) : (parentCategoryId ? parseInt(parentCategoryId) : "") 
+    }));
+  };
 
   useEffect(() => {
     if (initialData) {
@@ -57,11 +110,14 @@ const ProductForm = ({
         est_delivery_time: initialData.est_delivery_time || "3 Business Days",
         attributes: initialData.attributes || {},
         variants: initialData.variants || [],
-        images: initialData.images || []
+        images: initialData.images || [],
+        offer_type: initialData.offer_type || "none",
+        offer_value: initialData.offer_value || 0.00,
+        total_sales: initialData.total_sales || 0
       });
       isSlugManuallyEdited.current = true;
     } else if (categories.length > 0) {
-      setFormData(prev => ({ ...prev, category: categories[0].id }));
+      setFormData(prev => ({ ...prev, category: categories[0].id, offer_type: "none", offer_value: 0.00, total_sales: 0 }));
     }
   }, [initialData, categories]);
 
@@ -150,6 +206,29 @@ const ProductForm = ({
       return;
     }
     onSubmit(formData, options);
+  };
+
+  const getFormattedCategories = () => {
+    const parents = categories.filter(c => !c.parent);
+    const formatted = [];
+    
+    parents.forEach(parent => {
+      formatted.push({ ...parent, displayName: parent.name });
+      
+      const children = categories.filter(c => c.parent === parent.id);
+      children.forEach(child => {
+        formatted.push({ ...child, displayName: `  ↳ ${child.name}` });
+      });
+    });
+    
+    // Add any subcategories whose parent is missing from current category listing
+    categories.forEach(c => {
+      if (c.parent && !parents.some(p => p.id === c.parent) && !formatted.some(f => f.id === c.id)) {
+        formatted.push({ ...c, displayName: c.name });
+      }
+    });
+    
+    return formatted;
   };
 
   return (
@@ -332,19 +411,51 @@ const ProductForm = ({
               <select
                 id="prod-category"
                 name="category"
-                value={formData.category}
-                onChange={handleInputChange}
+                value={parentCategoryId}
+                onChange={handleParentCategoryChange}
                 className={`form-field-input w-full bg-slate-950 text-slate-300 ${errors.category ? "input-field-error" : ""}`}
               >
-                <option value="">Select category...</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
+                <option value="">Select main category...</option>
+                {categories
+                  .filter(c => !c.parent)
+                  .map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))
+                }
               </select>
               {errors.category && <span className="field-error-message"><AlertCircle size={12}/>{errors.category}</span>}
             </div>
+
+            {(() => {
+              const availableSubcategories = parentCategoryId
+                ? categories.filter(c => c.parent === parseInt(parentCategoryId))
+                : [];
+                
+              if (parentCategoryId && availableSubcategories.length > 0) {
+                return (
+                  <div className="form-input-group mt-4">
+                    <label htmlFor="prod-subcategory" className="form-field-label">Subcategory (Optional)</label>
+                    <select
+                      id="prod-subcategory"
+                      name="subcategory"
+                      value={subcategoryId}
+                      onChange={handleSubcategoryChange}
+                      className="form-field-input w-full bg-slate-950 text-slate-300"
+                    >
+                      <option value="">None (Keep in parent category)</option>
+                      {availableSubcategories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              }
+              return null;
+            })()}
 
             <div className="form-input-group mt-4">
               <label htmlFor="prod-brand" className="form-field-label">Brand</label>
@@ -355,6 +466,29 @@ const ProductForm = ({
                 value={formData.brand}
                 onChange={handleInputChange}
                 placeholder="e.g. TravelKart Elite"
+                className="form-field-input"
+              />
+            </div>
+          </div>
+
+          {/* Promotion Settings Card */}
+          <div className="form-section-card">
+            <h4 className="section-card-title flex items-center gap-2">
+              <Settings size={14}/> Promotion Settings
+            </h4>
+            
+            <div className="form-input-group mt-2">
+              <label htmlFor="prod-total-sales" className="form-field-label">
+                Simulated Sales Count (for Best Seller Tag)
+              </label>
+              <input
+                id="prod-total-sales"
+                type="number"
+                name="total_sales"
+                min="0"
+                value={formData.total_sales}
+                onChange={handleInputChange}
+                placeholder="e.g. 150"
                 className="form-field-input"
               />
             </div>

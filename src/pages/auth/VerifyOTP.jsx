@@ -4,7 +4,7 @@ import axios from "axios";
 
 import "./VerifyOTP.css";
 // Shares the exact same background image composition as your forgot password file
-import forgotBg from "../assets/images/forgotpasswordpage.png";
+import forgotBg from "../../assets/images/forgotpasswordpage.png";
 import { toast } from "react-toastify";
 
 function VerifyOTP() {

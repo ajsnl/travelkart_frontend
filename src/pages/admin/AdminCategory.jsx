@@ -18,7 +18,7 @@ import {
   createCategory, 
   updateCategory, 
   deleteCategory 
-} from "../services/categoryService";
+} from "../../services/categoryService";
 import { toast } from "react-toastify";
 import "./AdminCategory.css";
 
@@ -54,12 +54,15 @@ const AdminCategory = () => {
   const [modalMode, setModalMode] = useState("create"); // "create" or "edit"
   const [currentId, setCurrentId] = useState(null);
 
+  const [allCategories, setAllCategories] = useState([]);
+  
   // Form State
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
     description: "",
     is_active: false,
+    parent: "",
   });
   const [errors, setErrors] = useState({});
   const isSlugManuallyEdited = useRef(false);
@@ -81,12 +84,22 @@ const AdminCategory = () => {
     }
   };
 
+  const fetchAllCategories = async () => {
+    try {
+      const res = await adminFetchCategories({ page_size: 100 });
+      setAllCategories(res.data.results || []);
+    } catch (err) {
+      console.error("Error fetching all categories:", err);
+    }
+  };
+
   useEffect(() => {
     setPage(1);
   }, [search]);
 
   useEffect(() => {
     loadCategories();
+    fetchAllCategories();
   }, [search, page]);
 
   // Handle Input Changes
@@ -125,6 +138,7 @@ const AdminCategory = () => {
         slug: category.slug,
         description: category.description || "",
         is_active: category.is_active,
+        parent: category.parent || "",
       });
       isSlugManuallyEdited.current = true;
     } else {
@@ -134,6 +148,7 @@ const AdminCategory = () => {
         slug: "",
         description: "",
         is_active: true,
+        parent: "",
       });
       isSlugManuallyEdited.current = false;
     }
@@ -148,6 +163,7 @@ const AdminCategory = () => {
       slug: "",
       description: "",
       is_active: false,
+      parent: "",
     });
     setErrors({});
   };
@@ -166,16 +182,22 @@ const AdminCategory = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    const parsedPayload = {
+      ...formData,
+      parent: formData.parent ? parseInt(formData.parent) : null
+    };
+
     try {
       if (modalMode === "create") {
-        await createCategory(formData);
+        await createCategory(parsedPayload);
         toast.success("Category created successfully!");
       } else {
-        await updateCategory(currentId, formData);
+        await updateCategory(currentId, parsedPayload);
         toast.success("Category updated successfully!");
       }
       closeModal();
       loadCategories();
+      fetchAllCategories();
     } catch (err) {
       console.error("Error saving category:", err);
       if (err.response && err.response.data) {
@@ -201,6 +223,7 @@ const AdminCategory = () => {
         } else {
           loadCategories();
         }
+        fetchAllCategories();
       } catch (err) {
         console.error("Error deleting category:", err);
         toast.error("Failed to delete category.");
@@ -474,6 +497,32 @@ const AdminCategory = () => {
                     className="form-field-textarea"
                     rows={4}
                   />
+                </div>
+
+                {/* Parent Category Selector (Optional) */}
+                <div className="form-input-group">
+                  <label htmlFor="category-parent" className="form-field-label">Parent Category (Optional)</label>
+                  <select
+                    id="category-parent"
+                    name="parent"
+                    value={formData.parent}
+                    onChange={handleInputChange}
+                    className="form-field-input w-full bg-slate-950 text-slate-300"
+                    style={{ height: "42px", padding: "0 12px" }}
+                  >
+                    <option value="">None (Top-Level Parent Category)</option>
+                    {allCategories
+                      .filter(c => !c.parent && c.id !== currentId)
+                      .map(parentCat => (
+                        <option key={parentCat.id} value={parentCat.id}>
+                          {parentCat.name}
+                        </option>
+                      ))
+                    }
+                  </select>
+                  <span className="field-helper-info">
+                    Select a parent category if you are defining this as a subcategory.
+                  </span>
                 </div>
 
                 {/* Status Toggle */}

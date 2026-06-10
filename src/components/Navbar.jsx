@@ -27,7 +27,9 @@ export default function Navbar() {
           </Link>
         </li>
         <li>
-          <span className="navbar-link">Shop</span>
+          <Link to="/categories" className={`navbar-link ${isActive("/categories") ? "active" : ""}`}>
+            Shop
+          </Link>
         </li>
         <li>
           <span className="navbar-link">Wishlist</span>

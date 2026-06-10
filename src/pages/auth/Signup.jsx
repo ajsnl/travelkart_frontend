@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import { Link, useNavigate, Navigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import { signupUser, googleLogin, getCurrentUser } from "../services/authService";
+import { signupUser, googleLogin, getCurrentUser } from "../../services/authService";
 import { useDispatch, useSelector } from "react-redux";
-import { setUser } from "../features/auth/authSlice";
+import { setUser } from "../../features/auth/authSlice";
 import { toast } from "react-toastify";
 
 import "./Signup.css";
-import signupBg from "../assets/images/signuppage.png";
+import signupBg from "../../assets/images/signuppage.png";
 import { GoogleLogin } from "@react-oauth/google";
-import TravelKartLogoMain from "../components/brand/TravelKartLogoMain";
+import TravelKartLogoMain from "../../components/brand/TravelKartLogoMain";
 
 function Signup() {
   const navigate = useNavigate();

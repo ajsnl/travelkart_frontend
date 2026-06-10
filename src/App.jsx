@@ -24,22 +24,20 @@ function App() {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    const publicRoutes = [
-      "/",
-      "/login",
-      "/signup",
-      "/forgot-password",
-      "/verify-otp",
-      "/reset-password"
-    ];
+    const isGuestOnlyRoute = (path) => {
+      const routes = ["/login", "/signup", "/forgot-password", "/verify-otp", "/reset-password"];
+      return routes.includes(path);
+    };
+
+    const isHybridRoute = (path) => {
+      if (path === "/" || path === "/categories" || path === "/shop") return true;
+      if (path.startsWith("/product/")) return true;
+      return false;
+    };
 
     const checkAuth = async () => {
       try {
-        //  ONLY CHECK AUTH FOR PRIVATE ROUTES
-        if (!publicRoutes.includes(location.pathname)) {
-          const userData = await getCurrentUser();
-          dispatch(setUser(userData));
-        } else if (publicRoutes.includes(location.pathname)) {
+        if (isGuestOnlyRoute(location.pathname)) {
           // If they land on guest routes
           if (isAuthenticated) {
             // REDIRECT them back to their dashboard if they are already logged in
@@ -57,6 +55,26 @@ function App() {
             } catch (err) {
               // Not logged in, let them access guest page
             }
+          }
+        } else if (isHybridRoute(location.pathname)) {
+          // If they land on public/hybrid routes, fetch profile silently
+          if (!isAuthenticated) {
+            try {
+              const userData = await getCurrentUser(true);
+              if (userData) {
+                dispatch(setUser(userData));
+              }
+            } catch (err) {
+              // Not logged in, keep as guest
+            }
+          }
+        } else {
+          // ONLY CHECK AND FORCE AUTH FOR PRIVATE ROUTES
+          try {
+            const userData = await getCurrentUser();
+            dispatch(setUser(userData));
+          } catch (err) {
+            dispatch(logout());
           }
         }
       } catch (err) {

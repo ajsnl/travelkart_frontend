@@ -2,14 +2,14 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
-import { loginUser, getCurrentUser, googleLogin } from "../services/authService";
-import { setUser } from "../features/auth/authSlice";
+import { loginUser, getCurrentUser, googleLogin } from "../../services/authService";
+import { setUser } from "../../features/auth/authSlice";
 import { GoogleLogin } from "@react-oauth/google";
 import { toast } from "react-toastify";
 
 import "./Login.css";
-import loginBg from "../assets/images/loginpage.png";
-import TravelKartLogoMain from "../components/brand/TravelKartLogoMain";
+import loginBg from "../../assets/images/loginpage.png";
+import TravelKartLogoMain from "../../components/brand/TravelKartLogoMain";
 
 function Login() {
   const dispatch = useDispatch();

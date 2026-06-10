@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { adminFetchProducts, adminFetchProductById, createProduct, updateProduct, deleteProduct, patchProduct, adminFetchBrands } from "../services/productService";
-import { adminFetchCategories } from "../services/categoryService";
+import { adminFetchProducts, adminFetchProductById, createProduct, updateProduct, deleteProduct, patchProduct, adminFetchBrands } from "../../services/productService";
+import { adminFetchCategories } from "../../services/categoryService";
 import { toast } from "react-toastify";
-import ProductList from "../components/products/ProductList";
-import ProductForm from "../components/products/ProductForm";
-import VariantManager from "../components/products/VariantManager";
+import ProductList from "../../components/products/ProductList";
+import ProductForm from "../../components/products/ProductForm";
+import VariantManager from "../../components/products/VariantManager";
 import "./AdminProduct.css";
 
 const cartesianProduct = (arrays) => {
