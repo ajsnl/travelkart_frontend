@@ -1,11 +1,13 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { Search, ShoppingCart, CircleUser } from "lucide-react";
 import "./Navbar.css";
 import TravelKartLogoMain from "./brand/TravelKartLogoMain";
 
 export default function Navbar() {
   const location = useLocation();
+  const { user } = useSelector((state) => state.auth);
 
   const isActive = (path) => {
     return location.pathname === path;
@@ -32,7 +34,9 @@ export default function Navbar() {
           </Link>
         </li>
         <li>
-          <span className="navbar-link">Wishlist</span>
+          <Link to="/wishlist" className={`navbar-link ${isActive("/wishlist") ? "active" : ""}`}>
+            Wishlist
+          </Link>
         </li>
         <li>
           <span className="navbar-link">Orders</span>
@@ -51,11 +55,16 @@ export default function Navbar() {
 
       {/* Actions */}
       <div className="navbar-actions">
-        <button type="button" className="navbar-action-btn" aria-label="Cart">
+        <button type="button" className="navbar-action-btn navbar-cart-btn-wrapper" aria-label="Cart">
           <ShoppingCart size={22} />
+          <span className="navbar-cart-badge">2</span>
         </button>
-        <Link to="/profile" className="navbar-action-btn" aria-label="Profile">
-          <CircleUser size={24} />
+        <Link to="/profile" className="navbar-action-btn profile-avatar-btn" aria-label="Profile">
+          {user?.profile_picture ? (
+            <img src={user.profile_picture} alt="Profile" className="navbar-profile-avatar" />
+          ) : (
+            <CircleUser size={24} />
+          )}
         </Link>
       </div>
     </nav>

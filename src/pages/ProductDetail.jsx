@@ -15,9 +15,11 @@ import {
   AlertCircle
 } from "lucide-react";
 import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
 import Navbar from "../components/Navbar";
 import ProductCard from "../components/products/ProductCard";
 import { fetchProductById, fetchProducts } from "../services/productService";
+import { toggleWishlist } from "../features/wishlist/wishlistSlice";
 import "./ProductDetail.css";
 
 export default function ProductDetail() {
@@ -37,7 +39,11 @@ export default function ProductDetail() {
   const [selectedAttributes, setSelectedAttributes] = useState({});
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState("");
-  const [isWishlisted, setIsWishlisted] = useState(false);
+
+  const dispatch = useDispatch();
+  const { wishlistedProductIds } = useSelector((state) => state.wishlist);
+  const { isAuthenticated } = useSelector((state) => state.auth);
+  const isWishlisted = product ? wishlistedProductIds.includes(product.id) : false;
 
   // Accordion states
   const [openSection, setOpenSection] = useState("description"); // "description" | "specs" | "shipping"
@@ -321,12 +327,12 @@ export default function ProductDetail() {
   };
 
   const handleWishlistToggle = () => {
-    setIsWishlisted(!isWishlisted);
-    if (!isWishlisted) {
-      toast.success(`${product.name} added to wishlist!`);
-    } else {
-      toast.info(`${product.name} removed from wishlist.`);
+    if (!product) return;
+    if (!isAuthenticated) {
+      toast.warning("Please log in to add items to your wishlist.");
+      return;
     }
+    dispatch(toggleWishlist({ productId: product.id, productName: product.name }));
   };
 
   const handleAddToCart = () => {

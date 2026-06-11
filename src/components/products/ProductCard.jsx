@@ -1,11 +1,17 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { Heart, ShoppingBag, Star } from "lucide-react";
 import { toast } from "react-toastify";
+import { toggleWishlist } from "../../features/wishlist/wishlistSlice";
 import "./ProductCard.css";
 
 export default function ProductCard({ product }) {
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const dispatch = useDispatch();
+  const { wishlistedProductIds } = useSelector((state) => state.wishlist);
+  const { isAuthenticated } = useSelector((state) => state.auth);
+
+  const isWishlisted = wishlistedProductIds.includes(product.id);
 
   // Pick primary variant as first active variant
   const activeVariants = (product.variants || []).filter(v => v.is_active !== false);
@@ -68,12 +74,11 @@ export default function ProductCard({ product }) {
   const handleWishlistToggle = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsWishlisted(!isWishlisted);
-    if (!isWishlisted) {
-      toast.success(`${product.name} added to wishlist!`);
-    } else {
-      toast.info(`${product.name} removed from wishlist.`);
+    if (!isAuthenticated) {
+      toast.warning("Please log in to add items to your wishlist.");
+      return;
     }
+    dispatch(toggleWishlist({ productId: product.id, productName: product.name }));
   };
 
   const handleAddToCart = (e) => {
