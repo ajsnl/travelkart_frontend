@@ -104,6 +104,16 @@ const wishlistSlice = createSlice({
           state.count = Math.max(0, state.count - 1);
           state.totalPages = Math.ceil(state.count / 8);
         }
+      })
+      // Clear product from wishlist when added to cart
+      .addCase("cart/addVariantToCart/fulfilled", (state, action) => {
+        const productId = action.meta.arg?.productId;
+        if (productId) {
+          state.wishlistedProductIds = state.wishlistedProductIds.filter(id => id !== productId);
+          state.items = state.items.filter(item => item.product?.id !== productId);
+          state.count = Math.max(0, state.count - 1);
+          state.totalPages = Math.ceil(state.count / 8);
+        }
       });
   },
 });

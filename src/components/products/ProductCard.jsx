@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Heart, ShoppingBag, Star } from "lucide-react";
 import { toast } from "react-toastify";
 import { toggleWishlist } from "../../features/wishlist/wishlistSlice";
+import { addVariantToCart } from "../../features/cart/cartSlice";
 import "./ProductCard.css";
 
 export default function ProductCard({ product }) {
@@ -84,7 +85,20 @@ export default function ProductCard({ product }) {
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    toast.success(`${product.name} added to cart!`);
+    if (!isAuthenticated) {
+      toast.warning("Please log in to add items to your cart.");
+      return;
+    }
+    if (!primaryVariant) {
+      toast.error("No active variant available for this product.");
+      return;
+    }
+    dispatch(addVariantToCart({
+      variantId: primaryVariant.id,
+      quantity: 1,
+      productId: product.id,
+      productName: product.name
+    }));
   };
 
   // Render stars based on rating
@@ -194,11 +208,9 @@ export default function ProductCard({ product }) {
             {product.name}
           </h3>
 
-          {product.short_description && (
-            <p className="product-card-description">
-              {product.short_description}
-            </p>
-          )}
+          <p className="product-card-description">
+            {product.short_description || "Premium travel gear engineered for ultimate durability and utility."}
+          </p>
 
           {/* Footer Pricing / Actions */}
           <div className="product-card-footer-pricing">

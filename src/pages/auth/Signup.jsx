@@ -23,7 +23,7 @@ function Signup() {
     if (user?.role === "admin") {
       return <Navigate to="/admin" replace />;
     }
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   const [formData, setFormData] = useState({
@@ -248,7 +248,7 @@ function Signup() {
                 if (user?.role === "admin") {
                   navigate("/admin");
                 } else {
-                  navigate("/dashboard");
+                  navigate("/");
                 }
 
               } catch (err) {

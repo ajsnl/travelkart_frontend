@@ -20,7 +20,9 @@ import Navbar from "../components/Navbar";
 import ProductCard from "../components/products/ProductCard";
 import { fetchProductById, fetchProducts } from "../services/productService";
 import { toggleWishlist } from "../features/wishlist/wishlistSlice";
+import { addVariantToCart } from "../features/cart/cartSlice";
 import "./ProductDetail.css";
+import Footer from "../components/Footer";
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -102,7 +104,8 @@ export default function ProductDetail() {
             const fallbackGeneral = (data.images || []).find(img => !img.variant);
             setActiveImage(primaryGeneral?.image_url || fallbackGeneral?.image_url || "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&auto=format&fit=crop&q=80");
           }
-          setQuantity(blocked ? 0 : (defaultVariant.stock > 0 && defaultVariant.is_active !== false ? 1 : 0));
+          const availStock = defaultVariant.available_stock !== undefined ? defaultVariant.available_stock : defaultVariant.stock;
+          setQuantity(blocked ? 0 : (availStock > 0 && defaultVariant.is_active !== false ? 1 : 0));
         } else {
           // No variants
           setSelectedVariant(null);
@@ -249,12 +252,13 @@ export default function ProductDetail() {
       
       // Keep quantity in stock boundaries (Max 10 per product)
       const isAvailable = match.is_active !== false;
-      const maxAllowed = Math.min(10, match.stock);
-      if (!isAvailable || match.stock <= 0) {
+      const availStock = match.available_stock !== undefined ? match.available_stock : match.stock;
+      const maxAllowed = Math.min(10, availStock);
+      if (!isAvailable || availStock <= 0) {
         setQuantity(0);
       } else if (quantity > maxAllowed) {
         setQuantity(maxAllowed > 0 ? 1 : 0);
-      } else if (quantity === 0 && match.stock > 0) {
+      } else if (quantity === 0 && availStock > 0) {
         setQuantity(1);
       }
     }
@@ -287,8 +291,9 @@ export default function ProductDetail() {
     const offerVal = parseFloat(selectedVariant.offer_price);
     const hasOffer = selectedVariant.offer_type && selectedVariant.offer_type !== "none" && offerVal < priceVal;
 
+    const availStock = selectedVariant.available_stock !== undefined ? selectedVariant.available_stock : selectedVariant.stock;
     return {
-      isOutOfStock: selectedVariant.stock === 0,
+      isOutOfStock: availStock === 0,
       isUnavailable: selectedVariant.is_active === false,
       hasOffer,
       price: priceVal,
@@ -300,6 +305,9 @@ export default function ProductDetail() {
   };
 
   const pricing = getPriceDisplay();
+  const availableStock = selectedVariant 
+    ? (selectedVariant.available_stock !== undefined ? selectedVariant.available_stock : selectedVariant.stock)
+    : 0;
 
   // Color mapping helper for circular pills
   const getColorStyle = (value) => {
@@ -337,7 +345,16 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     if (!selectedVariant) return;
-    toast.success(`${product.name} (${selectedVariant.sku}) added to cart! Quantity: ${quantity}`);
+    if (!isAuthenticated) {
+      toast.warning("Please log in to add items to your cart.");
+      return;
+    }
+    dispatch(addVariantToCart({
+      variantId: selectedVariant.id,
+      quantity,
+      productId: product.id,
+      productName: product.name
+    }));
   };
 
   // Static review models for high aesthetics
@@ -553,7 +570,7 @@ export default function ProductDetail() {
                   </button>
                   <span className="qty-display">{quantity}</span>
                   <button 
-                    disabled={quantity >= Math.min(10, selectedVariant.stock)} 
+                    disabled={quantity >= Math.min(10, availableStock)} 
                     onClick={() => setQuantity(prev => prev + 1)}
                     className="qty-btn"
                   >
@@ -591,13 +608,13 @@ export default function ProductDetail() {
             </p>
           )}
 
-          {selectedVariant && selectedVariant.is_active !== false && selectedVariant.stock > 0 && selectedVariant.stock <= 5 && (
+          {selectedVariant && selectedVariant.is_active !== false && availableStock > 0 && availableStock <= 5 && (
             <p className="stock-urgency-warning-text">
-              Only {selectedVariant.stock} left in stock - order soon!
+              Only {availableStock} left in stock - order soon!
             </p>
           )}
 
-          {selectedVariant && selectedVariant.is_active !== false && selectedVariant.stock > 10 && quantity >= 10 && (
+          {selectedVariant && selectedVariant.is_active !== false && availableStock > 10 && quantity >= 10 && (
             <p className="stock-urgency-warning-text font-semibold text-orange-500" style={{ color: "#f97316" }}>
               Maximum limit of 10 items reached for this product.
             </p>
@@ -743,36 +760,7 @@ export default function ProductDetail() {
       </section>
 
       {/* Corporate footer */}
-      <footer className="home-corporate-footer font-inter">
-        <div className="footer-top-links-grid">
-          <div className="footer-brand-column">
-            <span className="footer-brand-logo-text font-plus-jakarta">TravelKart</span>
-            <p className="footer-brand-tagline">Engineered luxury utility travel items built for smooth global exploration routing matrices.</p>
-          </div>
-
-          <div className="footer-links-column">
-            <span className="footer-column-heading">Shop</span>
-            <Link to="/shop?cat=bags" className="footer-anchor-link">All Backpacks</Link>
-            <Link to="/shop?cat=luggage" className="footer-anchor-link">Hardshell Luggage</Link>
-          </div>
-
-          <div className="footer-links-column">
-            <span className="footer-column-heading">Support</span>
-            <span className="footer-anchor-link">Help Center</span>
-            <span className="footer-anchor-link">Returns Policy</span>
-          </div>
-
-          <div className="footer-links-column">
-            <span className="footer-column-heading">Company</span>
-            <span className="footer-anchor-link">Our Narrative</span>
-            <span className="footer-anchor-link">Terms of Service</span>
-          </div>
-        </div>
-
-        <div className="footer-bottom-copyright-strip">
-          <span>© 2026 TravelKart. All Rights Reserved. Created to elevate global paths.</span>
-        </div>
-      </footer>
+      <Footer/>
     </div>
   );
 }

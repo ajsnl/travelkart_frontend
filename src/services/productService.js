@@ -1,6 +1,6 @@
 import api from "../api/axios";
 
-// ================= User / Public Endpoints =================
+//  User / Public Endpoints 
 
 // Fetch products (supports search, page, category, is_featured)
 export const fetchProducts = (params) => {
@@ -18,7 +18,7 @@ export const fetchBrands = () => {
 };
 
 
-// ================= Admin Endpoints =================
+//Admin Endpoints 
 
 // Fetch products for admin (supports all filters including is_active)
 export const adminFetchProducts = (params) => {

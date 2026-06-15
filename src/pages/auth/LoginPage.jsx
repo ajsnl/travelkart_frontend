@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Navigate, useNavigate, Link } from "react-router-dom";
+import { Navigate, useNavigate, Link, useLocation } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { loginUser, getCurrentUser, googleLogin } from "../../services/authService";
 import { setUser } from "../../features/auth/authSlice";
@@ -14,6 +14,7 @@ import TravelKartLogoMain from "../../components/brand/TravelKartLogoMain";
 function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isAuthenticated, loading } = useSelector((state) => state.auth);
 
   const [email, setEmail] = useState("");
@@ -34,7 +35,8 @@ function Login() {
       if (user?.role === "admin") {
         navigate("/admin");
       } else {
-        navigate("/dashboard");
+        const from = location.state?.from || "/";
+        navigate(from, { replace: true });
       }
     } catch (err) {
       console.log("ERROR:", err);
@@ -49,7 +51,7 @@ function Login() {
     if (user?.role === "admin") {
       return <Navigate to="/admin" replace />;
     }
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return (
@@ -68,11 +70,11 @@ function Login() {
 
           <div className="login-left-middle-stack">
             <h1 className="login-left-heading">
-              Curated journeys for the modern traveler.
+              Curated gear for the modern traveler.
             </h1>
             <p className="login-left-description">
               Experience the art of effortless exploration with TravelKart. 
-              Your digital concierge for unique destinations and seamless planning.
+              Your premier store for hardshell luggage, packing cubes, and essential travel gear.
             </p>
 
             {/* Social Avatars Dynamic Generation */}
@@ -177,7 +179,8 @@ function Login() {
                     if (user?.role === "admin") {
                       navigate("/admin");
                     } else {
-                      navigate("/dashboard");
+                      const from = location.state?.from || "/";
+                      navigate(from, { replace: true });
                     }
                   } catch (err) {
                     console.error(err);

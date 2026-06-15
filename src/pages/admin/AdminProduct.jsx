@@ -107,7 +107,8 @@ const AdminProduct = () => {
     setView("edit");
   };
 
-  const handleManageVariantsClick = (product) => {
+ const handleManageVariantsClick = (product) => {
+    setCurrentId(product.id);
     setSelectedProduct(product);
     setView("manage-variants");
   };
@@ -258,7 +259,10 @@ const AdminProduct = () => {
           product={selectedProduct}
           categories={categories}
           onBack={() => setView("list")}
-          onEditProduct={() => setView("edit")}
+          onEditProduct={() => {
+            setCurrentId(selectedProduct.id);
+            setView("edit");
+          }}
           onRefresh={handleRefreshSelectedProduct}
         />
       )}

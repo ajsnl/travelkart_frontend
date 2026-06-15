@@ -148,3 +148,24 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   font-family: 'Inter', sans-serif;
 }
+
+.navbar-login-link {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: #0f2d70;
+  padding: 8px 18px;
+  border-radius: 9999px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-login-link:hover {
+  background-color: #FF8F4F;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 143, 79, 0.2);
+}
+

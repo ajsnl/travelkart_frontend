@@ -11,6 +11,7 @@ import ProfilePage from "../pages/ProfilePage";
 import Categories from "../pages/Categories";
 import ProductDetail from "../pages/ProductDetail";
 import Wishlist from "../pages/Wishlist";
+import Cart from "../pages/Cart";
 import ProtectedRoute from "../components/ProtectedRoute";
 
 export default function UserRoutes() {
@@ -43,6 +44,14 @@ export default function UserRoutes() {
         element={
           <ProtectedRoute>
             <Wishlist />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cart"
+        element={
+          <ProtectedRoute>
+            <Cart />
           </ProtectedRoute>
         }
       />

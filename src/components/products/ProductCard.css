@@ -14,6 +14,7 @@
 }
 
 .unified-product-card {
+  box-sizing: border-box;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 20px;
@@ -257,7 +258,10 @@
 
 /* Link anchor wrapper */
 .product-card-anchor-wrapper {
-  display: block;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   text-decoration: none;
   color: inherit;
 }

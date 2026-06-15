@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { fetchProducts, fetchBrands } from "../services/productService";
 import { fetchCategories } from "../services/categoryService";
 import { 
@@ -28,13 +29,49 @@ export default function Categories() {
   // Selected Filter States
   const [selectedCategory, setSelectedCategory] = useState(null); // Full category object
   const [selectedBrand, setSelectedBrand] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
   const [isFeaturedOnly, setIsFeaturedOnly] = useState(false);
   
   // Sorting & Price Range States
-  const [sortBy, setSortBy] = useState("");
+  const sortQuery = searchParams.get("sort");
+  const [sortBy, setSortBy] = useState(() => {
+    if (sortQuery === "newest") return "";
+    return sortQuery || "";
+  });
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+
+  useEffect(() => {
+    if (sortQuery === "newest") {
+      setSortBy("");
+    } else if (sortQuery) {
+      setSortBy(sortQuery);
+    }
+  }, [sortQuery]);
+
+  // Sync searchQuery state with URL search param
+  const urlSearchQuery = searchParams.get("search") || "";
+  useEffect(() => {
+    setSearchQuery(urlSearchQuery);
+  }, [urlSearchQuery]);
+
+  // Debounce sync searchQuery state back to URL
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      const newParams = new URLSearchParams(searchParams);
+      const currentSearch = newParams.get("search") || "";
+      if (searchQuery !== currentSearch) {
+        if (searchQuery) {
+          newParams.set("search", searchQuery);
+        } else {
+          newParams.delete("search");
+        }
+        setSearchParams(newParams, { replace: true });
+      }
+    }, 400);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery, setSearchParams]);
 
   // Pagination & Loading
   const [page, setPage] = useState(1);
@@ -115,12 +152,14 @@ export default function Categories() {
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
     setPage(1);
-    // Update URL query string
+    // Update URL query string, preserving other parameters
+    const newParams = new URLSearchParams(searchParams);
     if (category) {
-      setSearchParams({ cat: category.slug });
+      newParams.set("cat", category.slug);
     } else {
-      setSearchParams({});
+      newParams.delete("cat");
     }
+    setSearchParams(newParams, { replace: true });
   };
 
 
@@ -409,6 +448,7 @@ export default function Categories() {
         </section>
 
       </main>
+      <Footer />
     </div>
   );
 }

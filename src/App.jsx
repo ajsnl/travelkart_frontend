@@ -41,7 +41,7 @@ function App() {
           // If they land on guest routes
           if (isAuthenticated) {
             // REDIRECT them back to their dashboard if they are already logged in
-            const target = user?.role === "admin" ? "/admin" : "/dashboard";
+            const target = user?.role === "admin" ? "/admin" : "/";
             navigate(target, { replace: true });
           } else {
             // Check if they have an active backend session (e.g. after a hard page refresh on landing page)
@@ -49,7 +49,7 @@ function App() {
               const userData = await getCurrentUser(true);
               if (userData) {
                 dispatch(setUser(userData));
-                const target = userData.role === "admin" ? "/admin" : "/dashboard";
+                const target = userData.role === "admin" ? "/admin" : "/";
                 navigate(target, { replace: true });
               }
             } catch (err) {

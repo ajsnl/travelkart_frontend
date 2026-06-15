@@ -24,6 +24,7 @@ import MembershipCard from "../components/profile/MembershipCard";
 import ProfileEditForm from "../components/profile/ProfileEditForm";
 import OTPVerificationModal from "../components/profile/OTPVerificationModal";
 import ChangePasswordModal from "../components/profile/ChangePasswordModal";
+import Footer from "../components/Footer";
 
 import "../components/profile/Profile.css";
 import { toast } from "react-toastify";
@@ -143,8 +144,8 @@ const ProfilePage = () => {
           <button className={`nav-link-btn ${activeTab === "Dashboard" ? "active" : ""}`} onClick={() => setActiveTab("Dashboard")}>
             <LayoutDashboard size={18} /> <span>Profile Overview</span>
           </button>
-          <button className="nav-link-btn" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft size={18} /> <span>Back to Dashboard</span>
+          <button className="nav-link-btn" onClick={() => navigate("/")}>
+            <ArrowLeft size={18} /> <span>Back to Home </span>
           </button>
           <button className={`nav-link-btn ${activeTab === "Settings" ? "active" : ""}`} onClick={() => {
             setActiveTab("Settings");
@@ -199,7 +200,7 @@ const ProfilePage = () => {
               <div className="email-alert-strip-container">
                 <div className="alert-strip-message">
                   <AlertCircle size={18} className="alert-strip-icon-accent" />
-                  <span>Please verify your email to start purchasing and booking new adventures.</span>
+                  <span>Please verify your email to start purchasing premium travel gear.</span>
                 </div>
                 <button className="alert-strip-action-btn font-inter" onClick={handleStartVerification}>
                   Verify Now
@@ -235,6 +236,7 @@ const ProfilePage = () => {
 
           </div>
         )}
+        <Footer />
       </main>
 
       {/* OVERLAY MODAL MOUNT CONTROLS */}

@@ -87,7 +87,7 @@ const VariantManager = ({
 
     setCropQueue(queue);
     setActiveCropIndex(0);
-    e.target.value = ""; // Clear file input
+    e.target.value = ""; 
   };
 
   const handleEditGeneralImage = (img, idx) => {
@@ -140,7 +140,6 @@ const VariantManager = ({
     const activeItem = cropQueue[activeCropIndex];
 
     if (activeItem.isEdit) {
-      // It is an edit: upload and replace existing image
       setUploadingGeneral(true);
       try {
         const res = await uploadProductMedia(croppedFile);
@@ -240,7 +239,6 @@ const VariantManager = ({
 
   // Save/Update a single variant
   const handleSaveVariant = async (updatedVariant) => {
-    // Rebuild the variants array with the updated variant
     const updatedVariants = variants.map(v => {
       // Match by ID if exists, otherwise fallback to SKU
       if (v.id && updatedVariant.id) {
