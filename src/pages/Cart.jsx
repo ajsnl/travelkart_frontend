@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link,useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { 
   Trash2, 
@@ -25,6 +25,7 @@ import { useCustomDialog } from "../components/CustomDialog";
 
 export default function Cart() {
   const dispatch = useDispatch();
+  const navigate=useNavigate();
   const { cart, loading, updatingItems, error } = useSelector((state) => state.cart);
   const { showConfirm } = useCustomDialog();
   
@@ -334,6 +335,7 @@ export default function Cart() {
                 <button 
                   disabled={isCheckoutRestricted || items.length === 0}
                   className="cart-checkout-btn font-inter"
+                  onClick={()=> navigate("/checkout")}
                 >
                   <Lock size={16} />
                   <span>Secure Checkout</span>

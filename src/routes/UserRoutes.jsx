@@ -13,6 +13,7 @@ import ProductDetail from "../pages/ProductDetail";
 import Wishlist from "../pages/Wishlist";
 import Cart from "../pages/Cart";
 import ProtectedRoute from "../components/ProtectedRoute";
+import Checkout from "../pages/Checkout";
 
 export default function UserRoutes() {
   return (
@@ -55,6 +56,16 @@ export default function UserRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route 
+       path="/checkout"
+       element={
+        <ProtectedRoute>
+          <Checkout/>
+        </ProtectedRoute>
+       }
+      />
+
+
       <Route path="/categories" element={<Categories />} />
       <Route path="/shop" element={<Categories />} />
       <Route path="/product/:id" element={<ProductDetail />} />
