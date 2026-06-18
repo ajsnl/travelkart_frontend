@@ -6,10 +6,12 @@ import "./VerifyOTP.css";
 // Shares the exact same background image composition as your forgot password file
 import forgotBg from "../../assets/images/forgotpasswordpage.png";
 import { toast } from "react-toastify";
+import { useCustomDialog } from "../../components/CustomDialog";
 
 function VerifyOTP() {
   const [otp, setOtp] = useState("");
   const navigate = useNavigate();
+  const { showConfirm } = useCustomDialog();
 
   // Retrieve contextual session target parameters safely
   const email = localStorage.getItem("resetEmail");
@@ -23,7 +25,8 @@ function VerifyOTP() {
 
   const handleVerify = async (e) => {
     e.preventDefault();
-    if (!window.confirm("Are you sure you want to submit the OTP for verification?")) return;
+    const confirmed = await showConfirm("Are you sure you want to submit the OTP for verification?", "Submit OTP", "info");
+    if (!confirmed) return;
 
     try {
       await axios.post("http://localhost:8000/api/auth/verify-forgot-otp/", {

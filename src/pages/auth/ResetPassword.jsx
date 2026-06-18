@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useCustomDialog } from "../../components/CustomDialog";
 
 import "./ResetPassword.css";
 import forgotBg from "../../assets/images/forgotpasswordpage.png";
@@ -15,6 +16,7 @@ function ResetPassword() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const { showConfirm } = useCustomDialog();
   const email = localStorage.getItem("resetEmail");
   const otpVerified = localStorage.getItem("otpVerified");
 
@@ -39,7 +41,8 @@ function ResetPassword() {
       return;
     }
 
-    if (!window.confirm("Are you sure you want to reset your password?")) return;
+    const confirmed = await showConfirm("Are you sure you want to reset your password?", "Reset Password", "info");
+    if (!confirmed) return;
 
     try {
       setLoading(true);

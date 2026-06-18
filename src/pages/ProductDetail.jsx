@@ -345,6 +345,10 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     if (!selectedVariant) return;
+    if (isUnavailable || selectedVariant.is_active === false) {
+      toast.error("This product/variant is currently unlisted or inactive.");
+      return;
+    }
     if (!isAuthenticated) {
       toast.warning("Please log in to add items to your cart.");
       return;

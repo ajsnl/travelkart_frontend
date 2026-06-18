@@ -35,33 +35,7 @@
 }
 
 /* Category Mini Card Bar */
-.category-stats-bar {
-  display: flex;
-  gap: 24px;
-  margin-bottom: 8px;
-}
 
-.category-stat-mini-card {
-  background-color: var(--admin-surface-card);
-  border: 1px solid var(--admin-border-gray);
-  border-radius: 12px;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  min-width: 240px;
-}
-
-.mini-card-icon-frame {
-  width: 36px;
-  height: 36px;
-  background-color: rgba(59, 130, 246, 0.1);
-  color: var(--figma-standard-blue);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 .mini-card-info {
   display: flex;

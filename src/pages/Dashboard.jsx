@@ -4,10 +4,12 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { logoutUser } from "../services/authService";
 import Navbar from "../components/Navbar";
+import { useCustomDialog } from "../components/CustomDialog";
 
 export default function Dashboard() {
   const { user, loading, isAuthenticated } = useSelector((state) => state.auth);
   const navigate = useNavigate();
+  const { showConfirm } = useCustomDialog();
 
   useEffect(() => {
     if (!isAuthenticated && !loading) {
@@ -37,8 +39,9 @@ export default function Dashboard() {
         </p>
 
         <button 
-          onClick={() => {
-            if (window.confirm("Are you sure you want to log out?")) {
+          onClick={async () => {
+            const confirmed = await showConfirm("Are you sure you want to log out?", "Logout", "warning");
+            if (confirmed) {
               logoutUser(navigate);
             }
           }}

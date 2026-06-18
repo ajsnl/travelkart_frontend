@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, Pencil, Trash2, Box, ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
+import { Plus, Pencil, Trash2, Box, ChevronLeft, ChevronRight, Image as ImageIcon, Award, CheckCircle } from "lucide-react";
 
 const getProductThumbnail = (product) => {
   // 1. Try general images
@@ -32,6 +32,7 @@ const getPriceRange = (product) => {
 const ProductList = ({
   products,
   count,
+  activeCount = 0,
   page,
   setPage,
   loading,
@@ -64,15 +65,35 @@ const ProductList = ({
       </div>
 
       {/* METRIC SCOREBOARD */}
-      <div className="product-stats-bar">
-        <div className="product-stat-mini-card">
-          <div className="mini-card-icon-frame">
-            <Box size={18} />
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-card-row">
+            <div className="stat-icon-wrapper total-icon-bg">
+              <Box size={18} />
+            </div>
           </div>
-          <div className="mini-card-info">
-            <span className="mini-card-label">Total Products</span>
-            <span className="mini-card-val">{count}</span>
+          <span className="stat-label uppercase font-inter">Total Products</span>
+          <span className="stat-value font-plus-jakarta">{count.toLocaleString()}</span>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-card-row">
+            <div className="stat-icon-wrapper active-icon-bg">
+              <CheckCircle size={18} />
+            </div>
           </div>
+          <span className="stat-label uppercase font-inter">Active Products</span>
+          <span className="stat-value font-plus-jakarta">{activeCount.toLocaleString()}</span>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-card-row">
+            <div className="stat-icon-wrapper gold-icon-bg">
+              <Award size={18} />
+            </div>
+          </div>
+          <span className="stat-label uppercase font-inter">Total Brands</span>
+          <span className="stat-value font-plus-jakarta">{brands.length.toLocaleString()}</span>
         </div>
       </div>
 

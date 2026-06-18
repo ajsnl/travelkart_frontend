@@ -1,11 +1,10 @@
-/* Design Token Variables Mapping Figma Color Space Grid */
 :root {
   --admin-bg-space: #020408;
   --admin-surface-card: #0A0F1D;
-  --admin-border-gray: #182235;
+  --admin-border-gray: #2A3B56; /* Brighter border color for better visibility */
   --admin-text-main: #FFFFFF;
-  --admin-text-dimmed: #64748B;
-  --admin-text-table-th: #475569;
+  --admin-text-dimmed: #94A3B8; /* Higher contrast text color for subheadings/labels */
+  --admin-text-table-th: #7E8F9E; /* More visible column headers */
   
   /* Status Colors */
   --figma-active-green: #10B981;
@@ -24,10 +23,10 @@
 }
 
 .admin-sidebar {
-  width: 260px;
+  width: 200px;
   background-color: #050811;
   border-right: 1px solid var(--admin-border-gray);
-  padding: 24px 16px;
+  padding: 24px 12px;
   box-sizing: border-box;
   flex-shrink: 0;
   display: flex;
@@ -44,7 +43,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 12px 12px;
   border-radius: 8px;
   color: var(--admin-text-dimmed);
   text-decoration: none;
@@ -63,7 +62,7 @@
   color: var(--admin-text-main);
   background-color: rgba(59, 130, 246, 0.1);
   border-left: 3px solid var(--figma-standard-blue);
-  padding-left: 13px; /* Offset the 3px border to keep alignment */
+  padding-left: 9px; /* Offset the 3px border to keep alignment */
 }
 
 .admin-workspace-content {
@@ -74,21 +73,77 @@
 }
 
 /* Ensure navbar style changes are overridden or supported if needed */
-.navbar-search-input {
+.admin-global-navbar .navbar-search-input {
   color: #FFFFFF !important;
   background-color: #0A0F1D !important;
 }
 
-.navbar-search-input:focus {
+.admin-global-navbar .navbar-search-input:focus {
   background-color: #FFFFFF !important;
   color: #0F2D70 !important; /* Premium dark blue text on white background */
   border-color: var(--figma-standard-blue) !important;
 }
 
-.navbar-search-input::placeholder {
+.admin-global-navbar .navbar-search-input::placeholder {
   color: var(--admin-text-dimmed) !important;
 }
 
-.navbar-search-input:focus::placeholder {
+.admin-global-navbar .navbar-search-input:focus::placeholder {
   color: #94A3B8 !important;
 }
+
+/* GLOBAL SCOREBOARD METRICS GRID SYSTEM */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background-color: var(--admin-surface-card);
+  border: 1px solid var(--admin-border-gray);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.stat-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--admin-text-dimmed);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--admin-text-main);
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+.total-icon-bg { background-color: rgba(59, 130, 246, 0.15); color: var(--figma-standard-blue); }
+.gold-icon-bg { background-color: rgba(255, 143, 79, 0.15); color: var(--figma-gold-elite); }
+.active-icon-bg { background-color: rgba(16, 115, 249, 0.15); color: #2563EB; }
+.unverified-icon-bg { background-color: rgba(239, 68, 68, 0.15); color: var(--figma-suspended-red); }
+

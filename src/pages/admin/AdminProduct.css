@@ -6,22 +6,7 @@
   margin-top: 8px;
 }
 
-.product-stats-bar {
-  display: flex;
-  gap: 24px;
-  margin-bottom: 8px;
-}
 
-.product-stat-mini-card {
-  background-color: var(--admin-surface-card);
-  border: 1px solid var(--admin-border-gray);
-  border-radius: 12px;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  min-width: 240px;
-}
 
 .product-actions-gap {
   display: flex;
@@ -130,7 +115,8 @@
   background-color: #050811;
   border: 1px solid var(--admin-border-gray);
   border-radius: 12px;
-  padding: 20px;
+  padding: 26px;
+  line-height: 1.5;
 }
 
 .section-card-title {
@@ -140,14 +126,14 @@
   margin: 0 0 16px 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 1px solid #1E293B;
+  border-bottom: 1px solid var(--admin-border-gray);
   padding-bottom: 8px;
 }
 
 .form-fields-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 24px;
 }
 
 /* Options config bar values */
@@ -274,7 +260,7 @@
 
 .option-config-row {
   background-color: #030712;
-  border: 1px solid #1E293B;
+  border: 1px solid var(--admin-border-gray);
 }
 
 .form-field-input:focus, .form-field-textarea:focus, select.form-field-input:focus {
@@ -284,13 +270,13 @@
 }
 
 .variant-editor-table th {
-  color: #64748B;
-  border-bottom: 1px solid #1E293B;
+  color: var(--admin-text-table-th);
+  border-bottom: 1px solid var(--admin-border-gray);
   background-color: #030712;
 }
 
 .variant-editor-table td {
-  border-bottom: 1px solid #0A0F1D;
+  border-bottom: 1px solid var(--admin-border-gray);
 }
 
 .variant-editor-table tr:hover td {
@@ -445,7 +431,7 @@
 .variant-media-item-wrapper {
   position: relative;
   aspect-ratio: 1 / 1;
-  border: 1px solid #1E293B;
+  border: 1px solid var(--admin-border-gray);
   border-radius: 8px;
   overflow: hidden;
   display: flex;
@@ -589,7 +575,7 @@
 }
 
 .variant-editor-card:hover {
-  border-color: #1E293B;
+  border-color: var(--figma-standard-blue);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
 }
 
@@ -736,7 +722,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #1E293B;
+  border-bottom: 1px solid var(--admin-border-gray);
   padding-bottom: 20px;
   margin-bottom: 24px;
 }
@@ -783,17 +769,17 @@
 /* Two-column editor workspace */
 .workspace-editor-grid {
   display: flex;
-  gap: 24px;
+  gap: 32px;
   align-items: flex-start;
   margin-top: 8px;
 }
 
 .workspace-side-panel {
-  width: 340px;
+  width: 300px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .workspace-main-panel {
@@ -801,7 +787,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 /* ==========================================
@@ -813,7 +799,7 @@
 
 .live-preview-card {
   background: linear-gradient(135deg, #0A0F1D 0%, #060914 100%);
-  border: 1px solid #1E293B;
+  border: 1px solid var(--admin-border-gray);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
@@ -1046,7 +1032,7 @@
 .general-media-thumb-wrapper {
   position: relative;
   aspect-ratio: 1 / 1;
-  border: 1px solid #1E293B;
+  border: 1px solid var(--admin-border-gray);
   border-radius: 8px;
   overflow: hidden;
   display: flex;
@@ -1225,3 +1211,201 @@ input:checked + .switch-toggle-slider {
 input:checked + .switch-toggle-slider:before {
   transform: translateX(20px);
 }
+
+/* ==========================================
+   PRODUCT FORM LAYOUT AND SPACING FIXES
+   ========================================== */
+.product-workspace-layout .form-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.product-workspace-layout .form-input-group.mt-4,
+.product-workspace-layout .form-input-group.mt-2 {
+  margin-top: 0 !important; /* delegate spacing to margin-bottom */
+}
+
+/* Option Header and Buttons */
+.option-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--admin-border-gray);
+  padding-bottom: 12px;
+}
+
+.btn-secondary-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  background-color: transparent;
+  color: #94A3B8;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary-action:hover {
+  color: #FFFFFF;
+  border-color: var(--figma-standard-blue);
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* Option Config Card */
+.option-config-card {
+  background-color: #040712;
+  border: 1px solid var(--admin-border-gray);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.option-input-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.option-name-input {
+  flex-grow: 1;
+  height: 40px;
+  background-color: #020408;
+  border: 1px solid #1E293B;
+}
+
+.option-delete-btn {
+  background: transparent;
+  border: none;
+  color: #EF4444;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.option-delete-btn:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #F87171;
+}
+
+/* Option Values Pill and Inputs */
+.option-values-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.option-value-delete-cross {
+  background: transparent;
+  border: none;
+  color: #94A3B8;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.option-value-delete-cross:hover {
+  color: #EF4444;
+}
+
+.option-value-add-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.option-value-input {
+  height: 32px;
+  width: 120px;
+  background-color: #020408;
+  border: 1px solid var(--admin-border-gray);
+  font-size: 12px;
+  padding: 0 10px;
+}
+
+.option-value-add-btn {
+  height: 32px;
+  padding: 0 12px;
+  background-color: #1E293B;
+  border: 1px solid #334155;
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.option-value-add-btn:hover {
+  background-color: #334155;
+  border-color: #475569;
+}
+
+/* Helper Alert Box */
+.form-field-helper-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background-color: rgba(30, 41, 59, 0.4);
+  border: 1px solid var(--admin-border-gray);
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: #94A3B8;
+  font-size: 12px;
+  line-height: 1.6;
+  margin-top: 16px;
+}
+
+.helper-alert-icon {
+  color: var(--figma-standard-blue);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Visibility Toggles */
+.toggle-setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--admin-border-gray);
+}
+
+.toggle-setting-row:last-of-type {
+  border-bottom: none;
+}
+
+.toggle-text-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toggle-setting-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #E2E8F0;
+}
+
+.toggle-setting-desc {
+  font-size: 11px;
+  color: #64748B;
+  line-height: 1.4;
+}
+

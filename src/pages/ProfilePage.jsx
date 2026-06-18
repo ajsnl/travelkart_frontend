@@ -28,8 +28,10 @@ import Footer from "../components/Footer";
 
 import "../components/profile/Profile.css";
 import { toast } from "react-toastify";
+import { useCustomDialog } from "../components/CustomDialog";
 
 const ProfilePage = () => {
+  const { showAlert, showConfirm } = useCustomDialog();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -67,7 +69,7 @@ const ProfilePage = () => {
       setShowVerifyModal(true);
     } catch (err) {
       console.error("Error initiating email verification:", err);
-      alert(err.response?.data?.error || "Failed to send verification OTP.");
+      await showAlert(err.response?.data?.error || "Failed to send verification OTP.", "Verification Error", "error");
     }
   };
 
@@ -85,7 +87,8 @@ const ProfilePage = () => {
   };
 
   const handleLogout = async () => {
-    if (window.confirm("Are you sure you want to log out?")) {
+    const confirmed = await showConfirm("Are you sure you want to log out?", "Logout", "warning");
+    if (confirmed) {
       await logoutUser(navigate);
     }
   };

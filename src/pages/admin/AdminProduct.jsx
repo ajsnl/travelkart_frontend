@@ -7,6 +7,7 @@ import ProductList from "../../components/products/ProductList";
 import ProductForm from "../../components/products/ProductForm";
 import VariantManager from "../../components/products/VariantManager";
 import "./AdminProduct.css";
+import { useCustomDialog } from "../../components/CustomDialog";
 
 const cartesianProduct = (arrays) => {
   return arrays.reduce((acc, curr) => {
@@ -30,7 +31,8 @@ const AdminProduct = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
-  
+  const { showConfirm } = useCustomDialog();
+
   // Filters States
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedBrand, setSelectedBrand] = useState("");
@@ -81,6 +83,17 @@ const AdminProduct = () => {
     }
   };
 
+  const [activeCount, setActiveCount] = useState(0);
+
+  const loadActiveProductsCount = async () => {
+    try {
+      const res = await adminFetchProducts({ is_active: "true", page_size: 1 });
+      setActiveCount(res.data.count);
+    } catch (err) {
+      console.error("Error loading active products count:", err);
+    }
+  };
+
   useEffect(() => {
     loadCategoriesDropdown();
     loadBrandsDropdown();
@@ -92,6 +105,7 @@ const AdminProduct = () => {
 
   useEffect(() => {
     loadProducts();
+    loadActiveProductsCount();
   }, [search, page, selectedCategory, selectedBrand]);
 
   // Actions
@@ -107,7 +121,7 @@ const AdminProduct = () => {
     setView("edit");
   };
 
- const handleManageVariantsClick = (product) => {
+  const handleManageVariantsClick = (product) => {
     setCurrentId(product.id);
     setSelectedProduct(product);
     setView("manage-variants");
@@ -125,7 +139,8 @@ const AdminProduct = () => {
   };
 
   const handleDeleteProduct = async (id, name) => {
-    if (window.confirm(`Are you sure you want to delete product "${name}"?`)) {
+    const confirmed = await showConfirm(`Are you sure you want to delete product "${name}"?`, "Delete Product", "error");
+    if (confirmed) {
       try {
         await deleteProduct(id);
         toast.success("Product deleted successfully.");
@@ -134,6 +149,7 @@ const AdminProduct = () => {
           setPage(page - 1);
         } else {
           loadProducts();
+          loadActiveProductsCount();
         }
       } catch (err) {
         console.error("Error deleting product:", err);
@@ -147,6 +163,7 @@ const AdminProduct = () => {
       await patchProduct(id, { is_active: !currentStatus });
       toast.success("Status updated successfully.");
       loadProducts();
+      loadActiveProductsCount();
       if (selectedProduct && selectedProduct.id === id) {
         setSelectedProduct(prev => ({ ...prev, is_active: !currentStatus }));
       }
@@ -207,6 +224,7 @@ const AdminProduct = () => {
 
       setView("list");
       loadProducts();
+      loadActiveProductsCount();
       loadBrandsDropdown(); // Refresh dynamic filter values
     } catch (err) {
       console.error("Save product error", err);
@@ -227,6 +245,7 @@ const AdminProduct = () => {
         <ProductList
           products={products}
           count={count}
+          activeCount={activeCount}
           page={page}
           setPage={setPage}
           loading={loading}

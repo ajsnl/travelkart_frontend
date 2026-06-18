@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { useCustomDialog } from "../CustomDialog";
 
 const ProfileEditForm = ({ user, onSubmit, onClose }) => {
   const [form, setForm] = useState({
@@ -14,6 +15,7 @@ const ProfileEditForm = ({ user, onSubmit, onClose }) => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [generalError, setGeneralError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { showConfirm } = useCustomDialog();
 
   useEffect(() => {
     if (user) {
@@ -27,6 +29,14 @@ const ProfileEditForm = ({ user, onSubmit, onClose }) => {
       });
     }
   }, [user]);
+
+  const getTodayStr = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,7 +53,15 @@ const ProfileEditForm = ({ user, onSubmit, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!window.confirm("Are you sure you want to save these profile changes?")) return;
+    if (form.dob) {
+      const todayStr = getTodayStr();
+      if (form.dob > todayStr) {
+        toast.error("Date of Birth cannot be in the future");
+        return;
+      }
+    }
+    const confirmed = await showConfirm("Are you sure you want to save these profile changes?", "Save Changes", "info");
+    if (!confirmed) return;
     setSubmitting(true);
     setFieldErrors({});
     setGeneralError("");
@@ -167,6 +185,7 @@ const ProfileEditForm = ({ user, onSubmit, onClose }) => {
                 type="date"
                 value={form.dob}
                 onChange={handleChange}
+                max={getTodayStr()}
                 className={`form-input ${fieldErrors.dob ? "error-border" : ""}`}
               />
               {fieldErrors.dob && (

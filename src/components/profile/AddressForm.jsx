@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { useCustomDialog } from "../CustomDialog";
 
 const AddressForm = ({ onSubmit, initialData, onClose }) => {
   const [form, setForm] = useState({
@@ -15,6 +16,7 @@ const AddressForm = ({ onSubmit, initialData, onClose }) => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [generalError, setGeneralError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { showConfirm } = useCustomDialog();
 
   useEffect(() => {
     if (initialData) {
@@ -46,7 +48,8 @@ const AddressForm = ({ onSubmit, initialData, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!window.confirm("Are you sure you want to save this address?")) return;
+    const confirmed = await showConfirm("Are you sure you want to save this address?", "Save Address", "info");
+    if (!confirmed) return;
     setSubmitting(true);
     setFieldErrors({});
     setGeneralError("");

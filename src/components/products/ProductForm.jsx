@@ -184,12 +184,13 @@ const ProductForm = ({
     if (!formData.name.trim()) newErrors.name = "Product name is required.";
     if (!formData.slug.trim()) newErrors.slug = "System unique slug is required.";
     if (!formData.category) newErrors.category = "Category selection is required.";
+    if (!formData.brand.trim()) newErrors.brand = "Brand name is required.";
     
     // Check options values if configuring new product
     if (!initialData) {
       const activeOptions = options.filter(opt => opt.name.trim() !== "" && opt.values.length > 0);
       if (activeOptions.length === 0) {
-        newErrors.options = "Please generate at least one option type (e.g. Color) with values.";
+        newErrors.options = "Please configure at least one option type (e.g., Color) with values.";
       }
     }
 
@@ -241,7 +242,7 @@ const ProductForm = ({
             <span>Back to Products</span>
           </button>
           <h2 className="workspace-form-title font-plus-jakarta">
-            {initialData ? "Update Product Basic Details" : "Publish Premium Logistics Product"}
+            {initialData ? "Update Product Basic Details" : "Publish Premium Travel Product"}
           </h2>
         </div>
         <div className="header-right">
@@ -249,7 +250,7 @@ const ProductForm = ({
             Cancel
           </button>
           <button type="submit" form="product-details-form" className="btn-submit font-inter" disabled={loading}>
-            {loading ? "Saving..." : initialData ? "Save Changes" : "Create Product & Generate Variants"}
+            {loading ? "Saving..." : initialData ? "Save Changes" : "Create Product and Generate Variants"}
           </button>
         </div>
       </div>
@@ -260,38 +261,36 @@ const ProductForm = ({
           {/* Basic Information card */}
           <div className="form-section-card">
             <h4 className="section-card-title">Basic Information</h4>
-            <div className="form-fields-grid-2">
-              <div className="form-input-group">
-                <label htmlFor="prod-name" className="form-field-label">
-                  Product Name <span className="required-star">*</span>
-                </label>
-                <input
-                  id="prod-name"
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="e.g. Nomad Executive Travel Trunk"
-                  className={`form-field-input ${errors.name ? "input-field-error" : ""}`}
-                />
-                {errors.name && <span className="field-error-message"><AlertCircle size={12}/>{errors.name}</span>}
-              </div>
+            <div className="form-input-group">
+              <label htmlFor="prod-name" className="form-field-label">
+                Product Name <span className="required-star">*</span>
+              </label>
+              <input
+                id="prod-name"
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="e.g., Nomad Executive Travel Trunk"
+                className={`form-field-input ${errors.name ? "input-field-error" : ""}`}
+              />
+              {errors.name && <span className="field-error-message"><AlertCircle size={12}/>{errors.name}</span>}
+            </div>
 
-              <div className="form-input-group">
-                <label htmlFor="prod-slug" className="form-field-label">
-                  System Slug <span className="required-star">*</span>
-                </label>
-                <input
-                  id="prod-slug"
-                  type="text"
-                  name="slug"
-                  value={formData.slug}
-                  onChange={handleInputChange}
-                  placeholder="e.g. nomad-executive-travel-trunk"
-                  className={`form-field-input ${errors.slug ? "input-field-error" : ""}`}
-                />
-                {errors.slug && <span className="field-error-message"><AlertCircle size={12}/>{errors.slug}</span>}
-              </div>
+            <div className="form-input-group">
+              <label htmlFor="prod-slug" className="form-field-label">
+                System Slug <span className="required-star">*</span>
+              </label>
+              <input
+                id="prod-slug"
+                type="text"
+                name="slug"
+                value={formData.slug}
+                onChange={handleInputChange}
+                placeholder="e.g., nomad-executive-travel-trunk"
+                className={`form-field-input ${errors.slug ? "input-field-error" : ""}`}
+              />
+              {errors.slug && <span className="field-error-message"><AlertCircle size={12}/>{errors.slug}</span>}
             </div>
 
             <div className="form-input-group mt-4">
@@ -321,37 +320,36 @@ const ProductForm = ({
             </div>
           </div>
 
-          {/* Pricing & Variant Configuration (Only show when creating a new product) */}
+          {/* Pricing and Variant Configuration (Only shown when creating a new product) */}
           {!initialData && (
             <div className="form-section-card">
-              <div className="flex justify-between items-center mb-4">
-                <h4 className="section-card-title m-0">Setup Variant Options</h4>
+              <div className="option-header-row">
+                <h4 className="section-card-title m-0">Configure Option Attributes</h4>
                 <button 
                   type="button" 
-                  className="btn-secondary-action flex items-center gap-1 font-semibold text-xs py-1 px-3 border border-slate-700 rounded text-slate-300 hover:text-white"
+                  className="btn-secondary-action"
                   onClick={handleAddOptionField}
                 >
-                  <Plus size={12}/> Add Option Type
+                  <Plus size={14}/> Add Option Type
                 </button>
               </div>
 
               {options.map((option, optIdx) => (
-                <div key={optIdx} className="option-config-row mb-4 p-4 rounded bg-slate-950 border border-slate-900">
-                  <div className="flex justify-between items-center gap-4 mb-2">
-                    <div className="flex-grow">
-                      <input 
-                        type="text" 
-                        value={option.name} 
-                        onChange={(e) => handleOptionNameChange(optIdx, e.target.value)}
-                        placeholder="Option Name (e.g. Color, Size, Capacity)"
-                        className="form-field-input w-full h-9 bg-slate-900 border-slate-800"
-                      />
-                    </div>
+                <div key={optIdx} className="option-config-card">
+                  <div className="option-input-row">
+                    <input 
+                      type="text" 
+                      value={option.name} 
+                      onChange={(e) => handleOptionNameChange(optIdx, e.target.value)}
+                      placeholder="Option Name (e.g., Color, Size, Capacity)"
+                      className="form-field-input option-name-input"
+                    />
                     {options.length > 1 && (
                       <button 
                         type="button" 
-                        className="text-red-500 hover:text-red-400 p-1"
+                        className="option-delete-btn"
                         onClick={() => handleRemoveOptionField(optIdx)}
+                        title="Delete Option Type"
                       >
                         <Trash2 size={16}/>
                       </button>
@@ -359,32 +357,32 @@ const ProductForm = ({
                   </div>
 
                   {/* Values pills row */}
-                  <div className="flex flex-wrap gap-2 items-center mt-3">
+                  <div className="option-values-container">
                     {option.values.map((val, valIdx) => (
-                      <span key={valIdx} className="badge-option-value flex items-center gap-1 px-3 py-1 bg-slate-900 border border-slate-800 rounded-full text-xs text-white">
+                      <span key={valIdx} className="badge-option-value">
                         {val}
                         <button 
                           type="button" 
-                          className="text-slate-400 hover:text-white ml-1 font-bold"
+                          className="option-value-delete-cross"
                           onClick={() => handleRemoveOptionValue(optIdx, valIdx)}
                         >
                           &times;
                         </button>
                       </span>
                     ))}
-                    <div className="flex gap-2">
+                    <div className="option-value-add-box">
                       <input 
                         type="text"
                         value={newOptionValue[optIdx] || ""}
                         onChange={(e) => setNewOptionValue(prev => ({ ...prev, [optIdx]: e.target.value }))}
                         placeholder="Add value..."
-                        className="form-field-input h-8 w-28 bg-slate-900 border-slate-800 text-xs px-2"
+                        className="form-field-input option-value-input"
                         onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddOptionValue(optIdx))}
                       />
                       <button 
                         type="button"
                         onClick={() => handleAddOptionValue(optIdx)}
-                        className="px-2 py-1 bg-slate-800 border border-slate-700 text-xs text-white rounded hover:bg-slate-700"
+                        className="option-value-add-btn"
                       >
                         Add
                       </button>
@@ -393,8 +391,9 @@ const ProductForm = ({
                 </div>
               ))}
               
-              <div className="field-helper-info mt-2 text-slate-500">
-                <Layers size={12} className="inline mr-1"/> Generating variants list will automatically map options together to build products combination entries. You will edit price/stock for each variants individually in the next step.
+              <div className="form-field-helper-alert">
+                <Layers size={14} className="helper-alert-icon" />
+                <span>Generating the variant combinations will automatically map options together to build product combination entries. You will edit the price and stock for each variant individually in the next step.</span>
               </div>
             </div>
           )}
@@ -404,9 +403,9 @@ const ProductForm = ({
         <div className="workspace-side-panel">
           {/* Category selection card */}
           <div className="form-section-card">
-            <h4 className="section-card-title flex items-center gap-2"><Settings size={14}/> Category Details</h4>
+            <h4 className="section-card-title flex items-center gap-2"><Settings size={14}/> Category Assignment</h4>
             
-            <div className="form-input-group mt-2">
+            <div className="form-input-group">
               <label htmlFor="prod-category" className="form-field-label">Category</label>
               <select
                 id="prod-category"
@@ -458,7 +457,9 @@ const ProductForm = ({
             })()}
 
             <div className="form-input-group mt-4">
-              <label htmlFor="prod-brand" className="form-field-label">Brand</label>
+              <label htmlFor="prod-brand" className="form-field-label">
+                Brand <span className="required-star">*</span>
+              </label>
               <input
                 id="prod-brand"
                 type="text"
@@ -466,8 +467,14 @@ const ProductForm = ({
                 value={formData.brand}
                 onChange={handleInputChange}
                 placeholder="e.g. TravelKart Elite"
-                className="form-field-input"
+                className={`form-field-input ${errors.brand ? "input-field-error" : ""}`}
               />
+              {errors.brand && (
+                <span className="field-error-message">
+                  <AlertCircle size={12} />
+                  {errors.brand}
+                </span>
+              )}
             </div>
           </div>
 
@@ -477,9 +484,9 @@ const ProductForm = ({
               <Settings size={14}/> Promotion Settings
             </h4>
             
-            <div className="form-input-group mt-2">
+            <div className="form-input-group">
               <label htmlFor="prod-total-sales" className="form-field-label">
-                Simulated Sales Count (for Best Seller Tag)
+                Simulated Sales Count (for Best Seller badge)
               </label>
               <input
                 id="prod-total-sales"
@@ -488,21 +495,21 @@ const ProductForm = ({
                 min="0"
                 value={formData.total_sales}
                 onChange={handleInputChange}
-                placeholder="e.g. 150"
+                placeholder="e.g., 150"
                 className="form-field-input"
               />
             </div>
           </div>
 
-          {/* Visibility & Status Card */}
+          {/* Visibility and Status Card */}
           <div className="form-section-card">
-            <h4 className="section-card-title flex items-center gap-2"><Globe size={14}/> Visibility & Status</h4>
+            <h4 className="section-card-title flex items-center gap-2"><Globe size={14}/> Visibility and Status</h4>
 
             {/* Active Toggle */}
-            <div className="form-toggle-group-inline flex justify-between items-center py-2 border-b border-slate-900">
-              <div>
-                <span className="text-xs font-semibold text-slate-300 block">Active Status</span>
-                <span className="text-[10px] text-slate-500 block">Live in storefront catalog</span>
+            <div className="toggle-setting-row">
+              <div className="toggle-text-container">
+                <span className="toggle-setting-title">Active Status</span>
+                <span className="toggle-setting-desc">Show this product in the store catalog</span>
               </div>
               <label className="switch-toggle-node">
                 <input
@@ -516,10 +523,10 @@ const ProductForm = ({
             </div>
 
             {/* Featured Toggle */}
-            <div className="form-toggle-group-inline flex justify-between items-center py-3 border-b border-slate-900">
-              <div>
-                <span className="text-xs font-semibold text-slate-300 block">Featured Product</span>
-                <span className="text-[10px] text-slate-500 block">Highlight on home landing page</span>
+            <div className="toggle-setting-row">
+              <div className="toggle-text-container">
+                <span className="toggle-setting-title">Featured Product</span>
+                <span className="toggle-setting-desc">Highlight this product on the home landing page</span>
               </div>
               <label className="switch-toggle-node">
                 <input
@@ -533,10 +540,10 @@ const ProductForm = ({
             </div>
 
             {/* Free Delivery Toggle */}
-            <div className="form-toggle-group-inline flex justify-between items-center py-3 border-b border-slate-900">
-              <div>
-                <span className="text-xs font-semibold text-slate-300 block">Free Shipping</span>
-                <span className="text-[10px] text-slate-500 block">Deliver free globally</span>
+            <div className="toggle-setting-row">
+              <div className="toggle-text-container">
+                <span className="toggle-setting-title">Free Shipping</span>
+                <span className="toggle-setting-desc">Offer free delivery globally</span>
               </div>
               <label className="switch-toggle-node">
                 <input
@@ -549,15 +556,15 @@ const ProductForm = ({
               </label>
             </div>
 
-            <div className="form-input-group mt-4">
-              <label htmlFor="prod-delivery-time" className="form-field-label flex items-center gap-1"><Clock size={12}/> Est. Delivery Time</label>
+            <div className="form-input-group">
+              <label htmlFor="prod-delivery-time" className="form-field-label flex items-center gap-1"><Clock size={12}/> Estimated Delivery Time</label>
               <input
                 id="prod-delivery-time"
                 type="text"
                 name="est_delivery_time"
                 value={formData.est_delivery_time}
                 onChange={handleInputChange}
-                placeholder="e.g. 3 Business Days"
+                placeholder="e.g., 3 Business Days"
                 className="form-field-input"
               />
             </div>

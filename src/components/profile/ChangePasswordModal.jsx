@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Lock, Eye, EyeOff } from "lucide-react";
+import { useCustomDialog } from "../CustomDialog";
 
 const ChangePasswordModal = ({ onSubmit, onClose }) => {
   const [form, setForm] = useState({
@@ -11,6 +12,7 @@ const ChangePasswordModal = ({ onSubmit, onClose }) => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [generalError, setGeneralError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { showConfirm: confirmDialog } = useCustomDialog();
 
   // Password visibility states
   const [showOld, setShowOld] = useState(false);
@@ -38,7 +40,8 @@ const ChangePasswordModal = ({ onSubmit, onClose }) => {
       return;
     }
 
-    if (!window.confirm("Are you sure you want to change your password?")) return;
+    const confirmed = await confirmDialog("Are you sure you want to change your password?", "Change Password", "info");
+    if (!confirmed) return;
 
     setSubmitting(true);
     setFieldErrors({});

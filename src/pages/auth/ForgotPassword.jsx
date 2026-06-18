@@ -5,11 +5,13 @@ import axios from "axios";
 import "./ForgotPassword.css";
 import forgotBg from "../../assets/images/forgotpasswordpage.png";
 import { toast } from "react-toastify";
+import { useCustomDialog } from "../../components/CustomDialog";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { showConfirm } = useCustomDialog();
 
   useEffect(() => {
     localStorage.removeItem("resetEmail");
@@ -18,7 +20,8 @@ function ForgotPassword() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!window.confirm("Are you sure you want to request a password reset link?")) return;
+    const confirmed = await showConfirm("Are you sure you want to request a password reset link?", "Forgot Password", "info");
+    if (!confirmed) return;
     setLoading(true);
 
     try {

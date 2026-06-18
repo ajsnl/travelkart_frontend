@@ -44,7 +44,7 @@ export const addVariantToCart = createAsyncThunk(
   async ({ variantId, quantity, productId, productName }, { rejectWithValue }) => {
     try {
       const response = await addToCart(variantId, quantity);
-      toast.success(`${productName || "Product"} added to cart!`);
+      toast.success("Product added to cart!");
       return response.data;
     } catch (error) {
       const msg = getErrorMessage(error);
@@ -75,7 +75,7 @@ export const removeVariantFromCart = createAsyncThunk(
   async ({ variantId, productName }, { rejectWithValue }) => {
     try {
       const response = await removeCartItem(variantId);
-      toast.info(`${productName || "Product"} removed from cart.`);
+      toast.info("Product removed from cart.");
       return response.data;
     } catch (error) {
       const msg = getErrorMessage(error);

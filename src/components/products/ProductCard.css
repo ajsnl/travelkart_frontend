@@ -146,10 +146,18 @@
   flex-shrink: 0;
 }
 
-.quick-add-cart-btn:hover {
+.quick-add-cart-btn:hover:not(:disabled) {
   background-color: var(--btn-orange-hover);
   transform: scale(1.08);
   box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+}
+
+.quick-add-cart-btn:disabled {
+  background-color: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 /* Info Content */

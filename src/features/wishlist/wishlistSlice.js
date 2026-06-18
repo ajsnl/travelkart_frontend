@@ -2,6 +2,23 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { fetchWishlistItems, toggleWishlistItem } from "../../services/wishlistService";
 import { toast } from "react-toastify";
 
+// Helper to extract clean error message from Axios/DRF responses
+const getErrorMessage = (error) => {
+  const data = error.response?.data;
+  if (typeof data === "string") return data;
+  if (data && typeof data === "object") {
+    if (data.error) return data.error;
+    if (data.detail) return data.detail;
+    const firstKey = Object.keys(data)[0];
+    if (firstKey) {
+      const val = data[firstKey];
+      if (Array.isArray(val)) return val[0];
+      if (typeof val === "string") return val;
+    }
+  }
+  return error.message || "Failed to complete request";
+};
+
 // Async thunk to fetch wishlist items
 export const getWishlist = createAsyncThunk(
   "wishlist/getWishlist",
@@ -25,15 +42,16 @@ export const toggleWishlist = createAsyncThunk(
       
       // Show appropriate toast notification
       if (data.in_wishlist) {
-        toast.success(`${productName || "Product"} added to wishlist!`);
+        toast.success("Product added to wishlist!");
       } else {
-        toast.info(`${productName || "Product"} removed from wishlist.`);
+        toast.info("Product removed from wishlist.");
       }
       
       return { productId, inWishlist: data.in_wishlist, data };
     } catch (error) {
-      toast.error(error.response?.data?.error || "Failed to update wishlist");
-      return rejectWithValue(error.response?.data || "Failed to toggle wishlist");
+      const msg = getErrorMessage(error);
+      toast.error(msg);
+      return rejectWithValue(msg);
     }
   }
 );

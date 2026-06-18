@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { fetchUsers, toggleUserStatus } from "../../services/adminService";
 import "./AdminDashboard.css";
+import { useCustomDialog } from "../../components/CustomDialog";
 
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
@@ -31,6 +32,7 @@ const AdminDashboard = () => {
   const [count, setCount] = useState(0);
   const [filter, setFilter] = useState("");
   const [goldFilter, setGoldFilter] = useState("");
+  const { showConfirm } = useCustomDialog();
   const [stats, setStats] = useState({
     total_members: 4821,
     total_gold_members: 1204,
@@ -65,7 +67,7 @@ const AdminDashboard = () => {
   }, [search, page, filter, goldFilter]);
 
   const handleToggle = async (id) => {
-    const confirmAction = window.confirm("Are you sure you want to change this user's account execution status?");
+    const confirmAction = await showConfirm("Are you sure you want to change this user's account execution status?", "Change Status", "warning");
     if (!confirmAction) return;
 
     await toggleUserStatus(id);

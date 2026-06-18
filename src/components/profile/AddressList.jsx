@@ -9,6 +9,7 @@ import {
 import AddressForm from "./AddressForm";
 import { MapPin, Plus, Edit2, Trash2, CheckCircle2 } from "lucide-react";
 import { toast } from "react-toastify";
+import { useCustomDialog } from "../CustomDialog";
 
 const AddressList = () => {
   const [addresses, setAddresses] = useState([]);
@@ -16,6 +17,7 @@ const AddressList = () => {
   const [editData, setEditData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { showConfirm } = useCustomDialog();
 
   const fetchAddresses = async () => {
     try {
@@ -54,7 +56,8 @@ const AddressList = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this address?")) {
+    const confirmed = await showConfirm("Are you sure you want to delete this address?", "Delete Address", "error");
+    if (confirmed) {
       try {
         await deleteAddress(id);
         fetchAddresses();

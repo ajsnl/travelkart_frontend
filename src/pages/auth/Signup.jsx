@@ -10,11 +10,13 @@ import "./Signup.css";
 import signupBg from "../../assets/images/signuppage.png";
 import { GoogleLogin } from "@react-oauth/google";
 import TravelKartLogoMain from "../../components/brand/TravelKartLogoMain";
+import { useCustomDialog } from "../../components/CustomDialog";
 
 function Signup() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user, isAuthenticated, loading } = useSelector((state) => state.auth);
+  const { showConfirm } = useCustomDialog();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -50,6 +52,14 @@ function Signup() {
     });
   };
 
+  const getTodayStr = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const validateForm = () => {
     if (formData.password !== formData.confirm_password) {
       toast.error("Passwords do not match");
@@ -59,6 +69,18 @@ function Signup() {
       toast.error("Password must be at least 8 characters");
       return false;
     }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email || !emailRegex.test(formData.email.trim())) {
+      toast.error("Please enter a valid email address");
+      return false;
+    }
+    if (formData.dob) {
+      const todayStr = getTodayStr();
+      if (formData.dob > todayStr) {
+        toast.error("Date of Birth cannot be in the future");
+        return false;
+      }
+    }
     return true;
   };
 
@@ -66,7 +88,8 @@ function Signup() {
     e.preventDefault();
     if (!validateForm()) return;
 
-    if (!window.confirm("Are you sure you want to register?")) return;
+    const confirmed = await showConfirm("Are you sure you want to register?", "Register Account", "info");
+    if (!confirmed) return;
 
     try {
       const res = await signupUser(formData);
@@ -75,10 +98,49 @@ function Signup() {
       navigate("/");
     } catch (err) {
       console.error("Signup error:", err);
-      const backendError = err.response?.data?.error || 
-                           err.response?.data?.non_field_errors?.[0] || 
-                           (err.response?.data && typeof err.response.data === "object" ? Object.values(err.response.data).flat()[0] : null);
-      toast.error(backendError || "Signup failed ❌");
+      const data = err.response?.data;
+      
+      if (typeof data === "string") {
+        toast.error(data);
+      } else if (data && typeof data === "object") {
+        if (data.error) {
+          const errMsg = typeof data.error === "string" ? data.error : (Array.isArray(data.error) ? data.error[0] : JSON.stringify(data.error));
+          toast.error(errMsg);
+        } else if (data.non_field_errors) {
+          const nonFieldErrs = Array.isArray(data.non_field_errors) ? data.non_field_errors : [data.non_field_errors];
+          nonFieldErrs.forEach(err => toast.error(err));
+        } else {
+          // Format validation errors: "Field Name: Error message"
+          const errorEntries = [];
+          Object.entries(data).forEach(([key, value]) => {
+            const cleanKey = key.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+            const msgs = Array.isArray(value) ? value : [value];
+            msgs.forEach(msg => {
+              errorEntries.push({ field: cleanKey, message: msg });
+            });
+          });
+
+          if (errorEntries.length > 0) {
+            toast.error(
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px", textAlign: "left" }}>
+                <strong style={{ fontSize: "14px", marginBottom: "2px", display: "block" }}>Validation Errors:</strong>
+                <ul style={{ margin: 0, paddingLeft: "16px", fontSize: "13px", lineHeight: "1.4" }}>
+                  {errorEntries.map((errItem, idx) => (
+                    <li key={idx} style={{ marginBottom: "2px" }}>
+                      <span style={{ fontWeight: "600" }}>{errItem.field}:</span> {errItem.message}
+                    </li>
+                  ))}
+                </ul>
+              </div>,
+              { autoClose: 6000 }
+            );
+          } else {
+            toast.error("Signup failed ❌");
+          }
+        }
+      } else {
+        toast.error("Signup failed ❌");
+      }
     }
   };
 
@@ -155,6 +217,7 @@ function Signup() {
                   required
                   value={formData.dob}
                   onChange={handleChange}
+                  max={getTodayStr()}
                   className="signup-input-field"
                 />
               </div>

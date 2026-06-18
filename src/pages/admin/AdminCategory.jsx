@@ -21,6 +21,7 @@ import {
 } from "../../services/categoryService";
 import { toast } from "react-toastify";
 import "./AdminCategory.css";
+import { useCustomDialog } from "../../components/CustomDialog";
 
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
@@ -48,6 +49,7 @@ const AdminCategory = () => {
   const [page, setPage] = useState(1);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const { showConfirm } = useCustomDialog();
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -171,7 +173,17 @@ const AdminCategory = () => {
   // Validate Form
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = "Name is required.";
+    const trimmedName = formData.name.trim();
+    if (!trimmedName) {
+      newErrors.name = "Name is required.";
+    } else {
+      const isDuplicate = allCategories.some(
+        (c) => c.name.toLowerCase() === trimmedName.toLowerCase() && c.id !== currentId
+      );
+      if (isDuplicate) {
+        newErrors.name = `Category "${trimmedName}" already exists (case-insensitive check).`;
+      }
+    }
     if (!formData.slug.trim()) newErrors.slug = "Slug is required.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -213,7 +225,8 @@ const AdminCategory = () => {
 
   // Delete Category
   const handleDelete = async (id, name) => {
-    if (window.confirm(`Are you sure you want to delete category "${name}"?`)) {
+    const confirmed = await showConfirm(`Are you sure you want to delete category "${name}"?`, "Delete Category", "error");
+    if (confirmed) {
       try {
         await deleteCategory(id);
         toast.success("Category soft-deleted successfully.");
@@ -260,16 +273,40 @@ const AdminCategory = () => {
         </button>
       </div>
 
-      {/* METRIC CARD SCOREBOARD */}
-      <div className="category-stats-bar">
-        <div className="category-stat-mini-card">
-          <div className="mini-card-icon-frame">
-            <FolderTree size={18} />
+      {/* METRIC SCOREBOARD */}
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-card-row">
+            <div className="stat-icon-wrapper total-icon-bg">
+              <FolderTree size={18} />
+            </div>
           </div>
-          <div className="mini-card-info">
-            <span className="mini-card-label">Total Categories</span>
-            <span className="mini-card-val">{count}</span>
+          <span className="stat-label uppercase font-inter">Total Categories</span>
+          <span className="stat-value font-plus-jakarta">{count.toLocaleString()}</span>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-card-row">
+            <div className="stat-icon-wrapper gold-icon-bg">
+              <Calendar size={18} />
+            </div>
           </div>
+          <span className="stat-label uppercase font-inter">Parent Categories</span>
+          <span className="stat-value font-plus-jakarta">
+            {allCategories.filter(c => !c.parent).length.toLocaleString()}
+          </span>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-card-row">
+            <div className="stat-icon-wrapper active-icon-bg">
+              <Hash size={18} />
+            </div>
+          </div>
+          <span className="stat-label uppercase font-inter">Subcategories</span>
+          <span className="stat-value font-plus-jakarta">
+            {allCategories.filter(c => c.parent).length.toLocaleString()}
+          </span>
         </div>
       </div>
 

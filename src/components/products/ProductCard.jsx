@@ -85,12 +85,16 @@ export default function ProductCard({ product }) {
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isAuthenticated) {
-      toast.warning("Please log in to add items to your cart.");
+    if (product.is_active === false) {
+      toast.error("This product is currently inactive and cannot be added to cart.");
       return;
     }
-    if (!primaryVariant) {
+    if (!primaryVariant || primaryVariant.is_active === false) {
       toast.error("No active variant available for this product.");
+      return;
+    }
+    if (!isAuthenticated) {
+      toast.warning("Please log in to add items to your cart.");
       return;
     }
     dispatch(addVariantToCart({
@@ -227,15 +231,14 @@ export default function ProductCard({ product }) {
               )}
             </div>
 
-            {!pricing.isOutOfStock && (
-              <button 
-                className="quick-add-cart-btn"
-                onClick={handleAddToCart}
-                aria-label="Add to cart"
-              >
-                <ShoppingBag size={16} />
-              </button>
-            )}
+            <button 
+              className="quick-add-cart-btn"
+              onClick={handleAddToCart}
+              disabled={pricing.isOutOfStock || product.is_active === false || !primaryVariant || primaryVariant.is_active === false}
+              aria-label="Add to cart"
+            >
+              <ShoppingBag size={16} />
+            </button>
           </div>
         </div>
       </article>

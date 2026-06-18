@@ -21,10 +21,12 @@ import {
 } from "../features/cart/cartSlice";
 import "./Cart.css";
 import Footer from "../components/Footer";
+import { useCustomDialog } from "../components/CustomDialog";
 
 export default function Cart() {
   const dispatch = useDispatch();
   const { cart, loading, updatingItems, error } = useSelector((state) => state.cart);
+  const { showConfirm } = useCustomDialog();
   
   useEffect(() => {
     dispatch(getCart());
@@ -57,8 +59,9 @@ export default function Cart() {
     }));
   };
 
-  const handleClearCart = () => {
-    if (window.confirm("Are you sure you want to clear your cart?")) {
+  const handleClearCart = async () => {
+    const confirmed = await showConfirm("Are you sure you want to clear your cart?", "Clear Cart", "warning");
+    if (confirmed) {
       dispatch(clearUserCart());
     }
   };

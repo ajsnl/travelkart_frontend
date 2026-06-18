@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import { resendEmailOTP } from "../../services/authService";
 import { ShieldCheck, RefreshCw } from "lucide-react";
 import { toast } from "react-toastify";
+import { useCustomDialog } from "../CustomDialog";
 
 const OTPVerificationModal = ({ email, onSubmit, onClose }) => {
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { showConfirm } = useCustomDialog();
   
   // Timer for resend cooldown (60 seconds)
   const [cooldown, setCooldown] = useState(60);
@@ -25,7 +27,8 @@ const OTPVerificationModal = ({ email, onSubmit, onClose }) => {
       setError("Please enter a valid 6-digit verification code.");
       return;
     }
-    if (!window.confirm("Are you sure you want to verify this OTP?")) return;
+    const confirmed = await showConfirm("Are you sure you want to verify this OTP?", "Verify OTP", "info");
+    if (!confirmed) return;
     
     setSubmitting(true);
     setError("");

@@ -4,14 +4,17 @@ import { LogOut, Bell, Search, Users, FolderTree, Box } from "lucide-react";
 import { logoutUser } from "../services/authService";
 import TravelKartLogoMain from "./brand/TravelKartLogoMain";
 import "./AdminLayout.css";
+import { useCustomDialog } from "./CustomDialog";
 
 const AdminLayout = () => {
   const [search, setSearch] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
+  const { showConfirm } = useCustomDialog();
 
-  const handleLogout = () => {
-    if (window.confirm("Are you sure you want to log out?")) {
+  const handleLogout = async () => {
+    const confirmed = await showConfirm("Are you sure you want to log out?", "Logout", "warning");
+    if (confirmed) {
       logoutUser(navigate);
     }
   };

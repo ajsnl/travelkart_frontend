@@ -65,7 +65,9 @@ const ImageCropperModal = ({
     if (!imageRef.current || !containerRef.current) return;
 
     const img = new Image();
-    img.crossOrigin = "anonymous"; // Avoid tainted canvas with Cloudinary URLs
+    if (imageSrc && (imageSrc.startsWith("http") || imageSrc.startsWith("//"))) {
+      img.crossOrigin = "anonymous"; // Avoid tainted canvas with Cloudinary URLs
+    }
     img.src = imageSrc;
     img.onload = () => {
       const container = containerRef.current;

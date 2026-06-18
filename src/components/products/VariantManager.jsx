@@ -4,6 +4,7 @@ import VariantCard from "./VariantCard";
 import { updateProduct, uploadProductMedia } from "../../services/productService";
 import { toast } from "react-toastify";
 import ImageCropperModal from "./ImageCropperModal";
+import { useCustomDialog } from "../CustomDialog";
 
 const getPriceRange = (product) => {
   const prices = (product.variants || []).map(v => parseFloat(v.price)).filter(p => !isNaN(p));
@@ -42,6 +43,7 @@ const VariantManager = ({
   const [newVariantSku, setNewVariantSku] = useState("");
   const [newVariantActive, setNewVariantActive] = useState(false);
   const [variantSearch, setVariantSearch] = useState("");
+  const { showConfirm } = useCustomDialog();
 
   const filteredVariants = React.useMemo(() => {
     if (!variantSearch.trim()) return variants;
@@ -125,6 +127,7 @@ const VariantManager = ({
         name: product.name,
         slug: product.slug,
         category: product.category,
+        brand: product.brand,
         images: updatedImages
       };
       await updateProduct(product.id, payload);
@@ -158,6 +161,7 @@ const VariantManager = ({
           name: product.name,
           slug: product.slug,
           category: product.category,
+          brand: product.brand,
           images: updatedImages
         };
         await updateProduct(product.id, payload);
@@ -202,6 +206,7 @@ const VariantManager = ({
         name: product.name,
         slug: product.slug,
         category: product.category,
+        brand: product.brand,
         images: updated
       };
       await updateProduct(product.id, payload);
@@ -226,6 +231,7 @@ const VariantManager = ({
         name: product.name,
         slug: product.slug,
         category: product.category,
+        brand: product.brand,
         images: updated
       };
       await updateProduct(product.id, payload);
@@ -252,6 +258,7 @@ const VariantManager = ({
         name: product.name,
         slug: product.slug,
         category: product.category,
+        brand: product.brand,
         variants: updatedVariants
       };
       await updateProduct(product.id, payload);
@@ -270,7 +277,8 @@ const VariantManager = ({
 
   // Delete a single variant
   const handleDeleteVariant = async (variantId, index) => {
-    if (!window.confirm("Are you sure you want to delete this variant combination?")) {
+    const confirmed = await showConfirm("Are you sure you want to delete this variant combination?", "Delete Variant", "error");
+    if (!confirmed) {
       return;
     }
 
@@ -282,6 +290,7 @@ const VariantManager = ({
         name: product.name,
         slug: product.slug,
         category: product.category,
+        brand: product.brand,
         variants: updatedVariants
       };
       await updateProduct(product.id, payload);
@@ -329,6 +338,7 @@ const VariantManager = ({
         name: product.name,
         slug: product.slug,
         category: product.category,
+        brand: product.brand,
         variants: updatedVariants
       };
       await updateProduct(product.id, payload);
