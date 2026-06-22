@@ -1,25 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  MapPin,
-  CheckCircle2,
-  Trash2,
-  Plus,
-  Lock,
-  ArrowRight,
-  ChevronRight,
-  AlertCircle,
-  Truck,
-  CheckCircle,
-  Info,
-  ShieldCheck,
-  Phone,
-  Banknote,
-  Loader2,
-  CreditCard,
-  Wallet
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { getCart, clearUserCart } from "../features/cart/cartSlice";
@@ -34,6 +16,11 @@ import {
 import AddressForm from "../components/profile/AddressForm";
 import { toast } from "react-toastify";
 import { useCustomDialog } from "../components/CustomDialog";
+import CheckoutAddressSection from "../components/checkout/CheckoutAddressSection";
+import CheckoutPaymentSection from "../components/checkout/CheckoutPaymentSection";
+import CheckoutOrderSummarySection from "../components/checkout/CheckoutOrderSummarySection";
+import CheckoutSuccessView from "../components/checkout/CheckoutSuccessView";
+import { placeOrder } from "../services/orderService";
 import "./Checkout.css";
 
 export default function Checkout() {
@@ -54,15 +41,12 @@ export default function Checkout() {
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   // Payment states
-  const paymentMethod = "cod";
+  const [paymentMethod, setPaymentMethod] = useState("cod");
 
   // Checkout Actions
   const [processing, setProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [placedOrderDetails, setPlacedOrderDetails] = useState(null);
-
-  // Static Wallet Balance (aligned with WalletCard.jsx)
-  const walletBalance = 500.00;
 
   // Initial Fetches
   const fetchAddresses = async () => {
@@ -176,11 +160,11 @@ export default function Checkout() {
   const discountTotal = cart?.discount_total || 0;
   const isCheckoutRestricted = cart?.is_checkout_restricted || false;
 
-  // Shipping logic: Free for gold members OR if order subtotal (totalPrice) > 500
+  // Shipping logic: Free for gold members OR if order subtotal (totalPrice) > 1500
   const isGold = profile?.is_gold_member || false;
   const rawSubtotal = totalPrice; // Net subtotal
   const originalSubtotal = totalPrice + discountTotal; // Subtotal before discounts
-  const shippingFee = (isGold || rawSubtotal > 500) ? 0 : 99;
+  const shippingFee = (isGold || rawSubtotal > 1500) ? 0 : 99;
   const taxAmount = rawSubtotal * 0.18; // 18% GST (Included)
   const finalTotal = rawSubtotal + shippingFee;
 
@@ -208,38 +192,40 @@ export default function Checkout() {
     try {
       setProcessing(true);
 
-      // Simulate a small delay for premium processing look
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Place order via backend API
+      const response = await placeOrder(selectedAddress.id, paymentMethod.toUpperCase());
+      const orderData = response.data;
 
-      const trackingId = "TK-" + Math.floor(100000 + Math.random() * 900000);
-      const deliveryDate = new Date();
-      deliveryDate.setDate(deliveryDate.getDate() + 4); // 4 days estimate
 
       setPlacedOrderDetails({
-        trackingId,
-        items: [...items],
-        subtotal: rawSubtotal,
-        shipping: shippingFee,
-        discount: discountTotal,
-        total: finalTotal,
-        paymentMethod: paymentMethod.toUpperCase(),
-        address: { ...selectedAddress },
-        deliveryEstimate: deliveryDate.toLocaleDateString("en-IN", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric"
-        })
+        trackingId: orderData.tracking_id,
+        items: orderData.items,
+        subtotal: parseFloat(orderData.subtotal),
+        shipping: parseFloat(orderData.shipping_fee),
+        discount: parseFloat(orderData.discount),
+        total: parseFloat(orderData.total_price),
+        paymentMethod: orderData.payment_method,
+        address: {
+          full_name: orderData.full_name,
+          address_line: orderData.address_line,
+          city: orderData.city,
+          state: orderData.state,
+          pincode: orderData.pincode,
+          country: orderData.country,
+          phone: orderData.phone,
+        },
+        deliveryEstimate: orderData.delivery_estimate
       });
 
-      // Clear user cart on backend
+       // Clear user cart locally (backend cart is cleared inside placeOrder API)
       await dispatch(clearUserCart()).unwrap();
 
       setIsSuccess(true);
       toast.success("Order Placed Successfully! ✈️");
     } catch (err) {
       console.error("Order completion failed:", err);
-      toast.error("An error occurred during order confirmation.");
+      const backendError = err.response?.data?.error || err.response?.data?.detail || "An error occurred during order confirmation.";
+      toast.error(backendError);toast.error("An error occurred during order confirmation.");
     } finally {
       setProcessing(false);
     }
@@ -263,168 +249,11 @@ export default function Checkout() {
   if (isSuccess && placedOrderDetails) {
     const userEmail = profile?.email || "alex.travelle@example.com";
     return (
-      <div className="checkout-success-viewport">
-        <Navbar />
-        <main className="checkout-success-content font-inter">
-          
-          {/* Confirmed Icon & Title Header */}
-          <div className="conf-header">
-            <div className="conf-icon-wrapper">
-              <CheckCircle2 size={36} />
-            </div>
-            <h1 className="conf-title">Order Confirmed</h1>
-            <p className="conf-subtitle">
-              Thank you for your purchase. We've sent a confirmation email to <span className="conf-email-highlight">{userEmail}</span>.
-            </p>
-          </div>
-
-          {/* Two Columns Grid */}
-          <div className="conf-main-grid">
-            
-            {/* Left Column: Order details & items summary */}
-            <div className="conf-left-column">
-              <div className="conf-card">
-                <div className="conf-order-meta-row">
-                  <div className="conf-meta-block">
-                    <span className="conf-meta-label">Order Number</span>
-                    <span className="conf-meta-value">{placedOrderDetails.trackingId}</span>
-                  </div>
-                  <div className="conf-meta-block" style={{ textAlign: "right" }}>
-                    <span className="conf-meta-label">Estimated Delivery</span>
-                    <span className="conf-meta-value">{placedOrderDetails.deliveryEstimate}</span>
-                  </div>
-                </div>
-
-                <h3 className="conf-section-heading">ORDER SUMMARY</h3>
-                
-                <div className="conf-items-list">
-                  {placedOrderDetails.items.map((item) => {
-                    const variant = item.variant;
-                    const price = variant?.offer_price ? parseFloat(variant.offer_price) : parseFloat(variant?.price || 0);
-                    const itemTotal = price * item.quantity;
-                    return (
-                      <div key={item.id} className="conf-item-row">
-                        <img 
-                          src={variant?.image_url} 
-                          alt={variant?.product_name || "Variant"} 
-                          className="conf-item-img" 
-                        />
-                        <div className="conf-item-details">
-                          <div className="conf-item-name">{variant?.product_name}</div>
-                          <div className="conf-item-attributes">
-                            {variant?.product_brand && <span>by {variant.product_brand} • </span>}
-                            {variant?.attributes && Object.entries(variant.attributes).map(([k, v]) => (
-                              <span key={k}>{k}: {v} • </span>
-                            ))}
-                            <span>Qty: {item.quantity}</span>
-                          </div>
-                          <div className="conf-item-price" style={{ color: "#00236F", fontWeight: "700" }}>
-                            ₹{itemTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Shipping Info & Grand Totals */}
-            <div className="conf-right-column">
-              
-              {/* Shipping Address Box */}
-              <div className="conf-info-card">
-                <h3 className="conf-info-card-title">
-                  <Truck size={15} style={{ color: "#00236F" }} />
-                  <span>SHIPPING ADDRESS</span>
-                </h3>
-                <p className="conf-info-card-text">
-                  <strong style={{ display: "block", marginBottom: "4px" }}>{placedOrderDetails.address.full_name}</strong>
-                  {placedOrderDetails.address.address_line}<br />
-                  {placedOrderDetails.address.city}, {placedOrderDetails.address.state} - {placedOrderDetails.address.pincode}<br />
-                  {placedOrderDetails.address.country}
-                </p>
-              </div>
-
-              {/* Order Total Box */}
-              <div className="conf-total-card">
-                <span className="conf-total-card-label">ORDER TOTAL</span>
-                <div className="conf-total-rows">
-                  <div className="conf-total-row">
-                    <span>Subtotal</span>
-                    <span>₹{(placedOrderDetails.subtotal + placedOrderDetails.discount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
-                  </div>
-                  
-                  {placedOrderDetails.discount > 0 && (
-                    <div className="conf-total-row text-discount">
-                      <span>Shipping Discount</span>
-                      <span>-₹{placedOrderDetails.discount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
-                    </div>
-                  )}
-
-                  <div className="conf-total-row">
-                    <span>Shipping</span>
-                    <span>{placedOrderDetails.shipping === 0 ? "Free" : `₹${placedOrderDetails.shipping.toFixed(2)}`}</span>
-                  </div>
-
-                  <div className="conf-total-row">
-                    <span>Estimated Tax</span>
-                    <span>₹{(placedOrderDetails.subtotal * 0.18).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
-                  </div>
-                </div>
-
-                <hr className="conf-total-divider" />
-
-                <div className="conf-total-row grand-total-row">
-                  <span>Grand Total</span>
-                  <span className="conf-grand-total">
-                    ₹{placedOrderDetails.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* Action Buttons */}
-          <div className="conf-actions-stack">
-            <button 
-              className="conf-btn-primary" 
-              onClick={() => toast.info("Order tracking details will be available soon!")}
-            >
-              Track Order
-            </button>
-            <button 
-              className="conf-btn-secondary" 
-              onClick={() => navigate("/shop")}
-            >
-              Continue Shopping
-            </button>
-          </div>
-
-          {/* Concierge Assistance */}
-          <div className="conf-assistance-box">
-            <p className="conf-assistance-text">Need assistance ?</p>
-            <p className="conf-assistance-subtext">Our concierge team is available 24/7 to help you.</p>
-            <div className="conf-assistance-links">
-              <a href="mailto:support@travelkart.com" className="conf-assistance-link" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                <span>📧 Email Support</span>
-              </a>
-              <span style={{ color: "#CBD5E1" }}>|</span>
-              <button 
-                onClick={() => toast.info("Redirecting to concierge help desk...")} 
-                className="conf-assistance-link-btn"
-                style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
-              >
-                <span>📖 Help Center</span>
-              </button>
-            </div>
-          </div>
-
-        </main>
-        <Footer />
-      </div>
+      <CheckoutSuccessView
+        placedOrderDetails={placedOrderDetails}
+        userEmail={userEmail}
+        navigate={navigate}
+      />
     );
   }
 
@@ -451,311 +280,38 @@ export default function Checkout() {
             
             {/* Left Side: Address settings & payment details */}
             <div className="checkout-main-column">
-              
-              {/* Address Settings Section */}
-              <section className="checkout-section-card">
-                <div className="checkout-section-header">
-                  <h2 className="checkout-section-title">
-                    <MapPin size={20} />
-                    <span>Shipping Address</span>
-                  </h2>
-                  {addresses.length > 0 && (
-                    <button
-                      onClick={() => {
-                        setEditAddressData(null);
-                        setShowAddressForm(true);
-                      }}
-                      className="checkout-addr-action-btn"
-                      style={{ color: "#00236F", fontWeight: "700" }}
-                    >
-                      <Plus size={14} />
-                      <span>Add New</span>
-                    </button>
-                  )}
-                </div>
+              <CheckoutAddressSection
+                addresses={addresses}
+                selectedAddress={selectedAddress}
+                setSelectedAddress={setSelectedAddress}
+                loadingAddresses={loadingAddresses}
+                setEditAddressData={setEditAddressData}
+                setShowAddressForm={setShowAddressForm}
+                handleDeleteAddress={handleDeleteAddress}
+                handleSetDefaultAddr={handleSetDefaultAddr}
+              />
 
-                {loadingAddresses ? (
-                  <p style={{ color: "#64748B", fontSize: "14px" }}>Loading saved addresses...</p>
-                ) : addresses.length === 0 ? (
-                  <div className="checkout-no-addresses">
-                    <MapPin size={32} style={{ opacity: 0.5, marginBottom: "8px" }} />
-                    <p style={{ margin: "0 0 12px 0" }}>No saved addresses found in your travel logs.</p>
-                    <button
-                      onClick={() => {
-                        setEditAddressData(null);
-                        setShowAddressForm(true);
-                      }}
-                      className="checkout-add-addr-card-btn"
-                    >
-                      <Plus size={16} />
-                      <span>Add Address</span>
-                    </button>
-                  </div>
-                ) : (
-                  <div className="checkout-address-grid">
-                    {addresses.map((addr) => {
-                      const isSelected = selectedAddress?.id === addr.id;
-                      return (
-                        <div
-                          key={addr.id}
-                          className={`checkout-address-card ${isSelected ? "selected" : ""}`}
-                          onClick={() => setSelectedAddress(addr)}
-                        >
-                          <div className="checkout-address-header">
-                            <div className="checkout-address-name">
-                              <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                                {addr.full_name}
-                                {addr.is_default && (
-                                  <span className="address-badge-default" style={{ 
-                                    fontSize: "10px", 
-                                    padding: "2px 6px", 
-                                    backgroundColor: "rgba(0, 35, 111, 0.08)", 
-                                    color: "#00236F", 
-                                    borderRadius: "4px",
-                                    fontWeight: "600",
-                                    textTransform: "uppercase",
-                                    letterSpacing: "0.5px"
-                                  }}>
-                                    Default
-                                  </span>
-                                )}
-                              </span>
-                              <span className="checkout-address-phone">
-                                <Phone size={11} style={{ display: "inline", marginRight: "3px" }} />
-                                {addr.phone}
-                              </span>
-                            </div>
-                            {isSelected && (
-                              <CheckCircle2 size={16} className="checkout-address-check" />
-                            )}
-                          </div>
-                          
-                          <div className="checkout-address-body">
-                            {addr.address_line}, {addr.city}, {addr.state} - {addr.pincode}
-                            <div style={{ fontSize: "11px", color: "#64748B", marginTop: "4px" }}>
-                              {addr.country}
-                            </div>
-                          </div>
-
-                          <div className="checkout-address-actions">
-                            {!addr.is_default && (
-                              <button
-                                onClick={(e) => handleSetDefaultAddr(addr.id, e)}
-                                className="checkout-addr-action-btn"
-                                title="Make default shipping address"
-                              >
-                                Set Default
-                              </button>
-                            )}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditAddressData(addr);
-                                setShowAddressForm(true);
-                              }}
-                              className="checkout-addr-action-btn"
-                            >
-                              Edit
-                            </button>
-                            {!addr.is_default && (
-                              <button
-                                onClick={(e) => handleDeleteAddress(addr.id, e)}
-                                className="checkout-addr-action-btn delete"
-                              >
-                                Delete
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </section>
-
-              {/* Payment Method Settings Section */}
-              <section className="checkout-section-card">
-                <div className="checkout-section-header">
-                  <h2 className="checkout-section-title">
-                    <Banknote size={20} />
-                    <span>Payment Method</span>
-                  </h2>
-                </div>
-
-                <div className="checkout-payment-methods-grid">
-                  <div
-                    className="checkout-payment-method-card inactive"
-                    style={{ opacity: 0.5, cursor: "not-allowed" }}
-                    onClick={() => toast.info("Credit/Debit Card payment method will be implemented in the future!")}
-                  >
-                    <CreditCard className="checkout-payment-method-icon" size={24} />
-                    <span className="checkout-payment-method-name">Credit/Debit Card</span>
-                    <span style={{ fontSize: "9px", color: "#64748B", fontWeight: "700", textTransform: "uppercase", marginTop: "2px" }}>Coming Soon</span>
-                  </div>
-
-                  <div
-                    className="checkout-payment-method-card inactive"
-                    style={{ opacity: 0.5, cursor: "not-allowed" }}
-                    onClick={() => toast.info("UPI Unified payment method will be implemented in the future!")}
-                  >
-                    <ShieldCheck className="checkout-payment-method-icon" size={24} />
-                    <span className="checkout-payment-method-name">UPI Unified</span>
-                    <span style={{ fontSize: "9px", color: "#64748B", fontWeight: "700", textTransform: "uppercase", marginTop: "2px" }}>Coming Soon</span>
-                  </div>
-
-                  <div
-                    className="checkout-payment-method-card inactive"
-                    style={{ opacity: 0.5, cursor: "not-allowed" }}
-                    onClick={() => toast.info("Travel Wallet payment method will be implemented in the future!")}
-                  >
-                    <Wallet className="checkout-payment-method-icon" size={24} />
-                    <span className="checkout-payment-method-name">Travel Wallet</span>
-                    <span style={{ fontSize: "9px", color: "#64748B", fontWeight: "700", textTransform: "uppercase", marginTop: "2px" }}>Coming Soon</span>
-                  </div>
-
-                  <div className="checkout-payment-method-card selected" style={{ cursor: "default" }}>
-                    <Banknote className="checkout-payment-method-icon" size={24} />
-                    <span className="checkout-payment-method-name">Cash on Delivery</span>
-                    <span style={{ fontSize: "9px", color: "#10B981", fontWeight: "700", textTransform: "uppercase", marginTop: "2px" }}>Active</span>
-                  </div>
-                </div>
-
-                <div className="checkout-payment-details-form">
-                  <div className="checkout-cod-info">
-                    <Info size={16} style={{ marginTop: "2px", flexShrink: 0 }} />
-                    <span>
-                      Cash on Delivery is available. Please keep cash or QR payment ready at your shipping address during delivery. Delivery takes approximately 3-5 standard business days.
-                    </span>
-                  </div>
-                </div>
-              </section>
+              <CheckoutPaymentSection 
+                  paymentMethod={paymentMethod}
+                  setPaymentMethod={setPaymentMethod}
+                />
             </div>
 
             {/* Right Side: Order summary & product review */}
-            <div className="checkout-summary-column">
-              <div className="checkout-section-card" style={{ marginBottom: "0" }}>
-                <h2 className="checkout-section-title" style={{ borderBottom: "1px solid #F1F5F9", paddingBottom: "12px", marginBottom: "16px" }}>
-                  Order Summary
-                </h2>
-
-                {/* Product Overview list */}
-                <div className="checkout-product-list">
-                  {items.map((item) => {
-                    const variant = item.variant;
-                    const priceToUse = variant?.offer_price ? parseFloat(variant.offer_price) : parseFloat(variant?.price || 0);
-                    const itemTotal = priceToUse * item.quantity;
-
-                    return (
-                      <div key={item.id} className="checkout-product-item">
-                        <div className="checkout-prod-img-wrapper">
-                          <img
-                            src={variant?.image_url}
-                            alt={variant?.product_name || "Gear Product"}
-                            className="checkout-prod-img"
-                          />
-                        </div>
-
-                        <div className="checkout-prod-details">
-                          <div>
-                            <div className="checkout-prod-name">{variant?.product_name}</div>
-                            <div className="checkout-prod-meta">
-                              {variant?.product_brand && <span>by {variant.product_brand}</span>}
-                              {variant?.attributes && Object.entries(variant.attributes).map(([k, v]) => (
-                                <span key={k} style={{ marginLeft: "6px" }}>• {k}: {v}</span>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="checkout-prod-qty-price">
-                            <span className="checkout-prod-qty">Qty: {item.quantity}</span>
-                            <span className="checkout-prod-price">
-                              ₹{itemTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <hr className="checkout-divider" />
-
-                {/* Calculations details */}
-                <div className="checkout-breakdown-details">
-                  <div className="checkout-breakdown-row">
-                    <span>Subtotal ({totalItems} items)</span>
-                    <span>₹{originalSubtotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
-                  </div>
-
-                  {discountTotal > 0 && (
-                    <div className="checkout-breakdown-row discount">
-                      <span>Gear Discounts</span>
-                      <span>-₹{discountTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
-                    </div>
-                  )}
-
-                  <div className="checkout-breakdown-row">
-                    <span>Shipping Fee</span>
-                    {shippingFee === 0 ? (
-                      <span style={{ color: "#10B981", fontWeight: "600", display: "flex", alignItems: "center", gap: "4px" }}>
-                        <Truck size={14} /> FREE
-                      </span>
-                    ) : (
-                      <span>₹{shippingFee.toFixed(2)}</span>
-                    )}
-                  </div>
-
-                  <div className="checkout-breakdown-row taxes">
-                    <span>GST (18% Included)</span>
-                    <span>₹{taxAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
-                  </div>
-
-                  {isGold && (
-                    <div className="checkout-breakdown-row" style={{ color: "#B45309", fontSize: "12px", fontWeight: "600" }}>
-                      <span>✪ Gold Member shipping waiver applied</span>
-                    </div>
-                  )}
-
-                  <hr className="checkout-divider" style={{ margin: "8px 0" }} />
-
-                  <div className="checkout-breakdown-row total">
-                    <span>Total Amount</span>
-                    <span>₹{finalTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
-                  </div>
-                </div>
-
-                <div style={{ marginTop: "24px" }}>
-                  <button
-                    disabled={
-                      isCheckoutRestricted ||
-                      items.length === 0 ||
-                      !selectedAddress ||
-                      processing
-                    }
-                    onClick={handlePlaceOrder}
-                    className="checkout-place-order-btn"
-                  >
-                    {processing ? (
-                      <>
-                        <Loader2 className="animate-spin" size={16} />
-                        <span>Confirming Cargo...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Lock size={16} />
-                        <span>Place Order</span>
-                        <ArrowRight size={16} />
-                      </>
-                    )}
-                  </button>
-
-                  <div className="checkout-security-guarantee">
-                    <ShieldCheck size={14} style={{ color: "#10B981" }} />
-                    <span>Secure SSL Encryption. All transactions are protected.</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <CheckoutOrderSummarySection
+              items={items}
+              totalItems={totalItems}
+              originalSubtotal={originalSubtotal}
+              discountTotal={discountTotal}
+              shippingFee={shippingFee}
+              taxAmount={taxAmount}
+              isGold={isGold}
+              finalTotal={finalTotal}
+              isCheckoutRestricted={isCheckoutRestricted}
+              processing={processing}
+              selectedAddress={selectedAddress}
+              handlePlaceOrder={handlePlaceOrder}
+            />
 
           </div>
         )}

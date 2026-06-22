@@ -6,7 +6,9 @@ import {
   LogOut, 
   AlertCircle,
   Lock,
-  ArrowLeft
+  ArrowLeft,
+  ShoppingBag,
+  Loader2
 } from "lucide-react";
 import { 
   getProfile, 
@@ -16,6 +18,7 @@ import {
   logoutUser,
   changePassword
 } from "../services/authService";
+import { fetchUserOrders } from "../services/orderService";
 
 import UserInfoCard from "../components/profile/UserInfoCard";
 import AddressList from "../components/profile/AddressList";
@@ -29,6 +32,69 @@ import Footer from "../components/Footer";
 import "../components/profile/Profile.css";
 import { toast } from "react-toastify";
 import { useCustomDialog } from "../components/CustomDialog";
+
+const OrderHistoryList = ({ navigate }) => {
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+  useEffect(() => {
+    const getOrders = async () => {
+      try {
+        setLoadingOrders(true);
+        const res = await fetchUserOrders();
+        setOrders(res.data);
+      } catch (err) {
+        console.error("Error loading order list:", err);
+      } finally {
+        setLoadingOrders(false);
+      }
+    };
+    getOrders();
+  }, []);
+  if (loadingOrders) {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", padding: "40px 0" }}>
+        <Loader2 className="animate-spin" style={{ color: "#00236F" }} size={32} />
+      </div>
+    );
+  }
+  if (orders.length === 0) {
+    return (
+      <p style={{ color: "#64748B", margin: 0, padding: "20px 0" }}>You haven't placed any orders yet.</p>
+    );
+  }
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "16px" }}>
+      {orders.map((ord) => (
+        <div key={ord.id} style={{ 
+          border: "1px solid #E2E8F0", 
+          borderRadius: "10px", 
+          padding: "16px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center"
+        }}>
+          <div>
+            <div style={{ fontWeight: "700", color: "#00236F" }}>{ord.tracking_id}</div>
+            <div style={{ fontSize: "12px", color: "#64748B", marginTop: "4px" }}>
+              Placed on: {new Date(ord.created_at).toLocaleDateString()} • Status: <span style={{ textTransform: "capitalize", fontWeight: "600" }}>{ord.status.replace(/_/g, ' ')}</span>
+            </div>
+            <div style={{ fontSize: "14px", fontWeight: "600", marginTop: "8px" }}>
+              ₹{parseFloat(ord.total_price).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+            </div>
+          </div>
+          <button 
+            onClick={() => navigate(`/order-tracking/${ord.tracking_id}`)}
+            className="hero-edit-profile-btn font-inter"
+            style={{ padding: "6px 12px", fontSize: "13px", width: "auto" }}
+          >
+            Track Order
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 
 const ProfilePage = () => {
   const { showAlert, showConfirm } = useCustomDialog();
@@ -147,6 +213,9 @@ const ProfilePage = () => {
           <button className={`nav-link-btn ${activeTab === "Dashboard" ? "active" : ""}`} onClick={() => setActiveTab("Dashboard")}>
             <LayoutDashboard size={18} /> <span>Profile Overview</span>
           </button>
+                    <button className={`nav-link-btn ${activeTab === "Orders" ? "active" : ""}`} onClick={() => setActiveTab("Orders")}>
+            <ShoppingBag size={18} /> <span>My Orders</span>
+          </button>
           <button className="nav-link-btn" onClick={() => navigate("/")}>
             <ArrowLeft size={18} /> <span>Back to Home </span>
           </button>
@@ -216,12 +285,21 @@ const ProfilePage = () => {
               
               {/* PRIMARY FEED FLOW AREA */}
               <div className="workspace-left-flow-column">
-                <UserInfoCard 
-                  user={user} 
-                  onEdit={() => setShowEditModal(true)}
-                  refreshUser={fetchUser}
-                />
-                <AddressList />
+                  {activeTab === "Orders" ? (
+                  <div className="profile-card">
+                    <h2 className="profile-section-title">My Orders</h2>
+                    <OrderHistoryList navigate={navigate} />
+                  </div>
+                ) : (
+                  <>
+                    <UserInfoCard 
+                      user={user} 
+                      onEdit={() => setShowEditModal(true)}
+                      refreshUser={fetchUser}
+                    />
+                    <AddressList />
+                  </>
+                )}
               </div>
 
               {/* FLOATING UTILITY PANELS RIGHT COLUMN */}

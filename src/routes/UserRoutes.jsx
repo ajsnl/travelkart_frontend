@@ -14,6 +14,9 @@ import Wishlist from "../pages/Wishlist";
 import Cart from "../pages/Cart";
 import ProtectedRoute from "../components/ProtectedRoute";
 import Checkout from "../pages/Checkout";
+import OrderTracking from "../pages/OrderTracking";
+import MyOrders from "../pages/MyOrders";
+
 
 export default function UserRoutes() {
   return (
@@ -63,6 +66,23 @@ export default function UserRoutes() {
           <Checkout/>
         </ProtectedRoute>
        }
+      />
+      
+      <Route
+        path="/order-tracking/:trackingId"
+        element={
+          <ProtectedRoute>
+            <OrderTracking />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/orders"
+        element={
+          <ProtectedRoute>
+            <MyOrders />
+          </ProtectedRoute>
+        }
       />
 
 

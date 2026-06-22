@@ -77,7 +77,13 @@ export default function Navbar() {
           </Link>
         </li>
         <li>
-          <span className="navbar-link">Orders</span>
+          <Link 
+            to={isAuthenticated ? "/orders" : "/login"} 
+            state={isAuthenticated ? undefined : { from: "/orders" }}
+            className={`navbar-link ${isActive("/orders") ? "active" : ""}`}
+          >
+            Orders
+          </Link>
         </li>
       </ul>
 
