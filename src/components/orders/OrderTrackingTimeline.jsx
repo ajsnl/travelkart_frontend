@@ -3,7 +3,7 @@ import { Check, Sliders, Truck, Package } from "lucide-react";
 
 export default function OrderTrackingTimeline({ order, createdDateStr, deliveredDate }) {
   const isCancelled = order.status === "cancelled";
-  const isReturned = order.status === "returned";
+  const isReturned = order.status === "returned" || order.status === "return_requested";
 
   if (isCancelled || isReturned) return null;
 

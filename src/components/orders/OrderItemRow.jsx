@@ -4,7 +4,7 @@ import { XCircle, RotateCcw } from "lucide-react";
 export default function OrderItemRow({ item, orderStatus, simulating, onOpenActionModal }) {
   const variant = item.variant;
   const isItemCancelable = ["processing", "shipped", "out_for_delivery"].includes(orderStatus);
-  const isItemReturnable = orderStatus === "delivered";
+  const isItemReturnable = false;
 
   return (
     <div className="tracking-item-row">

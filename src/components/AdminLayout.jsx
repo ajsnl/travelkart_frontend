@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LogOut, Bell, Search, Users, FolderTree, Box } from "lucide-react";
+import { LogOut, Bell, Search, Users, FolderTree, Box, ShoppingBag } from "lucide-react";
 import { logoutUser } from "../services/authService";
 import TravelKartLogoMain from "./brand/TravelKartLogoMain";
 import "./AdminLayout.css";
@@ -25,6 +25,9 @@ const AdminLayout = () => {
     }
     if (location.pathname.includes("products")) {
       return "Search products by name, brand, or SKU...";
+    }
+    if (location.pathname.includes("orders")) {
+      return "Search orders by tracking ID, email, name, or city...";
     }
     return "Search elite members or logistics IDs...";
   };
@@ -87,6 +90,13 @@ const AdminLayout = () => {
             >
               <Box size={18} />
               <span>Products</span>
+            </Link>
+            <Link 
+              to="/admin/orders" 
+              className={`sidebar-nav-item ${location.pathname.includes("orders") ? "active" : ""}`}
+            >
+              <ShoppingBag size={18} />
+              <span>Orders</span>
             </Link>
           </nav>
         </aside>

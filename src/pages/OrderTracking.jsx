@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2, AlertCircle, Sliders } from "lucide-react";
+import { ArrowLeft, Loader2, AlertCircle, Download } from "lucide-react";
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -15,6 +15,7 @@ import OrderItemRow from "../components/orders/OrderItemRow";
 import BillingSummary from "../components/orders/BillingSummary";
 import OrderDetailsSidebar from "../components/orders/OrderDetailsSidebar";
 import ActionModal from "../components/orders/ActionModal";
+import { generateInvoicePDF } from "../utils/invoiceGenerator";
 
 import "./OrderTracking.css";
 
@@ -37,40 +38,36 @@ export default function OrderTracking() {
   const [modalComments, setModalComments] = useState("");
 
   // Fetch Order Details
-  const getOrderData = async () => {
+  const getOrderData = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
       setError(null);
       const res = await fetchOrderDetail(trackingId);
       setOrder(res.data);
     } catch (err) {
       console.error("Error fetching order details:", err);
-      setError(err.response?.data?.error || "Unable to retrieve order details. Please verify the URL or ensure you are logged in.");
+      if (!silent) {
+        setError(err.response?.data?.error || "Unable to retrieve order details. Please verify the URL or ensure you are logged in.");
+      }
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
     getOrderData();
-  }, [trackingId]);
 
-  // Simulate Status Update
-  const handleSimulateStatus = async (newStatus) => {
-    if (!order) return;
-    try {
-      setSimulating(true);
-      const res = await simulateOrderAdvance(order.tracking_id, newStatus);
-      setOrder(res.data);
-      toast.success(`Shipment status advanced to: ${newStatus.replace(/_/g, ' ')}! 🚚`);
-    } catch (err) {
-      console.error("Simulation error:", err);
-      const errMsg = err.response?.data?.error || err.response?.data?.detail || "Failed to simulate status advancement.";
-      toast.error(errMsg);
-    } finally {
-      setSimulating(false);
-    }
-  };
+    // Poll every 4 seconds to sync status changes from admin panel in real-time
+    const interval = setInterval(() => {
+      getOrderData(true);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [trackingId]);
 
   if (loading) {
     return (
@@ -128,44 +125,12 @@ export default function OrderTracking() {
     year: "numeric"
   });
 
-  const handleCancelEntireOrder = async () => {
-    const confirmed = await showConfirm(
-      "Are you sure you want to cancel the entire order? This action cannot be undone.",
-      "Cancel Entire Order",
-      "error"
-    );
-    if (!confirmed) return;
-    try {
-      setSimulating(true);
-      const res = await simulateOrderAdvance(order.tracking_id, "cancelled");
-      setOrder(res.data);
-      toast.success("Entire order cancelled successfully!");
-    } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.error || "Failed to cancel order.");
-    } finally {
-      setSimulating(false);
-    }
+  const handleCancelEntireOrder = () => {
+    handleOpenActionModal(order, "cancel_entire_order");
   };
 
-  const handleReturnEntireOrder = async () => {
-    const confirmed = await showConfirm(
-      "Are you sure you want to return the entire order?",
-      "Return Entire Order",
-      "warning"
-    );
-    if (!confirmed) return;
-    try {
-      setSimulating(true);
-      const res = await simulateOrderAdvance(order.tracking_id, "returned");
-      setOrder(res.data);
-      toast.success("Return process initiated successfully!");
-    } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.error || "Failed to initiate return.");
-    } finally {
-      setSimulating(false);
-    }
+  const handleReturnEntireOrder = () => {
+    handleOpenActionModal(order, "return_entire_order");
   };
 
   const handleOpenActionModal = (item, type) => {
@@ -180,16 +145,26 @@ export default function OrderTracking() {
     if (!activeActionItem || !modalReason) return;
     try {
       setSimulating(true);
-      const res = actionType === "cancel"
-        ? await cancelOrderItem(activeActionItem.id, modalQty)
-        : await returnOrderItem(activeActionItem.id, modalQty);
+      let res;
+      if (actionType === "cancel_entire_order") {
+        res = await simulateOrderAdvance(order.tracking_id, "cancelled", modalReason, modalComments);
+        toast.success("Entire order cancelled successfully! ❌");
+      } else if (actionType === "return_entire_order") {
+        res = await simulateOrderAdvance(order.tracking_id, "return_requested", modalReason, modalComments);
+        toast.success("Return process initiated successfully! 🔄");
+      } else if (actionType === "cancel") {
+        res = await cancelOrderItem(activeActionItem.id, modalQty, modalReason, modalComments);
+        toast.success("Item cancelled successfully!");
+      } else {
+        res = await returnOrderItem(activeActionItem.id, modalQty, modalReason, modalComments);
+        toast.success("Return initiated successfully!");
+      }
       
       setOrder(res.data);
-      toast.success(actionType === "cancel" ? "Item cancelled successfully!" : "Return initiated successfully!");
       setActiveActionItem(null);
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.error || `Failed to ${actionType} item.`);
+      toast.error(err.response?.data?.error || `Failed to process ${actionType.replace(/_/g, " ")}.`);
     } finally {
       setSimulating(false);
     }
@@ -213,61 +188,6 @@ export default function OrderTracking() {
             </div>
           </div>
         </header>
-
-        {/* DEVELOPER SIMULATION INTERFACE PANEL */}
-        <section className="simulation-panel">
-          <div className="sim-header">
-            <Sliders size={18} />
-            <h3 className="sim-title">Shipment Lifecycle Simulator</h3>
-          </div>
-          <p className="sim-description">
-            Advance the order status below to simulate how the tracking timeline responds to status changes in the database.
-          </p>
-          <div className="sim-buttons">
-            <button 
-              disabled={simulating}
-              onClick={() => handleSimulateStatus("processing")} 
-              className={`btn-sim ${order.status === "processing" ? "active-sim" : ""}`}
-            >
-              Set to Processing
-            </button>
-            <button 
-              disabled={simulating}
-              onClick={() => handleSimulateStatus("shipped")} 
-              className={`btn-sim ${order.status === "shipped" ? "active-sim" : ""}`}
-            >
-              Set to Shipped
-            </button>
-            <button 
-              disabled={simulating}
-              onClick={() => handleSimulateStatus("out_for_delivery")} 
-              className={`btn-sim ${order.status === "out_for_delivery" ? "active-sim" : ""}`}
-            >
-              Set to Out for Delivery
-            </button>
-            <button 
-              disabled={simulating}
-              onClick={() => handleSimulateStatus("delivered")} 
-              className={`btn-sim ${order.status === "delivered" ? "active-sim" : ""}`}
-            >
-              Set to Delivered
-            </button>
-            <button 
-              disabled={simulating}
-              onClick={() => handleSimulateStatus("cancelled")} 
-              className={`btn-sim sim-danger ${order.status === "cancelled" ? "active-sim" : ""}`}
-            >
-              Cancel Order
-            </button>
-            <button 
-              disabled={simulating}
-              onClick={() => handleSimulateStatus("returned")} 
-              className={`btn-sim sim-teal ${order.status === "returned" ? "active-sim" : ""}`}
-            >
-              Return Order
-            </button>
-          </div>
-        </section>
 
         {/* Status Tracker Bar Card */}
         <div className="tracking-main-card">
@@ -309,8 +229,7 @@ export default function OrderTracking() {
                 ))}
               </div>
 
-              {/* Billing total summary details 
-              */}
+              {/* Billing total summary details (compact design) */}
               <BillingSummary order={order} />
             </div>
             
@@ -329,6 +248,14 @@ export default function OrderTracking() {
             >
               Go to My Orders
             </button>
+            {order.payment_status === "paid" && (
+              <button 
+                className="btn-download-invoice font-inter" 
+                onClick={() => generateInvoicePDF(order)}
+              >
+                <Download size={16} /> Download Invoice
+              </button>
+            )}
           </div>
 
         </div>

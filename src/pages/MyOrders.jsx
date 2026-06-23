@@ -12,6 +12,7 @@ import { toast } from "react-toastify";
 import OrderFilters from "../components/orders/OrderFilters";
 import OrderCard from "../components/orders/OrderCard";
 import OrderPagination from "../components/orders/OrderPagination";
+import ActionModal from "../components/orders/ActionModal";
 
 import "./MyOrders.css";
 
@@ -20,7 +21,6 @@ export default function MyOrders() {
   const { showConfirm } = useCustomDialog();
   const { isAuthenticated } = useSelector((state) => state.auth);
 
-  
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -29,63 +29,103 @@ export default function MyOrders() {
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 4;
 
-  const loadOrders = async () => {
+  // ActionModal States
+  const [activeActionItem, setActiveActionItem] = useState(null);
+  const [actionType, setActionType] = useState(null);
+  const [modalQty, setModalQty] = useState(1);
+  const [modalReason, setModalReason] = useState("");
+  const [modalComments, setModalComments] = useState("");
+  const [submittingAction, setSubmittingAction] = useState(false);
+
+  const loadOrders = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
       setError(null);
       const res = await fetchUserOrders();
       setOrders(res.data);
     } catch (err) {
       console.error("Error fetching user orders:", err);
-      setError("Unable to fetch your order history. Please try again later.");
+      if (!silent) {
+        setError("Unable to fetch your order history. Please try again later.");
+      }
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
     if (isAuthenticated) {
       loadOrders();
+
+      // Poll every 4 seconds to sync status changes from admin panel in real-time
+      const interval = setInterval(() => {
+        loadOrders(true);
+      }, 4000);
+
+      return () => clearInterval(interval);
     } else {
       navigate("/login", { state: { from: "/orders" } });
     }
   }, [isAuthenticated, navigate]);
 
-  // Cancel order
-  const handleCancelOrder = async (trackingId) => {
-    const confirmed = await showConfirm(
-      "Are you sure you want to cancel this order? This action cannot be undone.",
-      "Cancel Order",
-      "error"
-    );
-    if (!confirmed) return;
+  // Cancel order trigger modal
+  const handleCancelOrder = (trackingId) => {
+    const orderObj = orders.find(o => o.tracking_id === trackingId);
+    if (!orderObj) return;
 
-    try {
-      await simulateOrderAdvance(trackingId, "cancelled");
-      toast.success("Order cancelled successfully!");
-      loadOrders();
-    } catch (err) {
-      console.error("Cancellation error:", err);
-      toast.error("Failed to cancel order.");
-    }
+    setActiveActionItem(orderObj);
+    setActionType("cancel_entire_order");
+    setModalQty(1);
+    setModalReason("");
+    setModalComments("");
   };
 
-  // Return order trigger
-  const handleReturnOrder = async (trackingId) => {
-    const confirmed = await showConfirm(
-      "Are you sure you want to request a return for this order?",
-      "Return Order",
-      "warning"
-    );
-    if (!confirmed) return;
+  // Return order trigger modal
+  const handleReturnOrder = (trackingId) => {
+    const orderObj = orders.find(o => o.tracking_id === trackingId);
+    if (!orderObj) return;
 
+    // Validate client-side delivery date window (max 10 days)
+    const deliveryTime = new Date(orderObj.updated_at);
+    const now = new Date();
+    const diffTime = Math.abs(now - deliveryTime);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays > 10) {
+      toast.error("Return window has expired. Returns are only allowed within 10 days of delivery.");
+      return;
+    }
+
+    setActiveActionItem(orderObj);
+    setActionType("return_entire_order");
+    setModalQty(1);
+    setModalReason("");
+    setModalComments("");
+  };
+
+  const handleConfirmModalAction = async () => {
+    if (!activeActionItem || !modalReason) return;
+    setSubmittingAction(true);
     try {
-      await simulateOrderAdvance(trackingId, "returned");
-      toast.success("Return process initiated successfully!");
-      loadOrders();
+      if (actionType === "cancel_entire_order") {
+        await simulateOrderAdvance(activeActionItem.tracking_id, "cancelled", modalReason, modalComments);
+        toast.success("Order cancelled successfully! ❌");
+      } else if (actionType === "return_entire_order") {
+        await simulateOrderAdvance(activeActionItem.tracking_id, "return_requested", modalReason, modalComments);
+        toast.success("Return process initiated successfully! 🔄");
+      }
+      
+      loadOrders(true);
+      setActiveActionItem(null);
     } catch (err) {
-      console.error("Return error:", err);
-      toast.error("Failed to initiate return.");
+      console.error(err);
+      toast.error(err.response?.data?.error || `Failed to process ${actionType.replace(/_/g, " ")}.`);
+    } finally {
+      setSubmittingAction(false);
     }
   };
 
@@ -94,20 +134,19 @@ export default function MyOrders() {
     toast.info(`Review interface for Order #${trackingId} is coming soon!`);
   };
 
-  //tab switching(All,cancelled..)
+  // Tab switching mapping
+  const tabMap = {
+    PROCESSING: ["processing"],
+    SHIPPED: ["shipped", "out_for_delivery"],
+    DELIVERED: ["delivered"],
+    CANCELLED: ["cancelled"],
+    RETURNED: ["returned", "return_requested"],
+  };
 
-const tabMap = {
-  PROCESSING: ["processing"],
-  SHIPPED: ["shipped", "out_for_delivery"],
-  DELIVERED: ["delivered"],
-  CANCELLED: ["cancelled"],
-  RETURNED: ["returned"],
-};
-
-const matchesTab = (orderStatus) => {
-  if (activeTab === "ALL") return true;
-  return tabMap[activeTab]?.includes(orderStatus.toLowerCase());
-};
+  const matchesTab = (orderStatus) => {
+    if (activeTab === "ALL") return true;
+    return tabMap[activeTab]?.includes(orderStatus.toLowerCase());
+  };
 
   // Filter orders based on active tab and search query
   const filteredOrders = orders.filter((order) => {
@@ -146,14 +185,14 @@ const matchesTab = (orderStatus) => {
   return (
     <div className="myorders-viewport">
       <Navbar />
-      
+
       <main className="myorders-content font-inter">
         <header className="myorders-header">
           <h1 className="font-plus-jakarta">My Orders</h1>
         </header>
 
         {/* Filters and Search toolbar */}
-        <OrderFilters 
+        <OrderFilters
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           activeTab={activeTab}
@@ -179,8 +218,8 @@ const matchesTab = (orderStatus) => {
             <ShoppingBag size={48} style={{ color: "#94A3B8", marginBottom: "16px" }} />
             <h3>No Orders Found</h3>
             <p>
-              {searchQuery 
-                ? "No matching orders fit your search query." 
+              {searchQuery
+                ? "No matching orders fit your search query."
                 : `You don't have any orders categorized under "${activeTab.toLowerCase()}".`}
             </p>
             <button className="myorders-btn-shop" onClick={() => navigate("/shop")}>
@@ -190,7 +229,7 @@ const matchesTab = (orderStatus) => {
         ) : (
           <div className="myorders-cards-stack">
             {currentOrders.map((order) => (
-              <OrderCard 
+              <OrderCard
                 key={order.id}
                 order={order}
                 onCancelOrder={handleCancelOrder}
@@ -200,7 +239,7 @@ const matchesTab = (orderStatus) => {
               />
             ))}
 
-            <OrderPagination 
+            <OrderPagination
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={handlePageChange}
@@ -210,6 +249,20 @@ const matchesTab = (orderStatus) => {
       </main>
 
       <Footer />
+
+      <ActionModal
+        activeActionItem={activeActionItem}
+        actionType={actionType}
+        modalQty={modalQty}
+        setModalQty={setModalQty}
+        modalReason={modalReason}
+        setModalReason={setModalReason}
+        modalComments={modalComments}
+        setModalComments={setModalComments}
+        simulating={submittingAction}
+        onConfirm={handleConfirmModalAction}
+        onClose={() => setActiveActionItem(null)}
+      />
     </div>
   );
 }

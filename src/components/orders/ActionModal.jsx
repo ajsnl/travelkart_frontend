@@ -1,5 +1,10 @@
 import React from "react";
 
+const formatPrice = (value) => {
+  const price = parseFloat(value || 0);
+  return `₹${price.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`;
+};
+
 export default function ActionModal({
   activeActionItem,
   actionType,
@@ -15,58 +20,85 @@ export default function ActionModal({
 }) {
   if (!activeActionItem) return null;
 
+  const isEntireOrder = actionType === "cancel_entire_order" || actionType === "return_entire_order";
+  const isCancel = actionType === "cancel" || actionType === "cancel_entire_order";
+
   return (
     <div className="action-modal-overlay">
       <div className="action-modal-container font-inter">
         {/* Modal Header */}
         <div className="action-modal-header">
-          <h2>{actionType === "cancel" ? "Cancel Item" : "Return Item"}</h2>
+          <h2>{isCancel ? (isEntireOrder ? "Cancel Entire Order" : "Cancel Item") : (isEntireOrder ? "Return Entire Order" : "Return Item")}</h2>
           <button className="close-modal-btn" onClick={onClose}>
             &times;
           </button>
         </div>
 
-        {/* Item Summary Card */}
+        {/* Item/Order Summary Card */}
         <div className="modal-item-summary-card">
-          <img 
-            src={activeActionItem.variant?.image_url} 
-            alt={activeActionItem.variant?.product_name} 
-            className="modal-item-img"
-          />
+          {!isEntireOrder && activeActionItem.variant?.image_url ? (
+            <img 
+              src={activeActionItem.variant?.image_url} 
+              alt={activeActionItem.variant?.product_name} 
+              className="modal-item-img"
+            />
+          ) : (
+            <div className="modal-item-img-placeholder" style={{
+              width: "48px",
+              height: "48px",
+              backgroundColor: "rgba(37, 99, 235, 0.1)",
+              borderRadius: "8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#2563EB",
+              fontWeight: "bold",
+              fontSize: "18px"
+            }}>
+              TK
+            </div>
+          )}
           <div className="modal-item-info">
-            <h4>{activeActionItem.variant?.product_name}</h4>
-            <p>Qty Ordered: {activeActionItem.quantity}</p>
+            <h4>{isEntireOrder ? `Order #${activeActionItem.tracking_id}` : activeActionItem.variant?.product_name}</h4>
+            <p style={{ margin: "4px 0 0 0" }}>
+              {isEntireOrder 
+                ? `${activeActionItem.items?.length || 0} items • Total: ${formatPrice(activeActionItem.total_price)}` 
+                : `Qty Ordered: ${activeActionItem.quantity}`
+              }
+            </p>
           </div>
         </div>
 
         {/* Quantity Selector */}
-        <div className="modal-form-group">
-          <label className="modal-form-label">
-            {actionType === "cancel" ? "Quantity to Cancel" : "Quantity to Return"}
-          </label>
-          <div className="modal-qty-selector">
-            <button 
-              className="modal-qty-btn"
-              onClick={() => setModalQty(prev => Math.max(1, prev - 1))}
-              disabled={modalQty <= 1}
-            >
-              -
-            </button>
-            <span className="modal-qty-val">{modalQty}</span>
-            <button 
-              className="modal-qty-btn"
-              onClick={() => setModalQty(prev => Math.min(activeActionItem.quantity, prev + 1))}
-              disabled={modalQty >= activeActionItem.quantity}
-            >
-              +
-            </button>
+        {!isEntireOrder && (
+          <div className="modal-form-group">
+            <label className="modal-form-label">
+              {actionType === "cancel" ? "Quantity to Cancel" : "Quantity to Return"}
+            </label>
+            <div className="modal-qty-selector">
+              <button 
+                className="modal-qty-btn"
+                onClick={() => setModalQty(prev => Math.max(1, prev - 1))}
+                disabled={modalQty <= 1}
+              >
+                -
+              </button>
+              <span className="modal-qty-val">{modalQty}</span>
+              <button 
+                className="modal-qty-btn"
+                onClick={() => setModalQty(prev => Math.min(activeActionItem.quantity, prev + 1))}
+                disabled={modalQty >= activeActionItem.quantity}
+              >
+                +
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Reason Dropdown */}
         <div className="modal-form-group">
           <label className="modal-form-label">
-            {actionType === "cancel" ? "Reason for Cancellation" : "Reason for Return"}
+            {isCancel ? "Reason for Cancellation" : "Reason for Return"}
           </label>
           <select 
             className="modal-select-input"
@@ -74,7 +106,7 @@ export default function ActionModal({
             onChange={(e) => setModalReason(e.target.value)}
           >
             <option value="">Select a reason</option>
-            {actionType === "cancel" ? (
+            {isCancel ? (
               <>
                 <option value="changed_mind">Changed my mind</option>
                 <option value="wrong_item">Ordered wrong item</option>
@@ -99,7 +131,7 @@ export default function ActionModal({
           <label className="modal-form-label">Tell us more (optional)</label>
           <textarea 
             className="modal-textarea-input"
-            placeholder={actionType === "cancel" ? "Provide any additional details about your cancellation..." : "Provide any additional details about your return..."}
+            placeholder={isCancel ? "Provide any additional details about your cancellation..." : "Provide any additional details about your return..."}
             value={modalComments}
             onChange={(e) => setModalComments(e.target.value)}
             rows={3}
@@ -112,17 +144,17 @@ export default function ActionModal({
           disabled={simulating || !modalReason}
           onClick={onConfirm}
         >
-          {actionType === "cancel" ? "Confirm Cancellation" : "Confirm Return"}
+          {isCancel ? "Confirm Cancellation" : "Confirm Return"}
         </button>
 
         {/* Cancel button */}
         <button className="modal-secondary-btn" onClick={onClose}>
-          Keep Item
+          {isEntireOrder ? "Keep Order" : "Keep Item"}
         </button>
 
         {/* Footer Text */}
         <p className="modal-footer-policy-text">
-          {actionType === "cancel" 
+          {isCancel 
             ? "Your cancellation will be processed immediately. Once confirmed, a refund will be issued to your payment method."
             : "Your return will be processed according to our Return Policy. Once confirmed, you'll receive a prepaid shipping label via email."
           }

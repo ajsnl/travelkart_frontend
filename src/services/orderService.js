@@ -13,16 +13,16 @@ export const fetchOrderDetail = (trackingId) => {
 };
 // Simulate advancing/updating order status
 
-export const simulateOrderAdvance = (trackingId, status) => {
-  return api.post(`orders/${trackingId}/simulate/`, { status });
+export const simulateOrderAdvance = (trackingId, status, reason = null, comments = null) => {
+  return api.post(`orders/${trackingId}/simulate/`, { status, reason, comments });
 };
 
 // Cancel an individual order item or quantity
-export const cancelOrderItem = (itemId, quantity) => {
-  return api.post(`orders/items/${itemId}/cancel/`, { quantity });
+export const cancelOrderItem = (itemId, quantity, reason = null, comments = null) => {
+  return api.post(`orders/items/${itemId}/cancel/`, { quantity, reason, comments });
 };
 
 // Return an individual order item or quantity
-export const returnOrderItem = (itemId, quantity) => {
-  return api.post(`orders/items/${itemId}/return/`, { quantity });
+export const returnOrderItem = (itemId, quantity, reason = null, comments = null) => {
+  return api.post(`orders/items/${itemId}/return/`, { quantity, reason, comments });
 };

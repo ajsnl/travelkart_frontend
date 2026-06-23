@@ -10,3 +10,13 @@ export const toggleUserStatus = (userId) => {
     confirm: true,
   });
 };
+
+// Get orders (search + pagination + filters)
+export const fetchAdminOrders = (params) => {
+  return api.get("admin/orders/", { params });
+};
+
+// Update order status, payment status, or delivery estimate
+export const updateAdminOrderStatus = (trackingId, data) => {
+  return api.patch(`admin/orders/${trackingId}/`, data);
+};

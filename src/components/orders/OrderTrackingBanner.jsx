@@ -55,6 +55,15 @@ export default function OrderTrackingBanner({
           icon: <XCircle size={24} style={{ color: "#991B1B" }} />,
           showAction: "none"
         };
+      case "return_requested":
+        return {
+          title: "Return Requested",
+          desc: "Your return request is pending admin approval.",
+          bgColor: "#FFFBEB",
+          textColor: "#B45309",
+          icon: <RotateCcw size={24} style={{ color: "#B45309" }} />,
+          showAction: "none"
+        };
       case "returned":
         return {
           title: "Order Returned",

@@ -1,5 +1,5 @@
 import React from "react";
-import { MapPin, CreditCard, Package } from "lucide-react";
+import { MapPin, CreditCard, Package, Calendar } from "lucide-react";
 import { toast } from "react-toastify";
 
 export default function OrderDetailsSidebar({ order }) {
@@ -26,6 +26,19 @@ export default function OrderDetailsSidebar({ order }) {
         )}
       </div>
 
+      {/* Expected Delivery Date */}
+      {order.delivery_estimate && (
+        <div className="details-card-block">
+          <h3 className="section-title">
+            <Calendar size={18} className="title-icon" />
+            <span>Expected Delivery</span>
+          </h3>
+          <p className="delivery-estimate-text" style={{ fontSize: "15px", fontWeight: "600", color: "#1E293B", marginTop: "8px" }}>
+            {order.delivery_estimate}
+          </p>
+        </div>
+      )}
+
       {/* Card 2: Payment Method */}
       <div className="details-card-block">
         <h3 className="section-title">
@@ -50,7 +63,7 @@ export default function OrderDetailsSidebar({ order }) {
       </div>
 
       {/* Card 3: Assistance Support Card */}
-      <div className="details-card-block assistance-card">
+      {/* <div className="details-card-block assistance-card">
         <div className="assistance-icon-wrapper">
           <Package size={20} style={{ color: "#0D9488" }} />
         </div>
@@ -61,7 +74,7 @@ export default function OrderDetailsSidebar({ order }) {
         <button className="chat-support-btn" onClick={() => toast.info("Support chat is coming soon!")}>
           Chat with Support
         </button>
-      </div>
+      </div> */}
 
     </div>
   );

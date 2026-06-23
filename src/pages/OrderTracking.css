@@ -458,6 +458,7 @@
   display: flex;
   justify-content: center;
   margin-top: 40px;
+  gap: 16px;
 }
 
 .btn-go-orders {
@@ -476,6 +477,32 @@
   background: #CBD5E1;
   color: #1E293B;
   transform: translateY(-1px);
+}
+
+.btn-download-invoice {
+  background: #00236F;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 30px;
+  padding: 12px 32px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 35, 111, 0.15);
+}
+
+.btn-download-invoice:hover {
+  background: #001A54;
+  box-shadow: 0 6px 16px rgba(0, 35, 111, 0.25);
+  transform: translateY(-1px);
+}
+
+.btn-download-invoice svg {
+  stroke-width: 2.5px;
 }
 
 /* Exception Banners */
@@ -513,103 +540,7 @@
   opacity: 0.9;
 }
 
-/* Simulation Controls styling */
-.simulation-panel {
-  background: #0F172A;
-  color: #F8FAFC;
-  border: 1px solid #334155;
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 32px;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.3);
-}
 
-.sim-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-  color: #38BDF8;
-}
-
-.sim-title {
-  font-size: 16px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.sim-description {
-  font-size: 13px;
-  color: #94A3B8;
-  margin-bottom: 20px;
-  line-height: 1.5;
-}
-
-.sim-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.btn-sim {
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid #334155;
-  background: #1E293B;
-  color: #94A3B8;
-}
-
-.btn-sim:hover {
-  background: #334155;
-  color: #F8FAFC;
-  transform: translateY(-1px);
-}
-
-.btn-sim.active-sim {
-  border-color: #38BDF8;
-  background: #0369A1;
-  color: #FFFFFF;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
-}
-
-.btn-sim.sim-danger {
-  color: #FCA5A5;
-  border-color: #7F1D1D;
-}
-
-.btn-sim.sim-danger:hover {
-  background: #7F1D1D;
-  color: #FFFFFF;
-}
-
-.btn-sim.sim-danger.active-sim {
-  background: #B91C1C;
-  color: #FFFFFF;
-  border-color: #EF4444;
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
-}
-
-.btn-sim.sim-teal {
-  color: #99F6E4;
-  border-color: #115E59;
-}
-
-.btn-sim.sim-teal:hover {
-  background: #115E59;
-  color: #FFFFFF;
-}
-
-.btn-sim.sim-teal.active-sim {
-  background: #0F766E;
-  color: #FFFFFF;
-  border-color: #14B8A6;
-  box-shadow: 0 0 12px rgba(20, 184, 166, 0.4);
-}
 
 @keyframes slide-in-top {
   0% {
@@ -661,9 +592,7 @@
     grid-column: span 1;
   }
 
-  .btn-sim {
-    flex: 1 1 40%;
-  }
+
 }
 
 /* Order Details Status Banner */
@@ -716,13 +645,25 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1.5px solid currentColor;
   background: transparent;
-  color: inherit;
 }
-.banner-action-btn:hover {
-  background: currentColor;
+.banner-action-btn.cancel-btn {
+  color: #DC2626;
+  border: 1.5px solid #DC2626;
+}
+.banner-action-btn.cancel-btn:hover {
+  background: #DC2626;
   color: #FFFFFF !important;
+  border-color: #DC2626;
+}
+.banner-action-btn.return-btn {
+  color: #0D9488;
+  border: 1.5px solid #0D9488;
+}
+.banner-action-btn.return-btn:hover {
+  background: #0D9488;
+  color: #FFFFFF !important;
+  border-color: #0D9488;
 }
 
 /* Item price, qty, and actions styling */

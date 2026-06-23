@@ -5,6 +5,7 @@ import AdminLayout from "../components/AdminLayout";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminCategory from "../pages/admin/AdminCategory";
 import AdminProduct from "../pages/admin/AdminProduct";
+import AdminOrders from "../pages/admin/AdminOrders";
 
 export default function AdminRoutes() {
   return (
@@ -19,6 +20,7 @@ export default function AdminRoutes() {
         <Route index element={<AdminDashboard />} />
         <Route path="categories" element={<AdminCategory />} />
         <Route path="products" element={<AdminProduct />} />
+        <Route path ="orders" element={<AdminOrders/>} />
       </Route>
     </Routes>
   );
