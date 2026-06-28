@@ -1082,3 +1082,58 @@
   from { transform: scale(0.95); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
+
+/* Cancelled and Returned Item Rows */
+.tracking-item-row.cancelled {
+  opacity: 0.65;
+}
+
+.tracking-item-row.cancelled .tracking-item-name {
+  text-decoration: line-through;
+  color: #64748B;
+}
+
+.tracking-item-row.cancelled .tracking-item-price {
+  text-decoration: line-through;
+  color: #64748B;
+}
+
+.tracking-item-row.returned {
+  opacity: 0.75;
+}
+
+.tracking-item-row.returned .tracking-item-name {
+  text-decoration: line-through;
+  color: #0D9488;
+}
+
+.tracking-item-row.returned .tracking-item-price {
+  text-decoration: line-through;
+  color: #0D9488;
+}
+
+.item-status-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  margin-left: 10px;
+  vertical-align: middle;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+.item-status-badge.cancelled {
+  background-color: #FEE2E2;
+  color: #EF4444;
+  border: 1px solid #FCA5A5;
+}
+
+.item-status-badge.returned {
+  background-color: #CCFBF1;
+  color: #0D9488;
+  border: 1px solid #99F6E4;
+}

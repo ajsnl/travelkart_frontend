@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { 
-  SlidersHorizontal, 
-  ChevronLeft, 
-  ChevronRight, 
-  ShoppingBag, 
-  TrendingUp, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  Eye, 
+import {
+  SlidersHorizontal,
+  ChevronLeft,
+  ChevronRight,
+  ShoppingBag,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Eye,
   X,
   CreditCard,
   MapPin,
@@ -21,6 +21,7 @@ import {
 import { fetchAdminOrders, updateAdminOrderStatus } from "../../services/adminService";
 import { toast } from "react-toastify";
 import "./AdminOrders.css";
+import { useCustomDialog } from "../../components/CustomDialog";
 
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
@@ -52,6 +53,7 @@ const paymentStatusColors = {
   pending: "pay-pending",
   paid: "pay-paid",
   failed: "pay-failed",
+  refunded: "pay-refunded",
 };
 
 const returnReasonLabels = {
@@ -72,12 +74,13 @@ const cancelReasonLabels = {
 
 const AdminOrders = () => {
   const { search } = useOutletContext();
+  const { showConfirm } = useCustomDialog();
   const [orders, setOrders] = useState([]);
   const [page, setPage] = useState(1);
   const [count, setCount] = useState(0);
   const [statusFilter, setStatusFilter] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("");
-  
+
   // Stats
   const [stats, setStats] = useState({
     total_orders: 0,
@@ -124,7 +127,6 @@ const AdminOrders = () => {
   useEffect(() => {
     loadOrders();
 
-    // Poll every 4 seconds to sync status changes / user cancellations in real-time
     const interval = setInterval(() => {
       loadOrders(true);
     }, 4000);
@@ -132,7 +134,6 @@ const AdminOrders = () => {
     return () => clearInterval(interval);
   }, [search, page, statusFilter, paymentFilter]);
 
-  // Sync details modal with real-time updates from background polling
   useEffect(() => {
     if (selectedOrder) {
       const updatedOrder = orders.find(o => o.tracking_id === selectedOrder.tracking_id);
@@ -177,15 +178,14 @@ const AdminOrders = () => {
         payment_status: editPaymentStatus,
         delivery_estimate: editDeliveryEstimate,
       });
-      
+
       toast.success(`Order ${selectedOrder.tracking_id} updated successfully.`);
-      
-      // Reload order list and statistics
+
+
       await loadOrders();
-      
-      // Update selected order in view to reflect changes in modal
+
       setSelectedOrder(res.data);
-      
+
       closeOrderDetails();
     } catch (err) {
       console.error("Error updating order:", err);
@@ -201,7 +201,7 @@ const AdminOrders = () => {
 
   return (
     <div className="admin-container">
-      
+
       {/* Header */}
       <div className="workspace-header-row">
         <h1 className="workspace-title font-plus-jakarta">Order Management</h1>
@@ -209,7 +209,7 @@ const AdminOrders = () => {
 
       {/* Stats Cards */}
       <div className="stats-grid">
-        
+
         <div className="stat-card">
           <div className="stat-card-row">
             <div className="stat-icon-wrapper total-icon-bg">
@@ -323,7 +323,7 @@ const AdminOrders = () => {
                   <td className="font-plus-jakarta font-semibold text-white">
                     {order.tracking_id}
                   </td>
-                  
+
                   {/* Customer Info */}
                   <td>
                     <div className="profile-meta-stack">
@@ -342,14 +342,12 @@ const AdminOrders = () => {
                     {formatPrice(order.total_price)}
                   </td>
 
-                  {/* Payment Status badge */}
                   <td>
                     <span className={`pay-status-badge ${paymentStatusColors[order.payment_status] || "pay-pending"}`}>
                       {order.payment_status.toUpperCase()}
                     </span>
                   </td>
 
-                  {/* Order Status badge */}
                   <td>
                     <span className={`order-status-badge ${statusColors[order.status] || "status-processing"}`}>
                       {order.status.replace(/_/g, " ").toUpperCase()}
@@ -375,7 +373,6 @@ const AdminOrders = () => {
           </tbody>
         </table>
 
-        {/* Pagination Footer */}
         <footer className="table-pagination-footer-console font-inter">
           <div className="pagination-range-counter-info">
             Showing <span className="text-white-weight">{count === 0 ? 0 : startItemRange}-{endItemRange}</span> of <span className="text-white-weight">{count.toLocaleString()}</span> orders
@@ -418,7 +415,7 @@ const AdminOrders = () => {
       {isModalOpen && selectedOrder && (
         <div className="admin-modal-backdrop">
           <div className="admin-modal-container font-inter animate-modal-slide">
-            
+
             {/* Modal Header */}
             <div className="admin-modal-header">
               <div>
@@ -432,9 +429,9 @@ const AdminOrders = () => {
 
             {/* Modal Content */}
             <div className="admin-modal-content">
-              
+
               <div className="admin-modal-layout-grid">
-                
+
                 {/* Left Panel: Items & Summary */}
                 <div className="modal-grid-left">
                   <div className="modal-section-card">
@@ -442,49 +439,64 @@ const AdminOrders = () => {
                     <div className="order-items-list-container">
                       {selectedOrder.items?.map((item) => {
                         const isCancelled = item.is_cancelled;
+                        const isReturned = item.is_returned;
+                        const hasDetails = isCancelled || isReturned;
                         return (
                           <div key={item.id} style={{ display: "flex", flexDirection: "column" }}>
-                            <div 
-                              className={`order-item-detail-row ${isCancelled ? 'cancelled-item-row' : ''}`}
-                              onClick={() => isCancelled && setExpandedCancelledItemId(expandedCancelledItemId === item.id ? null : item.id)}
-                              style={isCancelled ? { cursor: "pointer", opacity: 0.8 } : {}}
-                              title={isCancelled ? "Click to view cancellation details" : ""}
+                            <div
+                              className={`order-item-detail-row ${isCancelled ? 'cancelled-item-row' : ''} ${isReturned ? 'returned-item-row' : ''}`}
+                              onClick={() => hasDetails && setExpandedCancelledItemId(expandedCancelledItemId === item.id ? null : item.id)}
+                              style={hasDetails ? { cursor: "pointer", opacity: 0.8 } : {}}
+                              title={isCancelled ? "Click to view cancellation details" : isReturned ? "Click to view return details" : ""}
                             >
                               <div className="item-details-left">
-                                <span 
-                                  className="item-name text-white" 
-                                  style={isCancelled ? { textDecoration: "line-through", color: "#94A3B8" } : {}}
+                                <span
+                                  className="item-name text-white"
+                                  style={hasDetails ? { textDecoration: "line-through", color: "#94A3B8" } : {}}
                                 >
                                   {item.variant?.product_name || "Product SKU"}
                                 </span>
                                 <span className="item-sku font-mono">
                                   {item.variant?.sku || "SKU N/A"}
                                   {isCancelled && (
-                                    <span style={{ 
-                                      marginLeft: "8px", 
-                                      backgroundColor: "rgba(239, 68, 68, 0.15)", 
-                                      color: "#ef4444", 
-                                      padding: "2px 6px", 
+                                    <span style={{
+                                      marginLeft: "8px",
+                                      backgroundColor: "rgba(239, 68, 68, 0.15)",
+                                      color: "#ef4444",
+                                      padding: "2px 6px",
                                       borderRadius: "4px",
                                       fontSize: "10px",
-                                      fontWeight: "700" 
+                                      fontWeight: "700"
                                     }}>
                                       CANCELLED
+                                    </span>
+                                  )}
+                                  {isReturned && (
+                                    <span style={{
+                                      marginLeft: "8px",
+                                      backgroundColor: "rgba(16, 185, 129, 0.15)",
+                                      color: "#10b981",
+                                      padding: "2px 6px",
+                                      borderRadius: "4px",
+                                      fontSize: "10px",
+                                      fontWeight: "700"
+                                    }}>
+                                      RETURNED
                                     </span>
                                   )}
                                 </span>
                               </div>
                               <div className="item-details-right">
                                 <span className="item-qty-price">{item.quantity} x {formatPrice(item.price)}</span>
-                                <span 
+                                <span
                                   className="item-total-price font-semibold text-white"
-                                  style={isCancelled ? { textDecoration: "line-through", color: "#94A3B8" } : {}}
+                                  style={hasDetails ? { textDecoration: "line-through", color: "#94A3B8" } : {}}
                                 >
                                   {formatPrice(item.price * item.quantity)}
                                 </span>
                               </div>
                             </div>
-                            
+
                             {/* Cancellation Details Panel */}
                             {isCancelled && expandedCancelledItemId === item.id && (
                               <div style={{
@@ -502,35 +514,91 @@ const AdminOrders = () => {
                                 )}
                               </div>
                             )}
+
+                            {/* Return Details Panel */}
+                            {isReturned && expandedCancelledItemId === item.id && (
+                              <div style={{
+                                margin: "2px 0 12px 12px",
+                                padding: "12px 16px",
+                                backgroundColor: "rgba(30, 41, 59, 0.6)",
+                                borderLeft: "3px solid #10b981",
+                                borderRadius: "4px",
+                                fontSize: "12px",
+                                color: "#94A3B8"
+                              }}>
+                                <div><strong>Return Reason:</strong> {returnReasonLabels[item.return_reason] || item.return_reason || "Not specified"}</div>
+                                {item.return_comments && (
+                                  <div style={{ marginTop: "4px" }}><strong>Comments:</strong> {item.return_comments}</div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         );
                       })}
                     </div>
 
-                    <div className="order-summary-totals-card">
-                      <div className="totals-row">
-                        <span>Subtotal</span>
-                        <span>{formatPrice(selectedOrder.subtotal)}</span>
-                      </div>
-                      <div className="totals-row">
-                        <span>Shipping Fee</span>
-                        <span>{parseFloat(selectedOrder.shipping_fee) === 0 ? "Free" : formatPrice(selectedOrder.shipping_fee)}</span>
-                      </div>
-                      <div className="totals-row text-green-accent">
-                        <span>Discount</span>
-                        <span>-{formatPrice(selectedOrder.discount)}</span>
-                      </div>
-                      <div className="totals-row final-total-row text-white font-bold">
-                        <span>Grand Total</span>
-                        <span>{formatPrice(selectedOrder.total_price)}</span>
-                      </div>
-                    </div>
+                    {(() => {
+                      const discount = parseFloat(selectedOrder.discount || 0);
+                      const originalSubtotal = (selectedOrder.items || []).reduce(
+                        (sum, item) => sum + parseFloat(item.price || 0) * item.quantity,
+                        0
+                      );
+                      const originalPreDiscountSubtotal = originalSubtotal + discount;
+                      const cancelledTotal = (selectedOrder.items || []).filter(item => item.is_cancelled).reduce(
+                        (sum, item) => sum + parseFloat(item.price || 0) * item.quantity,
+                        0
+                      );
+                      const returnedTotal = (selectedOrder.items || []).filter(item => item.is_returned).reduce(
+                        (sum, item) => sum + parseFloat(item.price || 0) * item.quantity,
+                        0
+                      );
+                      return (
+                        <div className="order-summary-totals-card">
+                          <div className="totals-row">
+                            <span>Subtotal</span>
+                            <span>{formatPrice(originalPreDiscountSubtotal)}</span>
+                          </div>
+                          <div className="totals-row">
+                            <span>Shipping Fee</span>
+                            <span>{parseFloat(selectedOrder.shipping_fee) === 0 ? "Free" : formatPrice(selectedOrder.shipping_fee)}</span>
+                          </div>
+                          <div className="totals-row text-green-accent">
+                            <span>Discount</span>
+                            <span>-{formatPrice(selectedOrder.discount)}</span>
+                          </div>
+                          {cancelledTotal > 0 && (
+                            <div className="totals-row" style={{ color: "#EF4444" }}>
+                              <span>Cancelled Items</span>
+                              <span>-{formatPrice(cancelledTotal)}</span>
+                            </div>
+                          )}
+                          {returnedTotal > 0 && (
+                            <div className="totals-row" style={{ color: "#10b981" }}>
+                              <span>Returned Items</span>
+                              <span>-{formatPrice(returnedTotal)}</span>
+                            </div>
+                          )}
+                          {(() => {
+                            const grandTotal = Math.max(
+                              0,
+                              originalPreDiscountSubtotal - discount + parseFloat(selectedOrder.shipping_fee || 0) - cancelledTotal - returnedTotal
+                            );
+                            return (
+                              <div className="totals-row final-total-row text-white font-bold">
+                                <span>Grand Total</span>
+                                <span>{formatPrice(grandTotal)}</span>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
 
                 {/* Right Panel: Address & Update Form */}
                 <div className="modal-grid-right">
-                  
+
                   {/* Address Summary Card */}
                   <div className="modal-section-card">
                     <h3 className="section-card-title"><MapPin size={16} /> Shipping Details</h3>
@@ -552,7 +620,7 @@ const AdminOrders = () => {
                   {/* Edit Actions Form */}
                   <div className="modal-section-card mt-16">
                     <h3 className="section-card-title"><SlidersHorizontal size={16} /> Order Management Action Panel</h3>
-                    
+
                     {selectedOrder.status === "cancelled" && (selectedOrder.cancel_reason || selectedOrder.cancel_comments) && (
                       <div className="cancel-reason-alert-panel" style={{
                         backgroundColor: "rgba(239, 68, 68, 0.1)",
@@ -651,14 +719,27 @@ const AdminOrders = () => {
                     <form onSubmit={handleUpdate} className="modal-action-form">
                       <div className="form-group-item">
                         <label className="form-label text-white">Order Status</label>
-                        <select 
-                          value={editStatus} 
-                          onChange={(e) => setEditStatus(e.target.value)}
+                        <select
+                          value={editStatus}
+                          onChange={async (e) => {
+                            const newStatus = e.target.value;
+                            setEditStatus(newStatus);
+                            if (newStatus === "delivered" && editPaymentStatus !== "paid") {
+                              const confirmed = await showConfirm(
+                                "Confirm payment received?",
+                                "Payment Status",
+                                "info"
+                              );
+                              if (confirmed) {
+                                setEditPaymentStatus("paid");
+                              }
+                            }
+                          }}
                           className="modal-select-field"
                         >
-                          <option value="processing">Processing</option>
-                          <option value="shipped">Shipped</option>
-                          <option value="out_for_delivery">Out for Delivery</option>
+                          <option value="processing" disabled={selectedOrder.status === "delivered"}>Processing</option>
+                          <option value="shipped" disabled={selectedOrder.status === "delivered"}>Shipped</option>
+                          <option value="out_for_delivery" disabled={selectedOrder.status === "delivered"}>Out for Delivery</option>
                           <option value="delivered">Delivered</option>
                           <option value="cancelled">Cancelled</option>
                           <option value="return_requested">Return Requested</option>
@@ -668,22 +749,23 @@ const AdminOrders = () => {
 
                       <div className="form-group-item">
                         <label className="form-label text-white">Payment Status</label>
-                        <select 
-                          value={editPaymentStatus} 
+                        <select
+                          value={editPaymentStatus}
                           onChange={(e) => setEditPaymentStatus(e.target.value)}
                           className="modal-select-field"
                         >
                           <option value="pending">Pending</option>
                           <option value="paid">Paid</option>
                           <option value="failed">Failed</option>
+                          <option value="refunded">Refunded</option>
                         </select>
                       </div>
 
                       <div className="form-group-item">
                         <label className="form-label text-white"><Calendar size={14} style={{ marginRight: "4px", verticalAlign: "middle" }} /> Delivery Estimate</label>
-                        <input 
-                          type="text" 
-                          value={editDeliveryEstimate} 
+                        <input
+                          type="text"
+                          value={editDeliveryEstimate}
                           onChange={(e) => setEditDeliveryEstimate(e.target.value)}
                           placeholder="e.g. Friday, 26 June 2026"
                           className="modal-input-field"
@@ -691,16 +773,16 @@ const AdminOrders = () => {
                       </div>
 
                       <div className="modal-action-buttons-wrapper">
-                        <button 
-                          type="button" 
-                          onClick={closeOrderDetails} 
+                        <button
+                          type="button"
+                          onClick={closeOrderDetails}
                           className="btn-modal-cancel"
                           disabled={isSaving}
                         >
                           Cancel
                         </button>
-                        <button 
-                          type="submit" 
+                        <button
+                          type="submit"
                           className="btn-modal-save"
                           disabled={isSaving}
                         >

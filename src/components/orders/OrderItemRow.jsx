@@ -3,18 +3,24 @@ import { XCircle, RotateCcw } from "lucide-react";
 
 export default function OrderItemRow({ item, orderStatus, simulating, onOpenActionModal }) {
   const variant = item.variant;
-  const isItemCancelable = ["processing", "shipped", "out_for_delivery"].includes(orderStatus);
-  const isItemReturnable = false;
+  const isItemCancelable = ["processing", "shipped", "out_for_delivery"].includes(orderStatus) && !item.is_cancelled && !item.is_returned;
+  const isItemReturnable = orderStatus === "delivered" && !item.is_cancelled && !item.is_returned;
+
+  const statusClass = item.is_cancelled ? "cancelled" : item.is_returned ? "returned" : "";
 
   return (
-    <div className="tracking-item-row">
+    <div className={`tracking-item-row ${statusClass}`}>
       <img 
         src={variant?.image_url} 
         alt={variant?.product_name || "Product image"} 
         className="tracking-item-img" 
       />
       <div className="tracking-item-details">
-        <div className="tracking-item-name">{variant?.product_name}</div>
+        <div className="tracking-item-name">
+          {variant?.product_name}
+          {item.is_cancelled && <span className="item-status-badge cancelled">Cancelled</span>}
+          {item.is_returned && <span className="item-status-badge returned">Returned</span>}
+        </div>
         {variant?.product_brand && <div className="tracking-item-brand">by {variant.product_brand}</div>}
         <div className="tracking-item-attributes">
           {variant?.sku && <span className="attr-tag">SKU: {variant.sku}</span>}

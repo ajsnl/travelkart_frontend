@@ -61,7 +61,6 @@ export default function OrderTracking() {
   useEffect(() => {
     getOrderData();
 
-    // Poll every 4 seconds to sync status changes from admin panel in real-time
     const interval = setInterval(() => {
       getOrderData(true);
     }, 4000);
@@ -192,7 +191,6 @@ export default function OrderTracking() {
         {/* Status Tracker Bar Card */}
         <div className="tracking-main-card">
           
-          {/* TOP STATUS DESCRIPTION BANNER */}
           <OrderTrackingBanner 
             order={order}
             deliveredDate={deliveredDate}
@@ -201,7 +199,6 @@ export default function OrderTracking() {
             onReturnEntireOrder={handleReturnEntireOrder}
           />
 
-          {/* Timeline Progress Tracker */}
           <OrderTrackingTimeline 
             order={order}
             createdDateStr={createdDateStr}
@@ -213,7 +210,6 @@ export default function OrderTracking() {
           {/* Details split grid: Left (Items), Right (Address, Payment, Support) */}
           <div className="tracking-details-grid">
             
-            {/* Left Column: Order Items */}
             <div className="order-summary-column">
               <h3 className="section-title font-plus-jakarta">Order Items</h3>
               
@@ -229,7 +225,6 @@ export default function OrderTracking() {
                 ))}
               </div>
 
-              {/* Billing total summary details (compact design) */}
               <BillingSummary order={order} />
             </div>
             
@@ -240,7 +235,6 @@ export default function OrderTracking() {
 
           <hr className="section-divider" />
 
-          {/* Action Button */}
           <div className="tracking-footer-actions">
             <button 
               className="btn-go-orders font-inter" 
@@ -262,7 +256,7 @@ export default function OrderTracking() {
       </main>
       <Footer />
       
-      {/* Cancel/Return Item Popup Modal */}
+     
       <ActionModal 
         activeActionItem={activeActionItem}
         actionType={actionType}

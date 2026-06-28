@@ -1,7 +1,12 @@
 import React from "react";
 
 export default function OrderCard({ order, onCancelOrder, onReturnOrder, onAddReview, navigate }) {
-  const items = order.items || [];
+  const allItems = order.items || [];
+  const activeItems = allItems.filter(item => !item.is_cancelled && !item.is_returned);
+  const cancelledCount = allItems.filter(item => item.is_cancelled).reduce((sum, item) => sum + item.quantity, 0);
+  const returnedCount = allItems.filter(item => item.is_returned).reduce((sum, item) => sum + item.quantity, 0);
+
+  const items = activeItems.length > 0 ? activeItems : allItems;
   const showMoreCount = items.length > 2 ? items.length - 2 : 0;
   const formattedDate = new Date(order.created_at).toLocaleDateString("en-IN", {
     year: "numeric",
@@ -16,7 +21,15 @@ export default function OrderCard({ order, onCancelOrder, onReturnOrder, onAddRe
 
   const getItemSubText = (items) => {
     if (!items || items.length === 0) return "";
-    const names = items.slice(0, 2).map((item) => item.variant?.product_name || "Product");
+    const names = items.slice(0, 2).map((item) => {
+      let name = item.variant?.product_name || "Product";
+      if (item.is_cancelled) {
+        name += " (Cancelled)";
+      } else if (item.is_returned) {
+        name += " (Returned)";
+      }
+      return name;
+    });
     if (items.length > 2) {
       return `${names.join(", ")}, +${items.length - 2} more`;
     }
@@ -43,14 +56,17 @@ export default function OrderCard({ order, onCancelOrder, onReturnOrder, onAddRe
       <div className="order-card-body">
         <div className="items-previews-container">
           <div className="thumbnails-row">
-            {items.slice(0, 2).map((item, idx) => (
-              <img
-                key={item.id || idx}
-                src={item.variant?.image_url}
-                alt={item.variant?.product_name || "Order Item"}
-                className="item-thumbnail-img"
-              />
-            ))}
+            {items.slice(0, 2).map((item, idx) => {
+              const statusClass = item.is_cancelled ? "cancelled" : item.is_returned ? "returned" : "";
+              return (
+                <img
+                  key={item.id || idx}
+                  src={item.variant?.image_url}
+                  alt={item.variant?.product_name || "Order Item"}
+                  className={`item-thumbnail-img ${statusClass}`}
+                />
+              );
+            })}
             {showMoreCount > 0 && (
               <div className="more-items-badge">
                 +{showMoreCount}
@@ -61,6 +77,16 @@ export default function OrderCard({ order, onCancelOrder, onReturnOrder, onAddRe
           <div className="items-text-details">
             <h5 className="items-count-summary">
               {getItemSummaryText(items)}
+              {activeItems.length > 0 && cancelledCount > 0 && (
+                <span className="removed-items-indicator" style={{ marginLeft: "8px", color: "#EF4444", fontSize: "13px", fontWeight: "600" }}>
+                  ({cancelledCount} {cancelledCount === 1 ? "item" : "items"} removed)
+                </span>
+              )}
+              {activeItems.length > 0 && returnedCount > 0 && (
+                <span className="removed-items-indicator" style={{ marginLeft: "8px", color: "#0D9488", fontSize: "13px", fontWeight: "600" }}>
+                  ({returnedCount} {returnedCount === 1 ? "item" : "items"} returned)
+                </span>
+              )}
             </h5>
             <p className="items-names-list">
               {getItemSubText(items)}

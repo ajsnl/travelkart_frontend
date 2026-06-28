@@ -56,7 +56,9 @@ export default function OrderDetailsSidebar({ order }) {
             <span className="payment-method-sub">
               {order.payment_status === "paid" 
                 ? `Paid on ${new Date(order.updated_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}` 
-                : "Payment Pending"}
+                : order.payment_status === "refunded"
+                  ? "Refunded"
+                  : "Payment Pending"}
             </span>
           </div>
         </div>

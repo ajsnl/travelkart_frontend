@@ -19,6 +19,7 @@ import {
   changePassword
 } from "../services/authService";
 import { fetchUserOrders } from "../services/orderService";
+import OrderPagination from "../components/orders/OrderPagination";
 
 import UserInfoCard from "../components/profile/UserInfoCard";
 import AddressList from "../components/profile/AddressList";
@@ -36,6 +37,9 @@ import { useCustomDialog } from "../components/CustomDialog";
 const OrderHistoryList = ({ navigate }) => {
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ordersPerPage = 4;
+
   useEffect(() => {
     const getOrders = async () => {
       try {
@@ -50,6 +54,7 @@ const OrderHistoryList = ({ navigate }) => {
     };
     getOrders();
   }, []);
+
   if (loadingOrders) {
     return (
       <div style={{ display: "flex", justifyContent: "center", padding: "40px 0" }}>
@@ -57,14 +62,28 @@ const OrderHistoryList = ({ navigate }) => {
       </div>
     );
   }
+
   if (orders.length === 0) {
     return (
       <p style={{ color: "#64748B", margin: 0, padding: "20px 0" }}>You haven't placed any orders yet.</p>
     );
   }
+
+  // Pagination calculation
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = orders.slice(indexOfFirstOrder, indexOfLastOrder);
+  const totalPages = Math.ceil(orders.length / ordersPerPage);
+
+  const handlePageChange = (pageNum) => {
+    if (pageNum >= 1 && pageNum <= totalPages) {
+      setCurrentPage(pageNum);
+    }
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "16px" }}>
-      {orders.map((ord) => (
+      {currentOrders.map((ord) => (
         <div key={ord.id} style={{ 
           border: "1px solid #E2E8F0", 
           borderRadius: "10px", 
@@ -91,6 +110,12 @@ const OrderHistoryList = ({ navigate }) => {
           </button>
         </div>
       ))}
+
+      <OrderPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
     </div>
   );
 };

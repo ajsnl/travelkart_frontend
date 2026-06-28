@@ -783,3 +783,16 @@
   from { transform: scale(0.95); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
+
+/* Cancelled and Returned Item Thumbnails */
+.item-thumbnail-img.cancelled {
+  opacity: 0.5;
+  filter: grayscale(100%);
+  border-color: #FCA5A5;
+}
+
+.item-thumbnail-img.returned {
+  opacity: 0.6;
+  filter: grayscale(50%);
+  border-color: #99F6E4;
+}

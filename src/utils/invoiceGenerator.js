@@ -27,7 +27,7 @@ export const generateInvoicePDF = (order) => {
   doc.text("INVOICE", 195, 26, { align: "right" });
 
   // Reset text color
-  doc.setTextColor(30, 41, 59); // Dark grey
+  doc.setTextColor(30, 41, 59); 
 
   // Metadata block (Invoice Info)
   doc.setFont("helvetica", "bold");
@@ -59,7 +59,12 @@ export const generateInvoicePDF = (order) => {
   // Line Items Table
   const tableHeaders = [["Product Name", "SKU", "Price", "Quantity", "Total"]];
   const tableData = (order.items || []).map((item) => {
-    const productName = item.variant?.product_name || "Product Item";
+    let productName = item.variant?.product_name || "Product Item";
+    if (item.is_cancelled) {
+      productName += " (CANCELLED)";
+    } else if (item.is_returned) {
+      productName += " (RETURNED)";
+    }
     const sku = item.variant?.sku || "N/A";
     const unitPrice = parseFloat(item.price || 0);
     const qty = parseInt(item.quantity || 1);
@@ -105,13 +110,29 @@ export const generateInvoicePDF = (order) => {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   
-  const subtotal = parseFloat(order.subtotal || 0);
   const discount = parseFloat(order.discount || 0);
   const shippingFee = parseFloat(order.shipping_fee || 0);
   const totalPrice = parseFloat(order.total_price || 0);
 
+  const originalSubtotal = (order.items || []).reduce(
+    (sum, item) => sum + parseFloat(item.price || 0) * item.quantity,
+    0
+  );
+  
+  const originalPreDiscountSubtotal = originalSubtotal + discount;
+  
+  const cancelledTotal = (order.items || []).filter(item => item.is_cancelled).reduce(
+    (sum, item) => sum + parseFloat(item.price || 0) * item.quantity,
+    0
+  );
+
+  const returnedTotal = (order.items || []).filter(item => item.is_returned).reduce(
+    (sum, item) => sum + parseFloat(item.price || 0) * item.quantity,
+    0
+  );
+
   doc.text("Subtotal:", 135, finalY);
-  doc.text(`INR ${subtotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, finalY, { align: "right" });
+  doc.text(`INR ${originalPreDiscountSubtotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, finalY, { align: "right" });
 
   doc.text("Discount:", 135, finalY + 6);
   doc.text(`- INR ${discount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, finalY + 6, { align: "right" });
@@ -119,14 +140,29 @@ export const generateInvoicePDF = (order) => {
   doc.text("Shipping Fee:", 135, finalY + 12);
   doc.text(`INR ${shippingFee.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, finalY + 12, { align: "right" });
 
+  let offset = 18;
+  if (cancelledTotal > 0) {
+    doc.text("Cancelled Items:", 135, finalY + offset);
+    doc.text(`- INR ${cancelledTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, finalY + offset, { align: "right" });
+    offset += 6;
+  }
+
+  if (returnedTotal > 0) {
+    doc.text("Returned Items:", 135, finalY + offset);
+    doc.text(`- INR ${returnedTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, finalY + offset, { align: "right" });
+    offset += 6;
+  }
+
   doc.setLineWidth(0.5);
   doc.setDrawColor(226, 232, 240);
-  doc.line(130, finalY + 16, 195, finalY + 16);
+  doc.line(130, finalY + offset - 2, 195, finalY + offset - 2);
+
+  const grandTotal = Math.max(0, originalPreDiscountSubtotal - discount + shippingFee - cancelledTotal - returnedTotal);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.text("Grand Total:", 135, finalY + 22);
-  doc.text(`INR ${totalPrice.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, finalY + 22, { align: "right" });
+  doc.text("Grand Total:", 135, finalY + offset + 4);
+  doc.text(`INR ${grandTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, finalY + offset + 4, { align: "right" });
 
   // Footer terms & greetings
   doc.setFont("helvetica", "italic");

@@ -61,7 +61,6 @@ export default function MyOrders() {
     if (isAuthenticated) {
       loadOrders();
 
-      // Poll every 4 seconds to sync status changes from admin panel in real-time
       const interval = setInterval(() => {
         loadOrders(true);
       }, 4000);
@@ -72,7 +71,7 @@ export default function MyOrders() {
     }
   }, [isAuthenticated, navigate]);
 
-  // Cancel order trigger modal
+  
   const handleCancelOrder = (trackingId) => {
     const orderObj = orders.find(o => o.tracking_id === trackingId);
     if (!orderObj) return;
@@ -84,12 +83,10 @@ export default function MyOrders() {
     setModalComments("");
   };
 
-  // Return order trigger modal
   const handleReturnOrder = (trackingId) => {
     const orderObj = orders.find(o => o.tracking_id === trackingId);
     if (!orderObj) return;
 
-    // Validate client-side delivery date window (max 10 days)
     const deliveryTime = new Date(orderObj.updated_at);
     const now = new Date();
     const diffTime = Math.abs(now - deliveryTime);
@@ -113,7 +110,7 @@ export default function MyOrders() {
     try {
       if (actionType === "cancel_entire_order") {
         await simulateOrderAdvance(activeActionItem.tracking_id, "cancelled", modalReason, modalComments);
-        toast.success("Order cancelled successfully! ❌");
+        toast.success("Order cancelled successfully! ");
       } else if (actionType === "return_entire_order") {
         await simulateOrderAdvance(activeActionItem.tracking_id, "return_requested", modalReason, modalComments);
         toast.success("Return process initiated successfully! 🔄");
@@ -129,7 +126,6 @@ export default function MyOrders() {
     }
   };
 
-  // Add review placeholder
   const handleAddReview = (trackingId) => {
     toast.info(`Review interface for Order #${trackingId} is coming soon!`);
   };
@@ -143,14 +139,27 @@ export default function MyOrders() {
     RETURNED: ["returned", "return_requested"],
   };
 
-  const matchesTab = (orderStatus) => {
+  const matchesTab = (order) => {
     if (activeTab === "ALL") return true;
-    return tabMap[activeTab]?.includes(orderStatus.toLowerCase());
+    
+    // Check if the overall order status matches the tab
+    const statusMatch = tabMap[activeTab]?.includes(order.status.toLowerCase());
+    if (statusMatch) return true;
+
+    // Check if any individual item in the order has been cancelled or returned
+    if (activeTab === "CANCELLED") {
+      return (order.items || []).some(item => item.is_cancelled);
+    }
+    if (activeTab === "RETURNED") {
+      return (order.items || []).some(item => item.is_returned);
+    }
+
+    return false;
   };
 
   // Filter orders based on active tab and search query
   const filteredOrders = orders.filter((order) => {
-    if (!matchesTab(order.status)) return false;
+    if (!matchesTab(order)) return false;
 
     if (searchQuery.trim() !== "") {
       const q = searchQuery.toLowerCase();
@@ -164,7 +173,6 @@ export default function MyOrders() {
     return true;
   });
 
-  // Reset page number on filter changes
   useEffect(() => {
     setCurrentPage(1);
   }, [activeTab, searchQuery]);
@@ -191,7 +199,6 @@ export default function MyOrders() {
           <h1 className="font-plus-jakarta">My Orders</h1>
         </header>
 
-        {/* Filters and Search toolbar */}
         <OrderFilters
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}

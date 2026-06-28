@@ -80,6 +80,12 @@
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
+.pay-refunded {
+  background-color: rgba(13, 148, 136, 0.1);
+  color: #0d9488;
+  border: 1px solid rgba(13, 148, 136, 0.2);
+}
+
 /* Table Details Action Button */
 .table-action-details-btn {
   display: inline-flex;

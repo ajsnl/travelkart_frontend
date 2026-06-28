@@ -1,21 +1,59 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { LogOut, Bell, Search, Users, FolderTree, Box, ShoppingBag } from "lucide-react";
 import { logoutUser } from "../services/authService";
 import TravelKartLogoMain from "./brand/TravelKartLogoMain";
 import "./AdminLayout.css";
 import { useCustomDialog } from "./CustomDialog";
+import { fetchNotifications, markNotificationsAsRead } from "../services/adminService";
 
 const AdminLayout = () => {
   const [search, setSearch] = useState("");
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { showConfirm } = useCustomDialog();
+
+  const loadNotifications = async () => {
+    try {
+      const res = await fetchNotifications();
+      setNotifications(res.data);
+    } catch (err) {
+      console.error("Error loading notifications:", err);
+    }
+  };
+
+  useEffect(() => {
+    loadNotifications();
+    const interval = setInterval(() => {
+      loadNotifications();
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = async () => {
     const confirmed = await showConfirm("Are you sure you want to log out?", "Logout", "warning");
     if (confirmed) {
       logoutUser(navigate);
+    }
+  };
+
+  const handleNotificationClick = (notif) => {
+    setShowNotifications(false);
+    if (notif.tracking_id) {
+      setSearch(notif.tracking_id);
+      navigate("/admin/orders");
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await markNotificationsAsRead();
+      setNotifications([]);
+      setShowNotifications(false);
+    } catch (err) {
+      console.error("Error marking notifications as read:", err);
     }
   };
 
@@ -52,10 +90,53 @@ const AdminLayout = () => {
           </div>
         </div>
 
-        <div className="navbar-right-utilities">
-          <button className="navbar-notification-trigger" aria-label="Notifications system">
+        <div className="navbar-right-utilities" style={{ position: "relative" }}>
+          <button 
+            className="navbar-notification-trigger" 
+            onClick={() => setShowNotifications(!showNotifications)}
+            aria-label="Notifications system"
+          >
             <Bell size={18} />
+            {notifications.length > 0 && (
+              <span className="notification-count-badge">{notifications.length}</span>
+            )}
           </button>
+
+          {showNotifications && (
+            <div className="notifications-popup-dropdown">
+              <div className="notifications-dropdown-header">
+                <h4>Notifications</h4>
+              </div>
+              <div className="notifications-list">
+                {notifications.length === 0 ? (
+                  <div className="no-notifications-placeholder">
+                    No new return requests.
+                  </div>
+                ) : (
+                  notifications.map((notif) => (
+                    <div 
+                      key={notif.id} 
+                      className="notification-item"
+                      onClick={() => handleNotificationClick(notif)}
+                    >
+                      <span className="notification-item-message">{notif.message}</span>
+                      <span className="notification-item-time">
+                        {new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+              {notifications.length > 0 && (
+                <div className="notifications-dropdown-footer">
+                  <button onClick={handleMarkAllRead} className="btn-mark-all-read">
+                    Mark all as read
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           <button 
             onClick={handleLogout}
             className="navbar-logout-btn"

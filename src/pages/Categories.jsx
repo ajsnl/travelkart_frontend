@@ -15,18 +15,17 @@ import {
   Compass
 } from "lucide-react";
 import ProductCard from "../components/products/ProductCard";
+import OrderPagination from "../components/orders/OrderPagination";
 import "./Categories.css";
 
 export default function Categories() {
   const [searchParams, setSearchParams] = useSearchParams();
   const catQuery = searchParams.get("cat"); // matches category slug from homepage links (e.g. luggage, bags)
 
-  // Data States
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [brands, setBrands] = useState([]);
 
-  // Selected Filter States
   const [selectedCategory, setSelectedCategory] = useState(null); // Full category object
   const [selectedBrand, setSelectedBrand] = useState("");
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
@@ -73,7 +72,6 @@ export default function Categories() {
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery, setSearchParams]);
 
-  // Pagination & Loading
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [productsCount, setProductsCount] = useState(0);
@@ -138,7 +136,7 @@ export default function Categories() {
         const res = await fetchProducts(params);
         setProducts(res.data.results || []);
         setProductsCount(res.data.count || 0);
-        setTotalPages(Math.ceil((res.data.count || 0) / 10)); // Product view has 10 per page
+        setTotalPages(Math.ceil((res.data.count || 0) / 9)); // Product view has 9 per page
       } catch (err) {
         console.error("Error fetching products:", err);
       } finally {
@@ -152,7 +150,6 @@ export default function Categories() {
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
     setPage(1);
-    // Update URL query string, preserving other parameters
     const newParams = new URLSearchParams(searchParams);
     if (category) {
       newParams.set("cat", category.slug);
@@ -423,27 +420,16 @@ export default function Categories() {
             </div>
           )}
 
-          {/* Simple Premium Pagination */}
-          {totalPages > 1 && !loading && (
-            <div className="catalog-pagination">
-              <button 
-                disabled={page === 1}
-                onClick={() => setPage(prev => Math.max(1, prev - 1))}
-                className="pag-btn"
-              >
-                Previous
-              </button>
-              <div className="page-indicator">
-                Page <span className="active-num">{page}</span> of {totalPages}
-              </div>
-              <button 
-                disabled={page === totalPages}
-                onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
-                className="pag-btn"
-              >
-                Next
-              </button>
-            </div>
+          {/* Beautiful Numbered Pagination */}
+          {!loading && totalPages > 1 && (
+            <OrderPagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={(pageNum) => {
+                setPage(pageNum);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            />
           )}
         </section>
 

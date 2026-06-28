@@ -11,12 +11,19 @@ export const toggleUserStatus = (userId) => {
   });
 };
 
-// Get orders (search + pagination + filters)
 export const fetchAdminOrders = (params) => {
   return api.get("admin/orders/", { params });
 };
 
-// Update order status, payment status, or delivery estimate
 export const updateAdminOrderStatus = (trackingId, data) => {
   return api.patch(`admin/orders/${trackingId}/`, data);
 };
+
+export const fetchNotifications = () => {
+  return api.get("admin/notifications/");
+};
+
+export const markNotificationsAsRead = () => {
+  return api.post("admin/notifications/read_all/");
+};
+
