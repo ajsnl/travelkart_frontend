@@ -27,3 +27,10 @@ export const markNotificationsAsRead = () => {
   return api.post("admin/notifications/read_all/");
 };
 
+export const approveItemReturn = (itemId) => {
+  return api.post(`admin/order-items/${itemId}/approve-return/`);
+};
+
+export const rejectItemReturn = (itemId) => {
+  return api.post(`admin/order-items/${itemId}/reject-return/`);
+};

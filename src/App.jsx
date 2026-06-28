@@ -70,11 +70,13 @@ function App() {
           }
         } else {
           // ONLY CHECK AND FORCE AUTH FOR PRIVATE ROUTES
-          try {
-            const userData = await getCurrentUser();
-            dispatch(setUser(userData));
-          } catch (err) {
-            dispatch(logout());
+          if (!isAuthenticated) {
+            try {
+              const userData = await getCurrentUser();
+              dispatch(setUser(userData));
+            } catch (err) {
+              dispatch(logout());
+            }
           }
         }
       } catch (err) {

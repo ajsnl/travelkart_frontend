@@ -4,9 +4,9 @@ import { XCircle, RotateCcw } from "lucide-react";
 export default function OrderItemRow({ item, orderStatus, simulating, onOpenActionModal }) {
   const variant = item.variant;
   const isItemCancelable = ["processing", "shipped", "out_for_delivery"].includes(orderStatus) && !item.is_cancelled && !item.is_returned;
-  const isItemReturnable = orderStatus === "delivered" && !item.is_cancelled && !item.is_returned;
+  const isItemReturnable = orderStatus === "delivered" && !item.is_cancelled && !item.is_returned && !item.is_return_requested;
 
-  const statusClass = item.is_cancelled ? "cancelled" : item.is_returned ? "returned" : "";
+  const statusClass = item.is_cancelled ? "cancelled" : item.is_returned ? "returned" : item.is_return_requested ? "return-requested" : "";
 
   return (
     <div className={`tracking-item-row ${statusClass}`}>
@@ -20,6 +20,7 @@ export default function OrderItemRow({ item, orderStatus, simulating, onOpenActi
           {variant?.product_name}
           {item.is_cancelled && <span className="item-status-badge cancelled">Cancelled</span>}
           {item.is_returned && <span className="item-status-badge returned">Returned</span>}
+          {item.is_return_requested && <span className="item-status-badge return-requested" style={{ backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#f59e0b", border: "1px solid rgba(245, 158, 11, 0.25)" }}>Return Requested</span>}
         </div>
         {variant?.product_brand && <div className="tracking-item-brand">by {variant.product_brand}</div>}
         <div className="tracking-item-attributes">

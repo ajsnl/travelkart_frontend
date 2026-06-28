@@ -18,7 +18,7 @@ import {
   Phone,
   Package
 } from "lucide-react";
-import { fetchAdminOrders, updateAdminOrderStatus } from "../../services/adminService";
+import { fetchAdminOrders, updateAdminOrderStatus, approveItemReturn, rejectItemReturn } from "../../services/adminService";
 import { toast } from "react-toastify";
 import "./AdminOrders.css";
 import { useCustomDialog } from "../../components/CustomDialog";
@@ -440,19 +440,20 @@ const AdminOrders = () => {
                       {selectedOrder.items?.map((item) => {
                         const isCancelled = item.is_cancelled;
                         const isReturned = item.is_returned;
-                        const hasDetails = isCancelled || isReturned;
+                        const isReturnRequested = item.is_return_requested;
+                        const hasDetails = isCancelled || isReturned || isReturnRequested;
                         return (
                           <div key={item.id} style={{ display: "flex", flexDirection: "column" }}>
                             <div
-                              className={`order-item-detail-row ${isCancelled ? 'cancelled-item-row' : ''} ${isReturned ? 'returned-item-row' : ''}`}
+                              className={`order-item-detail-row ${isCancelled ? 'cancelled-item-row' : ''} ${isReturned ? 'returned-item-row' : ''} ${isReturnRequested ? 'return-requested-item-row' : ''}`}
                               onClick={() => hasDetails && setExpandedCancelledItemId(expandedCancelledItemId === item.id ? null : item.id)}
                               style={hasDetails ? { cursor: "pointer", opacity: 0.8 } : {}}
-                              title={isCancelled ? "Click to view cancellation details" : isReturned ? "Click to view return details" : ""}
+                              title={isCancelled ? "Click to view cancellation details" : isReturned ? "Click to view return details" : isReturnRequested ? "Click to view return request" : ""}
                             >
                               <div className="item-details-left">
                                 <span
                                   className="item-name text-white"
-                                  style={hasDetails ? { textDecoration: "line-through", color: "#94A3B8" } : {}}
+                                  style={(isCancelled || isReturned) ? { textDecoration: "line-through", color: "#94A3B8" } : {}}
                                 >
                                   {item.variant?.product_name || "Product SKU"}
                                 </span>
@@ -484,13 +485,26 @@ const AdminOrders = () => {
                                       RETURNED
                                     </span>
                                   )}
+                                  {isReturnRequested && (
+                                    <span style={{
+                                      marginLeft: "8px",
+                                      backgroundColor: "rgba(245, 158, 11, 0.15)",
+                                      color: "#f59e0b",
+                                      padding: "2px 6px",
+                                      borderRadius: "4px",
+                                      fontSize: "10px",
+                                      fontWeight: "700"
+                                    }}>
+                                      RETURN REQUESTED
+                                    </span>
+                                  )}
                                 </span>
                               </div>
                               <div className="item-details-right">
                                 <span className="item-qty-price">{item.quantity} x {formatPrice(item.price)}</span>
                                 <span
                                   className="item-total-price font-semibold text-white"
-                                  style={hasDetails ? { textDecoration: "line-through", color: "#94A3B8" } : {}}
+                                  style={(isCancelled || isReturned) ? { textDecoration: "line-through", color: "#94A3B8" } : {}}
                                 >
                                   {formatPrice(item.price * item.quantity)}
                                 </span>
@@ -530,6 +544,70 @@ const AdminOrders = () => {
                                 {item.return_comments && (
                                   <div style={{ marginTop: "4px" }}><strong>Comments:</strong> {item.return_comments}</div>
                                 )}
+                              </div>
+                            )}
+
+                            {/* Return Requested Details Panel with Admin Buttons */}
+                            {isReturnRequested && expandedCancelledItemId === item.id && (
+                              <div style={{
+                                margin: "2px 0 12px 12px",
+                                padding: "12px 16px",
+                                backgroundColor: "rgba(30, 41, 59, 0.6)",
+                                borderLeft: "3px solid #f59e0b",
+                                borderRadius: "4px",
+                                fontSize: "12px",
+                                color: "#94A3B8"
+                              }}>
+                                <div><strong>Return Reason:</strong> {returnReasonLabels[item.return_reason] || item.return_reason || "Not specified"}</div>
+                                {item.return_comments && (
+                                  <div style={{ marginTop: "4px" }}><strong>Comments:</strong> {item.return_comments}</div>
+                                )}
+                                <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+                                  <button
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      setIsSaving(true);
+                                      try {
+                                        const res = await approveItemReturn(item.id);
+                                        toast.success("Item return approved.");
+                                        await loadOrders();
+                                        setSelectedOrder(res.data);
+                                      } catch (err) {
+                                        console.error(err);
+                                        toast.error(err.response?.data?.error || "Failed to approve return.");
+                                      } finally {
+                                        setIsSaving(false);
+                                      }
+                                    }}
+                                    disabled={isSaving}
+                                    className="btn-modal-save"
+                                    style={{ height: "28px", padding: "0 12px", fontSize: "11px", width: "auto" }}
+                                  >
+                                    Approve Return
+                                  </button>
+                                  <button
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      setIsSaving(true);
+                                      try {
+                                        const res = await rejectItemReturn(item.id);
+                                        toast.success("Item return rejected.");
+                                        await loadOrders();
+                                        setSelectedOrder(res.data);
+                                      } catch (err) {
+                                        console.error(err);
+                                        toast.error(err.response?.data?.error || "Failed to reject return.");
+                                      } finally {
+                                        setIsSaving(false);
+                                      }
+                                    }}
+                                    disabled={isSaving}
+                                    className="btn-modal-cancel"
+                                    style={{ height: "28px", padding: "0 12px", fontSize: "11px", width: "auto" }}
+                                  >
+                                    Reject Return
+                                  </button>
+                                </div>
                               </div>
                             )}
                           </div>
