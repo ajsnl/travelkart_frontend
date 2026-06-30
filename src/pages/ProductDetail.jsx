@@ -266,10 +266,10 @@ export default function ProductDetail() {
 
   // Compile all gallery images
   const getGalleryImages = () => {
-    const list = [];
     if (selectedVariant && selectedVariant.images && selectedVariant.images.length > 0) {
-      list.push(...selectedVariant.images.map(img => img.image_url));
+      return [...new Set(selectedVariant.images.map(img => img.image_url))];
     }
+    const list = [];
     if (product.images && product.images.length > 0) {
       list.push(...product.images.filter(img => !img.variant).map(img => img.image_url));
     }
@@ -440,20 +440,40 @@ export default function ProductDetail() {
           {/* Thumbnail grid list */}
           {galleryImages.length > 1 && (
             <div className="gallery-thumbnails-row">
-              {galleryImages.map((imgUrl, index) => (
-                <button 
-                  key={index} 
-                  className={`thumb-button ${activeImage === imgUrl ? "active" : ""}`}
-                  onClick={() => setActiveImage(imgUrl)}
-                >
-                  <img src={imgUrl} alt={`Thumbnail ${index + 1}`} className="thumb-img" />
-                </button>
-              ))}
-              {galleryImages.length > 4 && (
-                <div className="thumb-more-overlay">
-                  <span>+{galleryImages.length - 4} Photos</span>
-                </div>
-              )}
+              {galleryImages.slice(0, 4).map((imgUrl, index) => {
+                const isLastAndMore = index === 3 && galleryImages.length > 4;
+                return (
+                  <button 
+                    key={index} 
+                    className={`thumb-button ${activeImage === imgUrl ? "active" : ""}`}
+                    onClick={() => setActiveImage(imgUrl)}
+                    style={{ position: "relative" }}
+                  >
+                    <img src={imgUrl} alt={`Thumbnail ${index + 1}`} className="thumb-img" />
+                    {isLastAndMore && (
+                      <div className="thumb-more-overlay" style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        backgroundColor: "rgba(15, 23, 42, 0.6)",
+                        color: "#ffffff",
+                        borderRadius: "10px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "11px",
+                        fontWeight: 800,
+                        letterSpacing: "0.2px",
+                        pointerEvents: "none"
+                      }}>
+                        <span>+{galleryImages.length - 3} Photos</span>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
         </section>

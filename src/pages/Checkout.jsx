@@ -20,7 +20,7 @@ import CheckoutAddressSection from "../components/checkout/CheckoutAddressSectio
 import CheckoutPaymentSection from "../components/checkout/CheckoutPaymentSection";
 import CheckoutOrderSummarySection from "../components/checkout/CheckoutOrderSummarySection";
 import CheckoutSuccessView from "../components/checkout/CheckoutSuccessView";
-import { placeOrder } from "../services/orderService";
+import { placeOrder, verifyOrderPayment } from "../services/orderService";
 import "./Checkout.css";
 
 export default function Checkout() {
@@ -177,6 +177,50 @@ export default function Checkout() {
     return true;
   };
 
+  // Load Razorpay SDK Script dynamically
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handlePaymentSuccess = async (orderData, rzpPaymentId = null, rzpOrderId = null, rzpSignature = null) => {
+    setPlacedOrderDetails({
+      trackingId: orderData.tracking_id,
+      items: orderData.items,
+      subtotal: parseFloat(orderData.subtotal),
+      shipping: parseFloat(orderData.shipping_fee),
+      discount: parseFloat(orderData.discount),
+      total: parseFloat(orderData.total_price),
+      paymentMethod: orderData.payment_method,
+      paymentStatus: rzpPaymentId ? 'paid' : orderData.payment_status,
+      razorpayPaymentId: rzpPaymentId,
+      razorpayOrderId: rzpOrderId,
+      address: {
+        full_name: orderData.full_name,
+        address_line: orderData.address_line,
+        city: orderData.city,
+        state: orderData.state,
+        pincode: orderData.pincode,
+        country: orderData.country,
+        phone: orderData.phone,
+      },
+      deliveryEstimate: orderData.delivery_estimate
+    });
+
+    // Clear user cart locally (backend cart is cleared inside placeOrder API)
+    await dispatch(clearUserCart()).unwrap();
+
+    setIsSuccess(true);
+    toast.success("Order Placed Successfully! ✈️");
+    setProcessing(false);
+  };
+
   // Process Checkout Order Submit
   const handlePlaceOrder = async () => {
     if (!validateForm()) return;
@@ -196,38 +240,78 @@ export default function Checkout() {
       const response = await placeOrder(selectedAddress.id, paymentMethod.toUpperCase());
       const orderData = response.data;
 
+      // Handle Razorpay Checkout Flow
+      if (paymentMethod === "razorpay") {
+        // Try to load Razorpay SDK for real keys
+        const scriptLoaded = await loadRazorpayScript();
+        if (!scriptLoaded) {
+          toast.error("Failed to load Razorpay SDK. Please check your network connection.");
+          setProcessing(false);
+          return;
+        }
 
-      setPlacedOrderDetails({
-        trackingId: orderData.tracking_id,
-        items: orderData.items,
-        subtotal: parseFloat(orderData.subtotal),
-        shipping: parseFloat(orderData.shipping_fee),
-        discount: parseFloat(orderData.discount),
-        total: parseFloat(orderData.total_price),
-        paymentMethod: orderData.payment_method,
-        address: {
-          full_name: orderData.full_name,
-          address_line: orderData.address_line,
-          city: orderData.city,
-          state: orderData.state,
-          pincode: orderData.pincode,
-          country: orderData.country,
-          phone: orderData.phone,
-        },
-        deliveryEstimate: orderData.delivery_estimate
-      });
+        const razorpayKey = orderData.razorpay_key_id;
+        if (!razorpayKey) {
+          toast.error("Razorpay API key is missing from server configurations. Please contact support.");
+          setProcessing(false);
+          return;
+        }
 
-       // Clear user cart locally (backend cart is cleared inside placeOrder API)
-      await dispatch(clearUserCart()).unwrap();
+        // Initialize real Razorpay checkout
+        const options = {
+          key: razorpayKey, 
+          amount: Math.round(parseFloat(orderData.total_price) * 100),
+          currency: "INR",
+          name: "TravelKart",
+          description: `Order ${orderData.tracking_id}`,
+          order_id: orderData.razorpay_order_id,
+          handler: async function (response) {
+            try {
+              setProcessing(true);
+              await verifyOrderPayment(
+                orderData.tracking_id,
+                response.razorpay_payment_id,
+                response.razorpay_order_id,
+                response.razorpay_signature
+              );
+              handlePaymentSuccess(orderData, response.razorpay_payment_id, response.razorpay_order_id, response.razorpay_signature);
+            } catch (err) {
+              console.error("Payment verification failed:", err);
+              toast.error("Online payment verification failed. Please contact support.");
+              setProcessing(false);
+            }
+          },
+          prefill: {
+            name: orderData.full_name,
+            email: profile?.email || "",
+            contact: orderData.phone
+          },
+          theme: {
+            color: "#0b2051"
+          },
+          modal: {
+            ondismiss: function () {
+              toast.info("Payment cancelled by user.");
+              setProcessing(false);
+            }
+          }
+        };
 
-      setIsSuccess(true);
-      toast.success("Order Placed Successfully! ✈️");
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+        return;
+      }
+
+      // COD Flow
+      handlePaymentSuccess(orderData);
     } catch (err) {
       console.error("Order completion failed:", err);
       const backendError = err.response?.data?.error || err.response?.data?.detail || "An error occurred during order confirmation.";
-      toast.error(backendError);toast.error("An error occurred during order confirmation.");
+      toast.error(backendError);
     } finally {
-      setProcessing(false);
+      if (paymentMethod !== "razorpay") {
+        setProcessing(false);
+      }
     }
   };
 
@@ -328,6 +412,8 @@ export default function Checkout() {
           }}
         />
       )}
+
+
 
       <Footer />
     </div>

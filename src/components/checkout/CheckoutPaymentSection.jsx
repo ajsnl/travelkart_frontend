@@ -13,18 +13,16 @@ export default function CheckoutPaymentSection({
 
   const paymentOptions = [
     {
-      id: "card",
-      name: "Credit/Debit Card",
+      id: "razorpay",
+      name: "Razorpay (Cards/UPI/Net)",
       icon: <CreditCard size={24} />,
-      status: "coming",
-      message: "Credit/Debit Card coming soon!",
+      status: "active",
     },
     {
-      id: "upi",
-      name: "UPI Unified",
-      icon: <ShieldCheck size={24} />,
-      status: "coming",
-      message: "UPI Unified payment method will be implemented in the future!",
+      id: "cod",
+      name: "Cash on Delivery",
+      icon: <Banknote size={24} />,
+      status: "active",
     },
     {
       id: "wallet",
@@ -32,12 +30,6 @@ export default function CheckoutPaymentSection({
       icon: <Wallet size={24} />,
       status: "coming",
       message: "Travel Wallet payment method will be implemented in the future!",
-    },
-    {
-      id: "cod",
-      name: "Cash on Delivery",
-      icon: <Banknote size={24} />,
-      status: "active",
     },
   ];
 
@@ -92,6 +84,18 @@ export default function CheckoutPaymentSection({
           );
         })}
       </div>
+
+      {/* Razorpay Info */}
+      {paymentMethod === "razorpay" && (
+        <div className="checkout-payment-details-form">
+          <div className="checkout-cod-info" style={{ backgroundColor: "#eff6ff", color: "#1e40af", border: "1px solid #bfdbfe" }}>
+            <Info size={16} style={{ color: "#2563eb" }} />
+            <span>
+              Secure online payment via Razorpay. Supports Credit/Debit Cards, UPI, Netbanking, and Wallets. Running in Test Mode; no real money is charged.
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* COD Info */}
       {paymentMethod === "cod" && (

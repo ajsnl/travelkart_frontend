@@ -23,3 +23,11 @@ export const cancelOrderItem = (itemId, quantity, reason = null, comments = null
 export const returnOrderItem = (itemId, quantity, reason = null, comments = null) => {
   return api.post(`orders/items/${itemId}/return/`, { quantity, reason, comments });
 };
+
+export const verifyOrderPayment = (trackingId, razorpay_payment_id, razorpay_order_id, razorpay_signature) => {
+  return api.post(`orders/${trackingId}/verify/`, {
+    razorpay_payment_id,
+    razorpay_order_id,
+    razorpay_signature
+  });
+};

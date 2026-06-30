@@ -18,15 +18,69 @@ export default function ProductCard({ product }) {
   const activeVariants = (product.variants || []).filter(v => v.is_active !== false);
   const primaryVariant = activeVariants[0] || (product.variants && product.variants[0]) || null;
 
+  // Selected variant state for this card
+  const [selectedCardVariant, setSelectedCardVariant] = React.useState(primaryVariant);
+
+  // Sync state if product/primary variant changes
+  React.useEffect(() => {
+    setSelectedCardVariant(primaryVariant);
+  }, [product, primaryVariant]);
+
+  // Extract unique colors among active variants
+  const colorVariants = React.useMemo(() => {
+    const list = [];
+    const seenColors = new Set();
+    activeVariants.forEach(v => {
+      const color = v.attributes?.Color || v.attributes?.color;
+      if (color) {
+        const normalizedColor = String(color).trim().toLowerCase();
+        if (!seenColors.has(normalizedColor)) {
+          seenColors.add(normalizedColor);
+          list.push({
+            color: String(color).trim(),
+            variant: v
+          });
+        }
+      }
+    });
+    return list;
+  }, [activeVariants]);
+
+  // Color mapping helper for circular pills
+  const getColorStyle = (value) => {
+    const val = String(value).toLowerCase();
+    const map = {
+      blue: "#0f2d70",
+      charcoal: "#2f3542",
+      grey: "#8e9aaf",
+      gray: "#8e9aaf",
+      silver: "#d3d3d3",
+      black: "#111111",
+      brown: "#6d4c41",
+      tan: "#d7ccc8",
+      olive: "#556b2f",
+      green: "#2e7d32",
+      red: "#c62828",
+      white: "#f8f9fa",
+      navy: "#1a237e",
+      pink: "#ffb6c1"
+    };
+
+    if (map[val]) {
+      return { backgroundColor: map[val], border: val === "white" ? "1px solid #cbd5e1" : "none" };
+    }
+    return { backgroundColor: val, border: "1px solid #cbd5e1" }; // Fallback to string literal
+  };
+
   // Helper to extract clean image url
-  const getProductImage = () => {
+  const getProductImage = (targetVariant) => {
     if (!product) return "";
     
-    // 1. Try primary variant's primary image
-    if (primaryVariant && primaryVariant.images && primaryVariant.images.length > 0) {
-      const primaryVarImg = primaryVariant.images.find(img => img.is_primary);
+    // 1. Try target variant's primary image
+    if (targetVariant && targetVariant.images && targetVariant.images.length > 0) {
+      const primaryVarImg = targetVariant.images.find(img => img.is_primary);
       if (primaryVarImg) return primaryVarImg.image_url;
-      return primaryVariant.images[0].image_url;
+      return targetVariant.images[0].image_url;
     }
     
     // 2. Try general primary image
@@ -49,28 +103,28 @@ export default function ProductCard({ product }) {
   };
 
   // Helper to compute active variant pricing
-  const getPricingInfo = () => {
-    if (!primaryVariant) {
+  const getPricingInfo = (targetVariant) => {
+    if (!targetVariant) {
       return { isOutOfStock: true };
     }
 
-    const originalPrice = parseFloat(primaryVariant.original_price || primaryVariant.price);
-    const offerPrice = parseFloat(primaryVariant.offer_price);
-    const hasOffer = primaryVariant.offer_type && primaryVariant.offer_type !== "none" && offerPrice > 0 && offerPrice < originalPrice;
+    const originalPrice = parseFloat(targetVariant.original_price || targetVariant.price);
+    const offerPrice = parseFloat(targetVariant.offer_price);
+    const hasOffer = targetVariant.offer_type && targetVariant.offer_type !== "none" && offerPrice > 0 && offerPrice < originalPrice;
 
     const originalPriceText = `₹${originalPrice.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`;
     const offerPriceText = hasOffer ? `₹${offerPrice.toLocaleString("en-IN", { minimumFractionDigits: 2 })}` : "";
 
     return {
-      isOutOfStock: primaryVariant.stock === 0,
+      isOutOfStock: targetVariant.stock === 0,
       hasOffer,
       originalPriceText,
       offerPriceText,
     };
   };
 
-  const pricing = getPricingInfo();
-  const imageUrl = getProductImage();
+  const pricing = getPricingInfo(selectedCardVariant);
+  const imageUrl = getProductImage(selectedCardVariant);
 
   const handleWishlistToggle = (e) => {
     e.preventDefault();
@@ -89,7 +143,7 @@ export default function ProductCard({ product }) {
       toast.error("This product is currently inactive and cannot be added to cart.");
       return;
     }
-    if (!primaryVariant || primaryVariant.is_active === false) {
+    if (!selectedCardVariant || selectedCardVariant.is_active === false) {
       toast.error("No active variant available for this product.");
       return;
     }
@@ -98,7 +152,7 @@ export default function ProductCard({ product }) {
       return;
     }
     dispatch(addVariantToCart({
-      variantId: primaryVariant.id,
+      variantId: selectedCardVariant.id,
       quantity: 1,
       productId: product.id,
       productName: product.name
@@ -216,6 +270,29 @@ export default function ProductCard({ product }) {
             {product.short_description || "Premium travel gear engineered for ultimate durability and utility."}
           </p>
 
+          {/* Color swatches selector */}
+          {colorVariants.length > 1 && (
+            <div className="product-card-swatches-row" onClick={(e) => e.preventDefault()}>
+              {colorVariants.map(({ color, variant }) => {
+                const isSelected = selectedCardVariant && 
+                  String(selectedCardVariant.attributes?.Color || selectedCardVariant.attributes?.color).toLowerCase() === color.toLowerCase();
+                return (
+                  <button
+                    key={color}
+                    className={`product-card-swatch-btn ${isSelected ? "active" : ""}`}
+                    style={getColorStyle(color)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setSelectedCardVariant(variant);
+                    }}
+                    title={color}
+                  />
+                );
+              })}
+            </div>
+          )}
+
           {/* Footer Pricing / Actions */}
           <div className="product-card-footer-pricing">
             <div className="price-tag-stack">
@@ -234,7 +311,7 @@ export default function ProductCard({ product }) {
             <button 
               className="quick-add-cart-btn"
               onClick={handleAddToCart}
-              disabled={pricing.isOutOfStock || product.is_active === false || !primaryVariant || primaryVariant.is_active === false}
+              disabled={pricing.isOutOfStock || product.is_active === false || !selectedCardVariant || selectedCardVariant.is_active === false}
               aria-label="Add to cart"
             >
               <ShoppingBag size={16} />
