@@ -16,6 +16,8 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import Checkout from "../pages/Checkout";
 import OrderTracking from "../pages/OrderTracking";
 import MyOrders from "../pages/MyOrders";
+import PaymentError from "../pages/PaymentError";
+
 
 
 export default function UserRoutes() {
@@ -64,6 +66,14 @@ export default function UserRoutes() {
        element={
         <ProtectedRoute>
           <Checkout/>
+        </ProtectedRoute>
+       }
+      />
+      <Route 
+       path="/payment-error"
+       element={
+        <ProtectedRoute>
+          <PaymentError/>
         </ProtectedRoute>
        }
       />

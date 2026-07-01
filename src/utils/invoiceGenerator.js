@@ -110,16 +110,15 @@ export const generateInvoicePDF = (order) => {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   
-  const discount = parseFloat(order.discount || 0);
+  const netSubtotal = parseFloat(order.subtotal || 0);
+  const totalDiscount = parseFloat(order.discount || 0);
   const shippingFee = parseFloat(order.shipping_fee || 0);
   const totalPrice = parseFloat(order.total_price || 0);
 
-  const originalSubtotal = (order.items || []).reduce(
-    (sum, item) => sum + parseFloat(item.price || 0) * item.quantity,
-    0
-  );
-  
-  const originalPreDiscountSubtotal = originalSubtotal + discount;
+  // Derive coupon and product discounts
+  const couponDiscount = Math.max(0, netSubtotal + shippingFee - totalPrice);
+  const productDiscount = Math.max(0, totalDiscount - couponDiscount);
+  const originalPreDiscountSubtotal = netSubtotal + productDiscount;
   
   const cancelledTotal = (order.items || []).filter(item => item.is_cancelled).reduce(
     (sum, item) => sum + parseFloat(item.price || 0) * item.quantity,
@@ -131,38 +130,48 @@ export const generateInvoicePDF = (order) => {
     0
   );
 
-  doc.text("Subtotal:", 135, finalY);
-  doc.text(`INR ${originalPreDiscountSubtotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, finalY, { align: "right" });
+  let currentY = finalY;
 
-  doc.text("Discount:", 135, finalY + 6);
-  doc.text(`- INR ${discount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, finalY + 6, { align: "right" });
+  doc.text("Subtotal:", 135, currentY);
+  doc.text(`INR ${originalPreDiscountSubtotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, currentY, { align: "right" });
+  currentY += 6;
 
-  doc.text("Shipping Fee:", 135, finalY + 12);
-  doc.text(`INR ${shippingFee.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, finalY + 12, { align: "right" });
+  if (productDiscount > 0) {
+    doc.text("Gear Discounts:", 135, currentY);
+    doc.text(`- INR ${productDiscount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, currentY, { align: "right" });
+    currentY += 6;
+  }
 
-  let offset = 18;
+  if (couponDiscount > 0) {
+    doc.text(order.coupon_code ? `Coupon (${order.coupon_code}):` : "Coupon Discount:", 135, currentY);
+    doc.text(`- INR ${couponDiscount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, currentY, { align: "right" });
+    currentY += 6;
+  }
+
+  doc.text("Shipping Fee:", 135, currentY);
+  doc.text(shippingFee === 0 ? "Free" : `INR ${shippingFee.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, currentY, { align: "right" });
+  currentY += 6;
+
   if (cancelledTotal > 0) {
-    doc.text("Cancelled Items:", 135, finalY + offset);
-    doc.text(`- INR ${cancelledTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, finalY + offset, { align: "right" });
-    offset += 6;
+    doc.text("Cancelled Items:", 135, currentY);
+    doc.text(`- INR ${cancelledTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, currentY, { align: "right" });
+    currentY += 6;
   }
 
   if (returnedTotal > 0) {
-    doc.text("Returned Items:", 135, finalY + offset);
-    doc.text(`- INR ${returnedTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, finalY + offset, { align: "right" });
-    offset += 6;
+    doc.text("Returned Items:", 135, currentY);
+    doc.text(`- INR ${returnedTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, currentY, { align: "right" });
+    currentY += 6;
   }
 
   doc.setLineWidth(0.5);
   doc.setDrawColor(226, 232, 240);
-  doc.line(130, finalY + offset - 2, 195, finalY + offset - 2);
-
-  const grandTotal = Math.max(0, originalPreDiscountSubtotal - discount + shippingFee - cancelledTotal - returnedTotal);
+  doc.line(130, currentY - 2, 195, currentY - 2);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.text("Grand Total:", 135, finalY + offset + 4);
-  doc.text(`INR ${grandTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, finalY + offset + 4, { align: "right" });
+  doc.text("Grand Total:", 135, currentY + 4);
+  doc.text(`INR ${totalPrice.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, currentY + 4, { align: "right" });
 
   // Footer terms & greetings
   doc.setFont("helvetica", "italic");

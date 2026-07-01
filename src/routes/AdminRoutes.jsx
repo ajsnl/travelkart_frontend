@@ -6,6 +6,7 @@ import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminCategory from "../pages/admin/AdminCategory";
 import AdminProduct from "../pages/admin/AdminProduct";
 import AdminOrders from "../pages/admin/AdminOrders";
+import AdminCoupons from "../pages/admin/AdminCoupons";
 
 export default function AdminRoutes() {
   return (
@@ -21,6 +22,7 @@ export default function AdminRoutes() {
         <Route path="categories" element={<AdminCategory />} />
         <Route path="products" element={<AdminProduct />} />
         <Route path ="orders" element={<AdminOrders/>} />
+        <Route path="coupons" element={<AdminCoupons/>} />
       </Route>
     </Routes>
   );

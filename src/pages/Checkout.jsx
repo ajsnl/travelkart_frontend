@@ -21,6 +21,7 @@ import CheckoutPaymentSection from "../components/checkout/CheckoutPaymentSectio
 import CheckoutOrderSummarySection from "../components/checkout/CheckoutOrderSummarySection";
 import CheckoutSuccessView from "../components/checkout/CheckoutSuccessView";
 import { placeOrder, verifyOrderPayment } from "../services/orderService";
+import { userFetchAvailableCoupons, userValidateCoupon } from "../services/couponService";
 import "./Checkout.css";
 
 export default function Checkout() {
@@ -42,6 +43,11 @@ export default function Checkout() {
 
   // Payment states
   const [paymentMethod, setPaymentMethod] = useState("cod");
+
+  // Coupon States
+  const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [loadingCoupons, setLoadingCoupons] = useState(false);
 
   // Checkout Actions
   const [processing, setProcessing] = useState(false);
@@ -95,6 +101,48 @@ export default function Checkout() {
     fetchAddresses();
     fetchProfile();
   }, [dispatch]);
+
+  const fetchAvailableCoupons = async () => {
+    try {
+      setLoadingCoupons(true);
+      const res = await userFetchAvailableCoupons();
+      setAvailableCoupons(res.data || []);
+    } catch (err) {
+      console.error("Error fetching available coupons:", err);
+    } finally {
+      setLoadingCoupons(false);
+    }
+  };
+
+  useEffect(() => {
+    if (cart) {
+      fetchAvailableCoupons();
+    }
+  }, [cart]);
+
+  const handleApplyCoupon = async (code) => {
+    try {
+      const res = await userValidateCoupon(code);
+      if (res.data.valid) {
+        setAppliedCoupon({
+          code: res.data.coupon_code,
+          discount_amount: res.data.discount_amount,
+          discount_type: res.data.discount_type,
+          discount_value: res.data.discount_value
+        });
+        toast.success(`Coupon "${res.data.coupon_code}" applied successfully!`);
+      }
+    } catch (err) {
+      console.error("Error applying coupon:", err);
+      const msg = err.response?.data?.error || "Failed to apply coupon.";
+      toast.error(msg);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    toast.info("Coupon removed.");
+  };
 
   // Handle Add/Edit address saves
   const handleSaveAddress = async (formData) => {
@@ -164,9 +212,12 @@ export default function Checkout() {
   const isGold = profile?.is_gold_member || false;
   const rawSubtotal = totalPrice; // Net subtotal
   const originalSubtotal = totalPrice + discountTotal; // Subtotal before discounts
+  
+  const couponDiscountAmount = appliedCoupon ? appliedCoupon.discount_amount : 0;
+  
   const shippingFee = (isGold || rawSubtotal > 1500) ? 0 : 99;
-  const taxAmount = rawSubtotal * 0.18; // 18% GST (Included)
-  const finalTotal = rawSubtotal + shippingFee;
+  const taxAmount = (rawSubtotal - couponDiscountAmount) * 0.18; // 18% GST (Included)
+  const finalTotal = rawSubtotal - couponDiscountAmount + shippingFee;
 
   // Validation
   const validateForm = () => {
@@ -237,7 +288,11 @@ export default function Checkout() {
       setProcessing(true);
 
       // Place order via backend API
-      const response = await placeOrder(selectedAddress.id, paymentMethod.toUpperCase());
+      const response = await placeOrder(
+        selectedAddress.id, 
+        paymentMethod.toUpperCase(), 
+        appliedCoupon ? appliedCoupon.code : null
+      );
       const orderData = response.data;
 
       // Handle Razorpay Checkout Flow
@@ -279,6 +334,7 @@ export default function Checkout() {
               console.error("Payment verification failed:", err);
               toast.error("Online payment verification failed. Please contact support.");
               setProcessing(false);
+              navigate("/payment-error", { state: { orderData } });
             }
           },
           prefill: {
@@ -293,6 +349,7 @@ export default function Checkout() {
             ondismiss: function () {
               toast.info("Payment cancelled by user.");
               setProcessing(false);
+              navigate("/payment-error", { state: { orderData } });
             }
           }
         };
@@ -395,6 +452,11 @@ export default function Checkout() {
               processing={processing}
               selectedAddress={selectedAddress}
               handlePlaceOrder={handlePlaceOrder}
+              appliedCoupon={appliedCoupon}
+              availableCoupons={availableCoupons}
+              handleApplyCoupon={handleApplyCoupon}
+              handleRemoveCoupon={handleRemoveCoupon}
+              couponDiscountAmount={couponDiscountAmount}
             />
 
           </div>

@@ -1,5 +1,5 @@
-import React from "react";
-import { Truck, Loader2, Lock, ArrowRight, ShieldCheck } from "lucide-react";
+import React, { useState } from "react";
+import { Truck, Loader2, Lock, ArrowRight, ShieldCheck, Gift, Tag, X } from "lucide-react";
 
 export default function CheckoutOrderSummarySection({
   items,
@@ -13,8 +13,15 @@ export default function CheckoutOrderSummarySection({
   isCheckoutRestricted,
   processing,
   selectedAddress,
-  handlePlaceOrder
+  handlePlaceOrder,
+  appliedCoupon,
+  availableCoupons = [],
+  handleApplyCoupon,
+  handleRemoveCoupon,
+  couponDiscountAmount = 0
 }) {
+  const [showCouponsList, setShowCouponsList] = useState(false);
+
   return (
     <div className="checkout-summary-column">
       <div className="checkout-section-card" style={{ marginBottom: "0" }}>
@@ -78,6 +85,13 @@ export default function CheckoutOrderSummarySection({
             </div>
           )}
 
+          {couponDiscountAmount > 0 && (
+            <div className="checkout-breakdown-row discount">
+              <span>Coupon Discount {appliedCoupon && `(${appliedCoupon.code})`}</span>
+              <span>-₹{couponDiscountAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
+            </div>
+          )}
+
           <div className="checkout-breakdown-row">
             <span>Shipping Fee</span>
             {shippingFee === 0 ? (
@@ -106,6 +120,97 @@ export default function CheckoutOrderSummarySection({
             <span>Total Amount</span>
             <span>₹{finalTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
           </div>
+        </div>
+
+        {/* COUPONS & OFFERS CONTAINER */}
+        <div className="checkout-coupons-offers-section">
+          {appliedCoupon ? (
+            <div className="checkout-active-coupon-pill animate-fadeIn">
+              <div className="checkout-active-coupon-info">
+                <Tag size={16} />
+                <span>
+                  Code <strong className="checkout-active-coupon-code">{appliedCoupon.code}</strong> applied
+                </span>
+              </div>
+              <button 
+                type="button" 
+                className="checkout-active-coupon-remove"
+                onClick={handleRemoveCoupon}
+                title="Remove Coupon"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="checkout-coupons-header">
+                <h4>Coupons & Offers</h4>
+                {availableCoupons.length > 0 && (
+                  <button 
+                    type="button"
+                    className="checkout-coupons-view-toggle"
+                    onClick={() => setShowCouponsList(!showCouponsList)}
+                  >
+                    {showCouponsList ? "Hide Coupons" : "View Available Coupons"}
+                  </button>
+                )}
+              </div>
+
+              {showCouponsList && availableCoupons.length > 0 && (
+                <div className="checkout-coupons-list animate-slideDown">
+                  {availableCoupons.map((coupon) => {
+                    const isDisabled = !coupon.is_eligible || coupon.has_used;
+                    
+                    let descText = "";
+                    if (coupon.discount_type === "PERCENT") {
+                      descText = `${coupon.discount_value}% Off on your order`;
+                    } else {
+                      descText = `Flat ₹${coupon.discount_value} Off on your order`;
+                    }
+                    
+                    return (
+                      <div 
+                        key={coupon.id} 
+                        className={`checkout-coupon-card ${isDisabled ? "disabled" : ""}`}
+                      >
+                        <div className="checkout-coupon-card-left">
+                          <div className="checkout-coupon-icon-wrapper">
+                            <Gift size={16} />
+                          </div>
+                          <div className="checkout-coupon-info">
+                            <span className="checkout-coupon-code">{coupon.code}</span>
+                            <span className="checkout-coupon-desc">{descText}</span>
+                            {coupon.has_used && (
+                              <span className="checkout-coupon-req-err">Already used</span>
+                            )}
+                            {!coupon.is_eligible && (
+                              <span className="checkout-coupon-req-err">
+                                Requires min. purchase of ₹{coupon.min_order_amount}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={isDisabled}
+                          onClick={() => handleApplyCoupon(coupon.code)}
+                          className="checkout-coupon-action-btn"
+                        >
+                          Apply
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              
+              {availableCoupons.length === 0 && (
+                <div style={{ fontSize: "12px", color: "#64748B", fontStyle: "italic", textAlign: "center", padding: "4px 0" }}>
+                  No available coupon offers at this time.
+                </div>
+              )}
+            </>
+          )}
         </div>
 
         <div style={{ marginTop: "24px" }}>
