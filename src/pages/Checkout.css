@@ -1107,3 +1107,29 @@
   background-color: rgba(239, 68, 68, 0.1);
 }
 
+/* Payment Badge Styles */
+.payment-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.payment-badge.active {
+  background-color: #D1FAE5;
+  color: #065F46;
+}
+
+.payment-badge.coming {
+  background-color: #F1F5F9;
+  color: #64748B;
+}
+
+.payment-badge.insufficient {
+  background-color: #FEE2E2;
+  color: #991B1B;
+}
+
+

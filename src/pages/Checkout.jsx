@@ -22,6 +22,7 @@ import CheckoutOrderSummarySection from "../components/checkout/CheckoutOrderSum
 import CheckoutSuccessView from "../components/checkout/CheckoutSuccessView";
 import { placeOrder, verifyOrderPayment } from "../services/orderService";
 import { userFetchAvailableCoupons, userValidateCoupon } from "../services/couponService";
+import { fetchWalletDetails } from "../services/walletService";
 import "./Checkout.css";
 
 export default function Checkout() {
@@ -43,6 +44,7 @@ export default function Checkout() {
 
   // Payment states
   const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [walletBalance, setWalletBalance] = useState(0);
 
   // Coupon States
   const [availableCoupons, setAvailableCoupons] = useState([]);
@@ -96,10 +98,20 @@ export default function Checkout() {
     }
   };
 
+  const fetchWallet = async () => {
+    try {
+      const res = await fetchWalletDetails();
+      setWalletBalance(parseFloat(res.data.balance));
+    } catch (err) {
+      console.error("Error fetching wallet balance:", err);
+    }
+  };
+
   useEffect(() => {
     dispatch(getCart());
     fetchAddresses();
     fetchProfile();
+    fetchWallet();
   }, [dispatch]);
 
   const fetchAvailableCoupons = async () => {
@@ -208,14 +220,14 @@ export default function Checkout() {
   const discountTotal = cart?.discount_total || 0;
   const isCheckoutRestricted = cart?.is_checkout_restricted || false;
 
-  // Shipping logic: Free for gold members OR if order subtotal (totalPrice) > 1500
+  // Shipping logic: Free for gold members OR if order subtotal (totalPrice) > 1000
   const isGold = profile?.is_gold_member || false;
   const rawSubtotal = totalPrice; // Net subtotal
   const originalSubtotal = totalPrice + discountTotal; // Subtotal before discounts
   
   const couponDiscountAmount = appliedCoupon ? appliedCoupon.discount_amount : 0;
   
-  const shippingFee = (isGold || rawSubtotal > 1500) ? 0 : 99;
+  const shippingFee = (isGold || rawSubtotal > 1000) ? 0 : 99;
   const taxAmount = (rawSubtotal - couponDiscountAmount) * 0.18; // 18% GST (Included)
   const finalTotal = rawSubtotal - couponDiscountAmount + shippingFee;
 
@@ -435,6 +447,8 @@ export default function Checkout() {
               <CheckoutPaymentSection 
                   paymentMethod={paymentMethod}
                   setPaymentMethod={setPaymentMethod}
+                  walletBalance={walletBalance}
+                  finalTotal={finalTotal}
                 />
             </div>
 

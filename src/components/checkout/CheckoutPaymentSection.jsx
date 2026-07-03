@@ -4,12 +4,16 @@ import { toast } from "react-toastify";
 
 export default function CheckoutPaymentSection({ 
   paymentMethod, 
-  setPaymentMethod 
+  setPaymentMethod,
+  walletBalance = 0,
+  finalTotal = 0
 }) {
 
   const handleDisabledClick = (message) => {
     toast.info(message);
   };
+
+  const isInsufficient = walletBalance < finalTotal;
 
   const paymentOptions = [
     {
@@ -26,10 +30,12 @@ export default function CheckoutPaymentSection({
     },
     {
       id: "wallet",
-      name: "Travel Wallet",
+      name: `Travel Wallet`,
       icon: <Wallet size={24} />,
-      status: "coming",
-      message: "Travel Wallet payment method will be implemented in the future!",
+      status: isInsufficient ? "insufficient" : "active",
+      message: isInsufficient 
+        ? `Insufficient wallet balance. Your balance is ₹${walletBalance.toFixed(2)}, but the order total is ₹${finalTotal.toFixed(2)}.` 
+        : null,
     },
   ];
 
@@ -48,7 +54,7 @@ export default function CheckoutPaymentSection({
       <div className="checkout-payment-methods-grid">
         {paymentOptions.map((option) => {
           const isSelected = paymentMethod === option.id;
-          const isDisabled = option.status === "coming";
+          const isDisabled = option.status === "coming" || option.status === "insufficient";
 
           return (
             <div
@@ -58,8 +64,10 @@ export default function CheckoutPaymentSection({
                 ${isDisabled ? "disabled" : ""}
               `}
               onClick={() => {
-                if (isDisabled) {
+                if (option.status === "coming") {
                   handleDisabledClick(option.message);
+                } else if (option.status === "insufficient") {
+                  toast.error(option.message);
                 } else {
                   setPaymentMethod(option.id);
                 }
@@ -75,15 +83,39 @@ export default function CheckoutPaymentSection({
 
               <span
                 className={`payment-badge ${
-                  option.status === "active" ? "active" : "coming"
+                  option.status === "active" ? "active" : option.status === "insufficient" ? "insufficient" : "coming"
                 }`}
               >
-                {option.status === "active" ? "Active" : "Coming Soon"}
+                {option.status === "active" 
+                  ? "Active" 
+                  : option.status === "insufficient" 
+                    ? `₹${walletBalance.toFixed(2)}` 
+                    : "Coming Soon"}
               </span>
             </div>
           );
         })}
       </div>
+
+      {/* Wallet Info */}
+      {paymentMethod === "wallet" && (
+        <div className="checkout-payment-details-form">
+          <div className="checkout-wallet-info-box">
+            <div className="checkout-wallet-balance-row">
+              <h4>Wallet Balance</h4>
+              <span className="checkout-wallet-amount">
+                ₹{walletBalance.toFixed(2)}
+              </span>
+            </div>
+            <div className="checkout-wallet-status-msg success">
+              <ShieldCheck size={16} />
+              <span>
+                Sufficient balance! ₹{finalTotal.toFixed(2)} will be debited from your wallet.
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Razorpay Info */}
       {paymentMethod === "razorpay" && (

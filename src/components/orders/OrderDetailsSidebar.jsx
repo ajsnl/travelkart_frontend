@@ -26,17 +26,29 @@ export default function OrderDetailsSidebar({ order }) {
         )}
       </div>
 
-      {/* Expected Delivery Date */}
-      {order.delivery_estimate && (
+      {/* Expected Delivery Date / Delivery Status */}
+      {order.status === "delivered" ? (
         <div className="details-card-block">
           <h3 className="section-title">
             <Calendar size={18} className="title-icon" />
-            <span>Expected Delivery</span>
+            <span>Delivery Status</span>
           </h3>
-          <p className="delivery-estimate-text" style={{ fontSize: "15px", fontWeight: "600", color: "#1E293B", marginTop: "8px" }}>
-            {order.delivery_estimate}
+          <p className="delivery-estimate-text" style={{ fontSize: "15px", fontWeight: "600", color: "#10B981", marginTop: "8px" }}>
+            Product Delivered
           </p>
         </div>
+      ) : (
+        order.delivery_estimate && (
+          <div className="details-card-block">
+            <h3 className="section-title">
+              <Calendar size={18} className="title-icon" />
+              <span>Expected Delivery</span>
+            </h3>
+            <p className="delivery-estimate-text" style={{ fontSize: "15px", fontWeight: "600", color: "#1E293B", marginTop: "8px" }}>
+              {order.delivery_estimate}
+            </p>
+          </div>
+        )
       )}
 
       {/* Card 2: Payment Method */}
