@@ -17,6 +17,7 @@ import "./Home.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { fetchProducts } from "../services/productService";
+import { userFetchActiveBanners } from "../services/bannerService";
 
 function Home() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -65,6 +66,10 @@ function Home() {
 
   const [newArrivals, setNewArrivals] = useState([]);
   const [loadingArrivals, setLoadingArrivals] = useState(true);
+  const [heroBanners, setHeroBanners] = useState([]);
+  const [bottomBanners, setBottomBanners] = useState([]);
+  const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
+  const [currentBottomIndex, setCurrentBottomIndex] = useState(0);
 
   useEffect(() => {
     const getNewArrivals = async () => {
@@ -77,8 +82,40 @@ function Home() {
         setLoadingArrivals(false);
       }
     };
+    
+    const loadBanners = async () => {
+      try {
+        const heroRes = await userFetchActiveBanners({ position: "hero" });
+        setHeroBanners(heroRes.data || []);
+        
+        const bottomRes = await userFetchActiveBanners({ position: "bottom" });
+        setBottomBanners(bottomRes.data || []);
+      } catch (err) {
+        console.error("Error fetching banners for homepage:", err);
+      }
+    };
+
     getNewArrivals();
+    loadBanners();
   }, []);
+
+  // Auto-slide for Hero carousel
+  useEffect(() => {
+    if (heroBanners.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentHeroIndex((prev) => (prev + 1) % heroBanners.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [heroBanners]);
+
+  // Auto-slide for Bottom promo carousel
+  useEffect(() => {
+    if (bottomBanners.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentBottomIndex((prev) => (prev + 1) % bottomBanners.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [bottomBanners]);
 
   return (
     <div className="home-viewport">
@@ -112,26 +149,113 @@ function Home() {
         </div>
 
         <div className="hero-right-showcase-frame">
-          <div 
-            className="hero-image-display-box" 
-            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1581553674786-636feb0b53c6?w=800&auto=format&fit=crop&q=80')" }}
-          />
+          {heroBanners.length > 0 ? (
+            <div className="hero-carousel-container">
+              {heroBanners.map((banner, index) => (
+                <div 
+                  key={banner.id}
+                  className={`carousel-slide ${index === currentHeroIndex ? "active" : ""}`}
+                >
+                  <div 
+                    className="hero-image-display-box" 
+                    style={{ backgroundImage: `url(${banner.image})`, cursor: banner.redirect_url ? "pointer" : "default" }}
+                    onClick={() => banner.redirect_url && (window.location.href = banner.redirect_url)}
+                  >
+                    <div className="hero-carousel-overlay font-inter">
+                      <h3 className="hero-carousel-title font-plus-jakarta">{banner.title}</h3>
+                      {banner.subtitle && <p className="hero-carousel-subtitle">{banner.subtitle}</p>}
+                      {banner.redirect_url && (
+                        <span className="hero-carousel-cta">Shop Offer →</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              {heroBanners.length > 1 && (
+                <div className="carousel-dots">
+                  {heroBanners.map((_, index) => (
+                    <span 
+                      key={index} 
+                      className={`carousel-dot ${index === currentHeroIndex ? "active" : ""}`}
+                      onClick={() => setCurrentHeroIndex(index)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div 
+              className="hero-image-display-box" 
+              style={{ backgroundImage: "url('https://images.unsplash.com/photo-1581553674786-636feb0b53c6?w=800&auto=format&fit=crop&q=80')" }}
+            />
+          )}
         </div>
       </section>
 
       {/* MARKETING SLIDER SEASONAL CAMPAIGN CARD */}
       <section className="home-marketing-banner-container">
-        <div 
-          className="marketing-banner-card"
-          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1486915309851-b0cc1f8a0084?w=1200&auto=format&fit=crop&q=80')" }}
-        >
-          <div className="marketing-card-content font-inter">
-            <span className="marketing-tag-pill">Limited Access Offers</span>
-            <h2 className="marketing-card-title font-plus-jakarta">Winter Wanderlust: Up to 30% Off Elite Gear</h2>
-            <p className="marketing-card-subtext">Equip your upcoming seasonal adventure with signature heavy-duty travel gear and essentials.</p>
-            <button className="btn-marketing-cta" onClick={() => window.location.href = "/shop?promo=winter"}>Discover Warehouse</button>
+        {bottomBanners.length > 0 ? (
+          <div className="marketing-carousel-container" style={{ position: "relative", width: "100%", height: "320px" }}>
+            {bottomBanners.map((banner, index) => (
+              <div 
+                key={banner.id}
+                className={`carousel-slide ${index === currentBottomIndex ? "active" : ""}`}
+              >
+                <div 
+                  className="marketing-banner-card"
+                  style={{ 
+                    backgroundImage: `url(${banner.image})`,
+                    cursor: banner.redirect_url ? "pointer" : "default"
+                  }}
+                  onClick={() => banner.redirect_url && (window.location.href = banner.redirect_url)}
+                >
+                  <div className="marketing-card-content font-inter">
+                    <span className="marketing-tag-pill">Exclusive Offer</span>
+                    <h2 className="marketing-card-title font-plus-jakarta">{banner.title}</h2>
+                    {banner.subtitle && <p className="marketing-card-subtext">{banner.subtitle}</p>}
+                    {banner.redirect_url && (
+                      <button 
+                        className="btn-marketing-cta" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.location.href = banner.redirect_url;
+                        }}
+                      >
+                        Discover Offer
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {bottomBanners.length > 1 && (
+              <div className="carousel-dots" style={{ bottom: "16px" }}>
+                {bottomBanners.map((_, index) => (
+                  <span 
+                    key={index} 
+                    className={`carousel-dot ${index === currentBottomIndex ? "active" : ""}`}
+                    style={{ backgroundColor: index === currentBottomIndex ? "#3B82F6" : "rgba(255, 255, 255, 0.4)" }}
+                    onClick={() => setCurrentBottomIndex(index)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-        </div>
+        ) : (
+          <div 
+            className="marketing-banner-card"
+            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1486915309851-b0cc1f8a0084?w=1200&auto=format&fit=crop&q=80')" }}
+          >
+            <div className="marketing-card-content font-inter">
+              <span className="marketing-tag-pill">Limited Access Offers</span>
+              <h2 className="marketing-card-title font-plus-jakarta">Winter Wanderlust: Up to 30% Off Elite Gear</h2>
+              <p className="marketing-card-subtext">Equip your upcoming seasonal adventure with signature heavy-duty travel gear and essentials.</p>
+              <button className="btn-marketing-cta" onClick={() => window.location.href = "/shop?promo=winter"}>Discover Warehouse</button>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* CURATED MOSAIC GRID SECTORS */}
