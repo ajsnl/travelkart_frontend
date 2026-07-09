@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { ShoppingBag, Loader2, AlertCircle } from "lucide-react";
+import { ShoppingBag, Loader2, AlertCircle, X } from "lucide-react";
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -36,6 +36,9 @@ export default function MyOrders() {
   const [modalReason, setModalReason] = useState("");
   const [modalComments, setModalComments] = useState("");
   const [submittingAction, setSubmittingAction] = useState(false);
+
+  // Review Item Selection Modal State
+  const [reviewSelectionOrder, setReviewSelectionOrder] = useState(null);
 
   const loadOrders = async (silent = false) => {
     try {
@@ -127,7 +130,23 @@ export default function MyOrders() {
   };
 
   const handleAddReview = (trackingId) => {
-    toast.info(`Review interface for Order #${trackingId} is coming soon!`);
+    const orderObj = orders.find(o => o.tracking_id === trackingId);
+    if (!orderObj) return;
+
+    const reviewableItems = (orderObj.items || []).filter(
+      item => !item.is_cancelled && !item.is_returned && item.variant?.product_id
+    );
+
+    if (reviewableItems.length === 0) {
+      toast.error("There are no reviewable products in this order.");
+      return;
+    }
+
+    if (reviewableItems.length === 1) {
+      navigate(`/product/${reviewableItems[0].variant.product_id}?writeReview=true`);
+    } else {
+      setReviewSelectionOrder(orderObj);
+    }
   };
 
   // Tab switching mapping
@@ -270,6 +289,111 @@ export default function MyOrders() {
         onConfirm={handleConfirmModalAction}
         onClose={() => setActiveActionItem(null)}
       />
+
+      {/* Review Item Selection Modal */}
+      {reviewSelectionOrder && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(15, 23, 42, 0.4)",
+          backdropFilter: "blur(4px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: "#ffffff",
+            borderRadius: "20px",
+            width: "90%",
+            maxWidth: "450px",
+            padding: "28px",
+            boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)",
+            boxSizing: "border-box"
+          }}>
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "20px"
+            }}>
+              <h3 className="font-plus-jakarta" style={{ fontSize: "18px", fontWeight: "800", color: "#0F172A", margin: 0 }}>
+                Select Product to Review
+              </h3>
+              <button 
+                onClick={() => setReviewSelectionOrder(null)} 
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#64748b",
+                  padding: "4px",
+                  display: "flex",
+                  alignItems: "center"
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {(reviewSelectionOrder.items || [])
+                .filter(item => !item.is_cancelled && !item.is_returned && item.variant?.product_id)
+                .map((item) => (
+                  <div 
+                    key={item.id} 
+                    style={{ 
+                      display: "flex", 
+                      alignItems: "center", 
+                      justifyContent: "space-between", 
+                      padding: "12px", 
+                      border: "1px solid #e2e8f0", 
+                      borderRadius: "12px",
+                      backgroundColor: "#f8fafc" 
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                      <img 
+                        src={item.variant?.image_url} 
+                        alt={item.variant?.product_name} 
+                        style={{ width: "40px", height: "40px", borderRadius: "8px", objectFit: "cover" }} 
+                      />
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                        <span style={{ fontSize: "13px", fontWeight: "700", color: "#1e293b", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {item.variant?.product_name}
+                        </span>
+                        <span style={{ fontSize: "11px", color: "#64748b" }}>
+                          SKU: {item.variant?.sku}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setReviewSelectionOrder(null);
+                        navigate(`/product/${item.variant.product_id}?writeReview=true`);
+                      }}
+                      style={{ 
+                        fontSize: "11px", 
+                        padding: "6px 14px", 
+                        cursor: "pointer", 
+                        border: "none", 
+                        borderRadius: "20px", 
+                        backgroundColor: "#00236F", 
+                        color: "#ffffff", 
+                        fontWeight: "600" 
+                      }}
+                    >
+                      Review
+                    </button>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

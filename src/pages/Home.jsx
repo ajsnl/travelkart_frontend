@@ -134,7 +134,7 @@ function Home() {
           </p>
           <div className="hero-button-group font-inter">
             <button className="btn-primary-action" onClick={() => window.location.href = "/shop"}>Shop New Gear</button>
-            <button 
+            {/* <button 
               className="btn-secondary-action" 
               onClick={() => {
                 const element = document.getElementById("ai-packing-assistant");
@@ -144,7 +144,7 @@ function Home() {
               }}
             >
               AI Gear Builder
-            </button>
+            </button> */}
           </div>
         </div>
 
@@ -302,7 +302,7 @@ function Home() {
       </section>
 
       {/* INTELLIGENT AI PACKING PLATFORM MODULE */}
-      <section id="ai-packing-assistant" className="home-section-container">
+      {/* <section id="ai-packing-assistant" className="home-section-container">
         <div className="ai-concierge-platform-card">
           <div className="ai-platform-left-controls font-inter">
             <h3 className="ai-platform-title font-plus-jakarta">AI Concierge:<br />Define Your Path.</h3>
@@ -350,7 +350,7 @@ function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* MERCHANDISE SHOWCASE NEW ARRIVALS GRID */}
       <section className="home-section-container">

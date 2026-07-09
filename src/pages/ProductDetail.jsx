@@ -1,18 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { 
   Star, 
   Heart, 
   ShoppingBag, 
   ChevronRight, 
-  ShieldCheck, 
-  Truck, 
-  RotateCcw, 
   Check, 
   Minus, 
   Plus,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  MessageSquare
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
@@ -21,8 +19,25 @@ import ProductCard from "../components/products/ProductCard";
 import { fetchProductById, fetchProducts } from "../services/productService";
 import { toggleWishlist } from "../features/wishlist/wishlistSlice";
 import { addVariantToCart } from "../features/cart/cartSlice";
+import {
+  fetchReviews,
+  checkReviewEligibility,
+  submitReview,
+  updateReview,
+  deleteReview,
+  adminFetchReviews,
+  adminToggleReviewStatus,
+  adminDeleteReview
+} from "../services/reviewService";
 import "./ProductDetail.css";
 import Footer from "../components/Footer";
+
+// Subcomponents
+import ProductGallery from "../components/products/ProductGallery";
+import ProductAccordion from "../components/products/ProductAccordion";
+import ProductReviewCard from "../components/products/ProductReviewCard";
+import ReviewFormModal from "../components/products/ReviewFormModal";
+
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -32,19 +47,41 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isUnavailable, setIsUnavailable] = useState(false);
-  
-  // Image zoom state
-  const [zoomStyle, setZoomStyle] = useState({ transformOrigin: "center center", transform: "scale(1)" });
-
   // Selections
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [selectedAttributes, setSelectedAttributes] = useState({});
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState("");
 
+  // Reviews state
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [eligibility, setEligibility] = useState({
+    can_review: false,
+    already_reviewed: false,
+    has_purchased: false,
+    existing_review: null,
+  });
+  const [showAllReviews, setShowAllReviews] = useState(false);
+  const reviewsSectionRef = useRef(null);
+
+  const handleRatingsClick = () => {
+    setShowAllReviews(true);
+    // Use a slight timeout to ensure state update renders (if relevant) and scroll smoothly
+    setTimeout(() => {
+      reviewsSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 50);
+  };
+
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewFormRating, setReviewFormRating] = useState(5);
+  const [reviewFormComment, setReviewFormComment] = useState("");
+  const [reviewSubmitLoading, setReviewSubmitLoading] = useState(false);
+  const [editingReviewId, setEditingReviewId] = useState(null);
+
   const dispatch = useDispatch();
   const { wishlistedProductIds } = useSelector((state) => state.wishlist);
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
   const isWishlisted = product ? wishlistedProductIds.includes(product.id) : false;
 
   // Accordion states
@@ -53,24 +90,6 @@ export default function ProductDetail() {
   // Recommendations state
   const [recommendedProducts, setRecommendedProducts] = useState([]);
   const [recsLoading, setRecsLoading] = useState(true);
-
-  // Image zoom event handlers
-  const handleMouseMove = (e) => {
-    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - left) / width) * 100;
-    const y = ((e.clientY - top) / height) * 100;
-    setZoomStyle({
-      transformOrigin: `${x}% ${y}%`,
-      transform: "scale(2.2)"
-    });
-  };
-
-  const handleMouseLeave = () => {
-    setZoomStyle({
-      transformOrigin: "center center",
-      transform: "scale(1)"
-    });
-  };
 
   // Fetch product details
   useEffect(() => {
@@ -129,6 +148,192 @@ export default function ProductDetail() {
       window.scrollTo(0, 0);
     }
   }, [id]);
+
+  // Fetch reviews logic
+  const loadReviewsData = async () => {
+    setReviewsLoading(true);
+    try {
+      const res = user?.role === "admin" ? await adminFetchReviews(id) : await fetchReviews(id);
+      setReviews(res.data);
+    } catch (err) {
+      console.error("Error fetching reviews:", err);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
+  const loadEligibilityData = async () => {
+    if (isAuthenticated) {
+      try {
+        const res = await checkReviewEligibility(id);
+        setEligibility(res.data);
+        if (res.data.already_reviewed && res.data.existing_review) {
+          setReviewFormRating(res.data.existing_review.rating);
+          setReviewFormComment(res.data.existing_review.comment);
+        }
+      } catch (err) {
+        console.error("Error checking review eligibility:", err);
+      }
+    } else {
+      setEligibility({
+        can_review: false,
+        already_reviewed: false,
+        has_purchased: false,
+        existing_review: null,
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (id) {
+      loadReviewsData();
+      loadEligibilityData();
+    }
+  }, [id, isAuthenticated, user]);
+
+  useEffect(() => {
+    if (id && isAuthenticated) {
+      const queryParams = new URLSearchParams(window.location.search);
+      if (queryParams.get("writeReview") === "true") {
+        if (eligibility.can_review) {
+          setEditingReviewId(null);
+          setReviewFormRating(5);
+          setReviewFormComment("");
+          setShowReviewForm(true);
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, newUrl);
+        } else if (eligibility.already_reviewed && eligibility.existing_review) {
+          setEditingReviewId(eligibility.existing_review.id);
+          setReviewFormRating(eligibility.existing_review.rating);
+          setReviewFormComment(eligibility.existing_review.comment);
+          setShowReviewForm(true);
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, newUrl);
+        }
+      }
+    }
+  }, [id, isAuthenticated, eligibility.can_review, eligibility.already_reviewed, eligibility.existing_review]);
+
+  const handleOpenAddReview = () => {
+    setEditingReviewId(null);
+    setReviewFormRating(5);
+    setReviewFormComment("");
+    setShowReviewForm(true);
+  };
+
+  const handleOpenEditReview = (review) => {
+    setEditingReviewId(review.id);
+    setReviewFormRating(review.rating);
+    setReviewFormComment(review.comment);
+    setShowReviewForm(true);
+  };
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    if (!reviewFormComment.trim()) {
+      toast.error("Please write a comment.");
+      return;
+    }
+    setReviewSubmitLoading(true);
+    try {
+      if (editingReviewId) {
+        await updateReview(editingReviewId, {
+          rating: reviewFormRating,
+          comment: reviewFormComment,
+        });
+        toast.success("Review updated successfully!");
+      } else {
+        await submitReview({
+          product: id,
+          rating: reviewFormRating,
+          comment: reviewFormComment,
+        });
+        toast.success("Review submitted successfully!");
+      }
+      setShowReviewForm(false);
+      
+      // Reload product details for average ratings
+      const prodRes = await fetchProductById(id);
+      setProduct(prodRes.data);
+      
+      await loadReviewsData();
+      await loadEligibilityData();
+    } catch (err) {
+      console.error("Error submitting review:", err);
+      toast.error(err.response?.data?.product?.[0] || err.response?.data?.comment?.[0] || err.response?.data?.rating?.[0] || err.response?.data?.detail || "Failed to submit review.");
+    } finally {
+      setReviewSubmitLoading(false);
+    }
+  };
+
+  const handleReviewDelete = async (reviewId) => {
+    if (!window.confirm("Are you sure you want to delete this review?")) return;
+    try {
+      await deleteReview(reviewId);
+      toast.success("Review deleted successfully!");
+      
+      // Reload product details
+      const prodRes = await fetchProductById(id);
+      setProduct(prodRes.data);
+      
+      await loadReviewsData();
+      await loadEligibilityData();
+    } catch (err) {
+      console.error("Error deleting review:", err);
+      toast.error("Failed to delete review.");
+    }
+  };
+
+  const handleAdminToggleStatus = async (reviewId, currentStatus) => {
+    try {
+      await adminToggleReviewStatus(reviewId, !currentStatus);
+      toast.success(`Review ${currentStatus ? "hidden" : "activated"} successfully!`);
+      
+      // Reload product details
+      const prodRes = await fetchProductById(id);
+      setProduct(prodRes.data);
+      
+      await loadReviewsData();
+    } catch (err) {
+      console.error("Error toggling review status:", err);
+      toast.error("Failed to update review status.");
+    }
+  };
+
+  const handleAdminDelete = async (reviewId) => {
+    if (!window.confirm("Admin: Are you sure you want to permanently delete this spam review?")) return;
+    try {
+      await adminDeleteReview(reviewId);
+      toast.success("Review permanently deleted by admin!");
+      
+      // Reload product details
+      const prodRes = await fetchProductById(id);
+      setProduct(prodRes.data);
+      
+      await loadReviewsData();
+      await loadEligibilityData();
+    } catch (err) {
+      console.error("Error deleting review as admin:", err);
+      toast.error("Failed to delete review.");
+    }
+  };
+
+  const renderStars = (rating, size = 14) => {
+    const stars = [];
+    const roundedRating = Math.round(rating || 0);
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <Star
+          key={i}
+          size={size}
+          className={`star-icon ${i <= roundedRating ? "filled" : "empty"}`}
+          fill={i <= roundedRating ? "currentColor" : "none"}
+          style={{ color: i <= roundedRating ? "#fbbf24" : "#cbd5e1" }}
+        />
+      );
+    }
+    return stars;
+  };
 
   // Fetch recommended products
   useEffect(() => {
@@ -361,31 +566,6 @@ export default function ProductDetail() {
     }));
   };
 
-  // Static review models for high aesthetics
-  const travelerReviews = [
-    {
-      id: "rev-1",
-      author: "Marcus T.",
-      rating: 5,
-      title: "Survived 3 continents already!",
-      text: "I've taken this bag from London to Tokyo and it still looks brand new. The wheels are incredibly quiet, and the interior organization is a game changer for frequent flyers."
-    },
-    {
-      id: "rev-2",
-      author: "Elena R.",
-      rating: 5,
-      title: "Sleek and efficient.",
-      text: "The battery pack saved me during a 4-hour layover. It's a bit heavier than I expected, but the durability makes up for it. Fits perfectly in every overhead bin so far."
-    },
-    {
-      id: "rev-3",
-      author: "David S.",
-      rating: 5,
-      title: "Best investment this year.",
-      text: "Finally a suitcase that matches its price point. The details like the leather handles and the smooth zippers feel extremely high-end. Highly recommended for business travel."
-    }
-  ];
-
   return (
     <div className="product-detail-page-wrapper">
       <Navbar />
@@ -413,83 +593,28 @@ export default function ProductDetail() {
       <main className="product-detail-grid-container font-inter">
         
         {/* Left Column: Media Gallery */}
-        <section className="detail-gallery-column">
-          <div 
-            className="gallery-main-view-wrapper"
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-          >
-            <img 
-              src={activeImage} 
-              alt={product.name} 
-              className="gallery-main-img" 
-              style={zoomStyle}
-            />
-            
-            {/* Overlay Badges */}
-            <div className="gallery-badges-overlay">
-              {product.is_best_seller && (
-                <span className="detail-badge-pill bestseller">Best Seller</span>
-              )}
-              {pricing.hasOffer && (
-                <span className="detail-badge-pill offer">{pricing.discountText}</span>
-              )}
-            </div>
-          </div>
-
-          {/* Thumbnail grid list */}
-          {galleryImages.length > 1 && (
-            <div className="gallery-thumbnails-row">
-              {galleryImages.slice(0, 4).map((imgUrl, index) => {
-                const isLastAndMore = index === 3 && galleryImages.length > 4;
-                return (
-                  <button 
-                    key={index} 
-                    className={`thumb-button ${activeImage === imgUrl ? "active" : ""}`}
-                    onClick={() => setActiveImage(imgUrl)}
-                    style={{ position: "relative" }}
-                  >
-                    <img src={imgUrl} alt={`Thumbnail ${index + 1}`} className="thumb-img" />
-                    {isLastAndMore && (
-                      <div className="thumb-more-overlay" style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        height: "100%",
-                        backgroundColor: "rgba(15, 23, 42, 0.6)",
-                        color: "#ffffff",
-                        borderRadius: "10px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "11px",
-                        fontWeight: 800,
-                        letterSpacing: "0.2px",
-                        pointerEvents: "none"
-                      }}>
-                        <span>+{galleryImages.length - 3} Photos</span>
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </section>
+        <ProductGallery 
+          activeImage={activeImage}
+          setActiveImage={setActiveImage}
+          product={product}
+          galleryImages={galleryImages}
+          pricing={pricing}
+        />
 
         {/* Right Column: Pricing & Options selector */}
         <section className="detail-config-column">
           {/* Header Details */}
           <div className="detail-header-stack">
-            <div className="ratings-summary-row">
-              <div className="star-icons-strip">
-                {[1, 2, 3, 4, 5].map(s => (
-                  <Star key={s} size={14} className="star-icon filled" fill="currentColor" />
-                ))}
+            <div 
+              className="ratings-summary-row" 
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+              onClick={handleRatingsClick}
+            >
+              <div className="star-icons-strip" style={{ display: 'flex', gap: '2px' }}>
+                {renderStars(product.avg_rating || 0, 14)}
               </div>
-              <span className="ratings-text-label">
-                ({product.total_ratings_count > 0 ? `${product.total_ratings_count} Reviews` : "128 Reviews"})
+              <span className="ratings-text-label" style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-muted)' }}>
+                {product.avg_rating ? `${parseFloat(product.avg_rating).toFixed(1)} / 5.0` : "0.0"} ({product.total_ratings_count || 0} reviews)
               </span>
             </div>
 
@@ -645,122 +770,106 @@ export default function ProductDetail() {
           )}
 
           {/* Essentials Details Accordion sections */}
-          <section className="detail-description-accordion-block font-inter">
-            {/* Section 1: Description */}
-            <div className="accordion-item">
-              <button 
-                onClick={() => setOpenSection(openSection === "description" ? "" : "description")} 
-                className="accordion-header"
-              >
-                <span>The Essentials Details</span>
-                <span>{openSection === "description" ? "—" : "+"}</span>
-              </button>
-              {openSection === "description" && (
-                <div className="accordion-content">
-                  <p className="description-text-para">
-                    {product.description || product.short_description || "No description loaded for this product."}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Section 2: Specifications (Global Attributes) */}
-            {product.attributes && Object.keys(product.attributes).length > 0 && (
-              <div className="accordion-item">
-                <button 
-                  onClick={() => setOpenSection(openSection === "specs" ? "" : "specs")} 
-                  className="accordion-header"
-                >
-                  <span>Specifications</span>
-                  <span>{openSection === "specs" ? "—" : "+"}</span>
-                </button>
-                {openSection === "specs" && (
-                  <div className="accordion-content">
-                    <table className="specs-table-matrix">
-                      <tbody>
-                        {Object.entries(product.attributes).map(([key, value]) => (
-                          <tr key={key}>
-                            <td className="spec-key uppercase">{key}</td>
-                            <td className="spec-value">{String(value)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Section 3: Shipping & Delivery */}
-            <div className="accordion-item">
-              <button 
-                onClick={() => setOpenSection(openSection === "shipping" ? "" : "shipping")} 
-                className="accordion-header"
-              >
-                <span>Shipping & Guarantee</span>
-                <span>{openSection === "shipping" ? "—" : "+"}</span>
-              </button>
-              {openSection === "shipping" && (
-                <div className="accordion-content shipping-accordion-details">
-                  <div className="shipping-accent-point">
-                    <Truck size={16} className="text-orange" />
-                    <div>
-                      <strong>Estimated Delivery:</strong>
-                      <p>{product.est_delivery_time || "3 - 5 Business Days"}</p>
-                    </div>
-                  </div>
-
-                  <div className="shipping-accent-point">
-                    <ShieldCheck size={16} className="text-orange" />
-                    <div>
-                      <strong>Free & Easy Delivery:</strong>
-                      <p>{product.free_delivery ? "Free shipping included on this product." : "Standard shipping costs apply."}</p>
-                    </div>
-                  </div>
-
-                  <div className="shipping-accent-point">
-                    <RotateCcw size={16} className="text-orange" />
-                    <div>
-                      <strong>Refund Guarantee:</strong>
-                      <p>Return eligible within 30 days of receiving shipment order.</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </section>
+          <ProductAccordion 
+            product={product}
+            openSection={openSection}
+            setOpenSection={setOpenSection}
+          />
         </section>
       </main>
 
       {/* Traveler Reviews section */}
-      <section className="traveler-reviews-super-container font-inter">
+      <section className="traveler-reviews-super-container font-inter" ref={reviewsSectionRef}>
         <div className="reviews-section-headline">
-          <h2 className="reviews-section-title font-plus-jakarta">Traveler Reviews</h2>
-          <p className="reviews-section-sub">Real stories from the road.</p>
+          <div className="reviews-section-header-row">
+            <div>
+              <h2 className="reviews-section-title font-plus-jakarta">Traveler Reviews</h2>
+              <p className="reviews-section-sub">Real stories from the road.</p>
+            </div>
+            
+            {/* Review Action / Eligibility Notices */}
+            <div className="review-action-trigger-area">
+              {isAuthenticated ? (
+                eligibility.can_review ? (
+                  <button 
+                    onClick={handleOpenAddReview}
+                    className="write-review-trigger-btn font-inter"
+                  >
+                    <MessageSquare size={16} />
+                    Write a Review
+                  </button>
+                ) : eligibility.already_reviewed ? (
+                  <span className="review-notice-tag success font-inter">
+                    <Check size={14} />
+                    You have reviewed this product
+                  </span>
+                ) : !eligibility.has_purchased ? (
+                  <span className="review-notice-tag font-inter">
+                    <AlertCircle size={14} />
+                    Only verified buyers can review
+                  </span>
+                ) : null
+              ) : (
+                <Link to="/login" className="review-notice-tag font-inter" style={{ textDecoration: "underline" }}>
+                  Log in to write a review
+                </Link>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="reviews-horizontal-grid-layout">
-          {travelerReviews.map(rev => (
-            <article key={rev.id} className="review-card-layout">
-              <div className="review-card-header-row">
-                <div className="reviewer-avatar">
-                  <span>{rev.author[0]}</span>
-                </div>
-                <div className="reviewer-identity-column">
-                  <span className="reviewer-name">{rev.author}</span>
-                  <div className="reviewer-stars-rating">
-                    {[1, 2, 3, 4, 5].map(s => (
-                      <Star key={s} size={11} className="star-icon filled" fill="currentColor" />
-                    ))}
-                  </div>
-                </div>
+        {reviewsLoading ? (
+          <div className="recs-loading-spinner-row">
+            <Loader2 className="spinner-icon animate-spin" size={32} />
+          </div>
+        ) : reviews.length === 0 ? (
+          <div className="empty-reviews-state">
+            <MessageSquare size={36} className="empty-reviews-icon" />
+            <p className="empty-reviews-text font-inter">No reviews yet for this product. Be the first to share your journey!</p>
+          </div>
+        ) : (
+          <>
+            <div className="reviews-horizontal-grid-layout">
+              {(showAllReviews ? reviews : reviews.slice(0, 3)).map(rev => (
+                <ProductReviewCard
+                  key={rev.id}
+                  rev={rev}
+                  user={user}
+                  isAuthenticated={isAuthenticated}
+                  renderStars={renderStars}
+                  handleOpenEditReview={handleOpenEditReview}
+                  handleReviewDelete={handleReviewDelete}
+                  handleAdminToggleStatus={handleAdminToggleStatus}
+                  handleAdminDelete={handleAdminDelete}
+                />
+              ))}
+            </div>
+            {reviews.length > 3 && (
+              <div className="reviews-show-more-row">
+                <button 
+                  onClick={() => setShowAllReviews(!showAllReviews)}
+                  className="show-more-reviews-btn font-inter"
+                >
+                  {showAllReviews ? "Show Less" : `Show All Reviews (${reviews.length})`}
+                </button>
               </div>
-              <h3 className="review-title-heading">"{rev.title}"</h3>
-              <p className="review-body-text">{rev.text}</p>
-            </article>
-          ))}
-        </div>
+            )}
+          </>
+        )}
       </section>
+
+      {/* Review Submission Form Modal */}
+      <ReviewFormModal
+        showReviewForm={showReviewForm}
+        setShowReviewForm={setShowReviewForm}
+        editingReviewId={editingReviewId}
+        reviewFormRating={reviewFormRating}
+        setReviewFormRating={setReviewFormRating}
+        reviewFormComment={reviewFormComment}
+        setReviewFormComment={setReviewFormComment}
+        reviewSubmitLoading={reviewSubmitLoading}
+        handleReviewSubmit={handleReviewSubmit}
+      />
 
       {/* Recommended Products: Complete Your Journey */}
       <section className="recommended-products-super-container font-inter">

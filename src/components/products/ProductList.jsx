@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, Pencil, Trash2, Box, ChevronLeft, ChevronRight, Image as ImageIcon, Award, CheckCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, Box, ChevronLeft, ChevronRight, Image as ImageIcon, Award, CheckCircle, MessageSquare } from "lucide-react";
 
 const getProductThumbnail = (product) => {
   // 1. Try general images
@@ -47,6 +47,7 @@ const ProductList = ({
   onManageVariants,
   onDeleteProduct,
   onToggleActive,
+  onManageReviews,
 }) => {
   const startItemRange = (page - 1) * 10 + 1;
   const endItemRange = Math.min(page * 10, count);
@@ -257,6 +258,14 @@ const ProductList = ({
                   <td>
                     <div className="actions-cell-alignment-box product-actions-gap">
                       <button
+                        onClick={() => onManageReviews(p)}
+                        className="table-icon-action-btn edit-btn-style"
+                        title="Manage Product Reviews"
+                        style={{ color: "#fbbf24" }}
+                      >
+                        <MessageSquare size={14} />
+                      </button>
+                      <button
                         onClick={() => onManageVariants(p)}
                         className="table-icon-action-btn edit-btn-style"
                         title="Manage Product Variants"
@@ -285,49 +294,49 @@ const ProductList = ({
             )}
           </tbody>
         </table>
-
-        {/* PAGINATION FOOTER */}
-        <footer className="table-pagination-footer-console font-inter">
-          <div className="pagination-range-counter-info">
-            Showing <span className="text-white-weight">{count === 0 ? 0 : startItemRange}-{endItemRange}</span> of <span className="text-white-weight">{count.toLocaleString()}</span> products
-          </div>
-
-          <div className="pagination-action-controls-button-group">
-            <button
-              disabled={page === 1 || loading}
-              onClick={() => setPage(page - 1)}
-              className="console-pagination-step-btn"
-              aria-label="Previous Page"
-            >
-              <ChevronLeft size={16} />
-            </button>
-
-            <div className="pagination-page-numeric-cluster">
-              <button className="numeric-page-btn numeric-active-btn">
-                {page}
-              </button>
-              {page * 10 < count && (
-                <button 
-                  onClick={() => setPage(page + 1)} 
-                  disabled={loading}
-                  className="numeric-page-btn"
-                >
-                  {page + 1}
-                </button>
-              )}
-            </div>
-
-            <button
-              disabled={page * 10 >= count || loading}
-              onClick={() => setPage(page + 1)}
-              className="console-pagination-step-btn"
-              aria-label="Next Page"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        </footer>
       </div>
+
+      {/* PAGINATION FOOTER */}
+      <footer className="table-pagination-footer-console font-inter">
+        <div className="pagination-range-counter-info">
+          Showing <span className="text-white-weight">{count === 0 ? 0 : startItemRange}-{endItemRange}</span> of <span className="text-white-weight">{count.toLocaleString()}</span> products
+        </div>
+
+        <div className="pagination-action-controls-button-group">
+          <button
+            disabled={page === 1 || loading}
+            onClick={() => setPage(page - 1)}
+            className="console-pagination-step-btn"
+            aria-label="Previous Page"
+          >
+            <ChevronLeft size={16} />
+          </button>
+
+          <div className="pagination-page-numeric-cluster">
+            <button className="numeric-page-btn numeric-active-btn">
+              {page}
+            </button>
+            {page * 10 < count && (
+              <button 
+                onClick={() => setPage(page + 1)} 
+                disabled={loading}
+                className="numeric-page-btn"
+              >
+                {page + 1}
+              </button>
+            )}
+          </div>
+
+          <button
+            disabled={page * 10 >= count || loading}
+            onClick={() => setPage(page + 1)}
+            className="console-pagination-step-btn"
+            aria-label="Next Page"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </footer>
     </>
   );
 };

@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import ProductList from "../../components/products/ProductList";
 import ProductForm from "../../components/products/ProductForm";
 import VariantManager from "../../components/products/VariantManager";
+import AdminReviewManager from "../../components/products/AdminReviewManager";
 import "./AdminProduct.css";
 import { useCustomDialog } from "../../components/CustomDialog";
 
@@ -41,7 +42,7 @@ const AdminProduct = () => {
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  // View States: "list" | "create" | "edit" | "manage-variants"
+  // View States: "list" | "create" | "edit" | "manage-variants" | "manage-reviews"
   const [view, setView] = useState("list");
   const [currentId, setCurrentId] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -125,6 +126,12 @@ const AdminProduct = () => {
     setCurrentId(product.id);
     setSelectedProduct(product);
     setView("manage-variants");
+  };
+
+  const handleManageReviewsClick = (product) => {
+    setCurrentId(product.id);
+    setSelectedProduct(product);
+    setView("manage-reviews");
   };
 
   const handleRefreshSelectedProduct = async () => {
@@ -258,6 +265,7 @@ const AdminProduct = () => {
           onAddProduct={handleAddProductClick}
           onEditProduct={handleEditProductClick}
           onManageVariants={handleManageVariantsClick}
+          onManageReviews={handleManageReviewsClick}
           onDeleteProduct={handleDeleteProduct}
           onToggleActive={handleToggleActive}
         />
@@ -283,6 +291,12 @@ const AdminProduct = () => {
             setView("edit");
           }}
           onRefresh={handleRefreshSelectedProduct}
+        />
+      )}
+      {view === "manage-reviews" && selectedProduct && (
+        <AdminReviewManager
+          product={selectedProduct}
+          onBack={() => setView("list")}
         />
       )}
     </div>
