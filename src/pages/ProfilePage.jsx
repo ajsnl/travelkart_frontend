@@ -8,7 +8,8 @@ import {
   Lock,
   ArrowLeft,
   ShoppingBag,
-  Loader2
+  Loader2,
+  Gift
 } from "lucide-react";
 import { 
   getProfile, 
@@ -28,6 +29,7 @@ import MembershipCard from "../components/profile/MembershipCard";
 import ProfileEditForm from "../components/profile/ProfileEditForm";
 import OTPVerificationModal from "../components/profile/OTPVerificationModal";
 import ChangePasswordModal from "../components/profile/ChangePasswordModal";
+import ReferralsTab from "../components/profile/ReferralsTab";
 import Footer from "../components/Footer";
 
 import "../components/profile/Profile.css";
@@ -241,6 +243,9 @@ const ProfilePage = () => {
                     <button className={`nav-link-btn ${activeTab === "Orders" ? "active" : ""}`} onClick={() => setActiveTab("Orders")}>
             <ShoppingBag size={18} /> <span>My Orders</span>
           </button>
+          <button className={`nav-link-btn ${activeTab === "Referrals" ? "active" : ""}`} onClick={() => setActiveTab("Referrals")}>
+            <Gift size={18} /> <span>Refer & Earn</span>
+          </button>
           <button className="nav-link-btn" onClick={() => navigate("/")}>
             <ArrowLeft size={18} /> <span>Back to Home </span>
           </button>
@@ -315,6 +320,11 @@ const ProfilePage = () => {
                     <h2 className="profile-section-title">My Orders</h2>
                     <OrderHistoryList navigate={navigate} />
                   </div>
+                ) : activeTab === "Referrals" ? (
+                  <div className="profile-card">
+                    <h2 className="profile-section-title">Refer & Earn</h2>
+                    <ReferralsTab />
+                  </div>
                 ) : (
                   <>
                     <UserInfoCard 
@@ -329,7 +339,7 @@ const ProfilePage = () => {
 
               {/* FLOATING UTILITY PANELS RIGHT COLUMN */}
               <div className="workspace-right-action-column">
-                <MembershipCard user={user} />
+                <MembershipCard user={user} refreshUser={fetchUser} />
                 <WalletCard />
                 
                 <button className="workspace-logout-trigger-btn font-inter" onClick={handleLogout}>

@@ -108,3 +108,18 @@ export const uploadProfileImage = (file) => {
   });
 };
 
+export const goldMembership=()=>{
+  return api.patch("auth/gold-membership/")
+}
+
+export const verifyGoldMembership = (razorpay_payment_id, razorpay_order_id, razorpay_signature) => {
+  return api.post("auth/gold-membership/", {
+    razorpay_payment_id,
+    razorpay_order_id,
+    razorpay_signature
+  });
+};
+export const getReferralStats = () => {
+  return api.get("auth/referrals/");
+};
+

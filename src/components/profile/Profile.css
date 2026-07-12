@@ -415,6 +415,23 @@
 
 .membership-view-benefits-btn:hover { opacity: 0.95; }
 
+.gold-status-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  color: #FBBF24;
+  border-radius: 9999px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
 /* FIGMA DESIGN WALLET GRADIENT BLOCKS */
 .figma-wallet-gradient-card {
   background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useNavigate, Navigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, Navigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { signupUser, googleLogin, getCurrentUser } from "../../services/authService";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,6 +17,9 @@ function Signup() {
   const dispatch = useDispatch();
   const { user, isAuthenticated, loading } = useSelector((state) => state.auth);
   const { showConfirm } = useCustomDialog();
+
+  const [searchParams] = useSearchParams();
+  const refCodeParam = searchParams.get("ref") || "";
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -36,13 +39,21 @@ function Signup() {
     phone: "",
     dob: "",
     first_name: "",
-    last_name: ""
+    last_name: "",
+    referral_code_used: refCodeParam || ""
   });
+
+  useEffect(() => {
+    if (refCodeParam) {
+      setFormData(prev => ({ ...prev, referral_code_used: refCodeParam }));
+    }
+  }, [refCodeParam]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => {
-      const updated = { ...prev, [name]: value };
+      const val = name === "referral_code_used" ? value.toUpperCase() : value;
+      const updated = { ...prev, [name]: val };
       
       // Auto-fallback backup for fields that aren't on the Figma layout screen
       if (name === "first_name") updated.username = value.toLowerCase() + Math.floor(Math.random() * 100);
@@ -276,6 +287,22 @@ function Signup() {
                 <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="signup-password-toggle">
                   {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
+              </div>
+            </div>
+
+            {/* Field Capture Block: Referral Code */}
+            <div className="signup-field-wrapper">
+              <label className="signup-input-label">Referral Code (Optional)</label>
+              <div className="signup-input-container">
+                <input
+                  name="referral_code_used"
+                  type="text"
+                  placeholder="e.g. ABC123"
+                  value={formData.referral_code_used}
+                  onChange={handleChange}
+                  className="signup-input-field"
+                  style={{ textTransform: "uppercase" }}
+                />
               </div>
             </div>
 
