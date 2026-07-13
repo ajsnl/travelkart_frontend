@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import { useCustomDialog } from "../CustomDialog";
+import { toast } from "react-toastify";
 
 const ChangePasswordModal = ({ onSubmit, onClose }) => {
   const [form, setForm] = useState({
@@ -52,24 +53,36 @@ const ChangePasswordModal = ({ onSubmit, onClose }) => {
       toast.success("Password Changed")
     } catch (err) {
       console.error("Change password error:", err);
-      toast.error("Change Password Error ",err)
     
       if (err.response && err.response.data) {
         const data = err.response.data;
         if (typeof data === "object" && !Array.isArray(data)) {
           if (data.error) {
+            toast.error(typeof data.error === "string" ? data.error : JSON.stringify(data.error));
             setFieldErrors({ old_password: [data.error] });
           } else if (data.non_field_errors) {
-            setGeneralError(data.non_field_errors.join(" "));
+            const msg = data.non_field_errors.join(" ");
+            toast.error(msg);
+            setGeneralError(msg);
           } else {
             setFieldErrors(data);
+            // Format and display field validation errors in toast
+            Object.entries(data).forEach(([key, val]) => {
+              const fieldName = key.replace("_", " ");
+              const cleanedField = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+              const errMsg = Array.isArray(val) ? val.join(" ") : String(val);
+              toast.error(`${cleanedField}: ${errMsg}`);
+            });
           }
         } else if (typeof data === "string") {
+          toast.error(data);
           setGeneralError(data);
         } else {
+          toast.error("Failed to update password. Please check your credentials.");
           setGeneralError("Failed to update password. Please check your credentials.");
         }
       } else {
+        toast.error("Network error. Please try again later.");
         setGeneralError("Network error. Please try again later.");
       }
     } finally {

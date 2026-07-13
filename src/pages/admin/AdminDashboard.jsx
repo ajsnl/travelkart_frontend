@@ -131,14 +131,24 @@ const AdminDashboard = () => {
 
       </div>
 
-      {/* LOGISTICS CONTROLS AND CUSTOM DROP FILTERS ROW BAR */}
-      <div className="controls-bar-row">
-        <div className="filter-select-wrapper">
-          <SlidersHorizontal size={14} className="filter-leading-icon" />
+      {/* FILTERS PANEL */}
+      <div className="product-filters-row font-inter" style={{
+        display: 'flex',
+        gap: '16px',
+        backgroundColor: '#0A0F1D',
+        border: '1px solid var(--admin-border-gray)',
+        borderRadius: '12px',
+        padding: '16px 20px',
+        marginBottom: '20px',
+        alignItems: 'center'
+      }}>
+        <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '200px' }}>
+          <label className="form-field-label" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#94a3b8' }}>Membership Tier</label>
           <select
             value={goldFilter}
             onChange={(e) => setGoldFilter(e.target.value)}
-            className="custom-filter-dropdown font-inter"
+            className="form-field-input"
+            style={{ width: '100%', height: '38px', padding: '0 12px', backgroundColor: '#050811', border: '1px solid var(--admin-border-gray)', borderRadius: '8px', color: '#fff', outline: 'none' }}
           >
             <option value="">All Membership Tiers</option>
             <option value="true">Gold Elite</option>
@@ -146,17 +156,47 @@ const AdminDashboard = () => {
           </select>
         </div>
 
-        <div className="filter-select-wrapper">
+        <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '200px' }}>
+          <label className="form-field-label" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#94a3b8' }}>Account Status</label>
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="custom-filter-dropdown font-inter"
+            className="form-field-input"
+            style={{ width: '100%', height: '38px', padding: '0 12px', backgroundColor: '#050811', border: '1px solid var(--admin-border-gray)', borderRadius: '8px', color: '#fff', outline: 'none' }}
           >
             <option value="">Any Account Status</option>
             <option value="true">Active</option>
             <option value="false">Suspended</option>
           </select>
         </div>
+
+        {(goldFilter || filter) && (
+          <button
+            type="button"
+            onClick={() => {
+              setGoldFilter("");
+              setFilter("");
+            }}
+            className="btn-cancel font-inter"
+            style={{
+              height: '38px',
+              alignSelf: 'flex-end',
+              padding: '0 16px',
+              fontSize: '12px',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              border: '1px dashed #ef4444',
+              color: '#ef4444',
+              borderRadius: '8px',
+              backgroundColor: 'transparent',
+              cursor: 'pointer'
+            }}
+          >
+            Reset Filters
+          </button>
+        )}
       </div>
 
       {/* CORE DATA TABLE MODULE WRAPPER */}

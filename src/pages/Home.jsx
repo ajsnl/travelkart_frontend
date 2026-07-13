@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { 
   Search, 
   ShoppingBag, 
@@ -18,11 +19,146 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { fetchProducts } from "../services/productService";
 import { userFetchActiveBanners } from "../services/bannerService";
+import { toast } from "react-toastify";
+import { addToCart } from "../services/cartService";
 
 function Home() {
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
+  const isGold = isAuthenticated && user?.is_gold_member;
+
   const [searchQuery, setSearchQuery] = useState("");
   const [travellingWith, setTravellingWith] = useState("Family");
   const [duration, setDuration] = useState("2+ Weeks");
+  const [generatedKit, setGeneratedKit] = useState(null);
+  const [addingToCart, setAddingToCart] = useState(false);
+
+  const handleCreateKit = () => {
+    const qty = travellingWith === "Solo" ? 1 : 3;
+    const isShort = duration === "2 Days";
+    const isFamily = travellingWith === "Family";
+    
+    const items = [];
+
+    // Luggage / Backpack based on duration
+    if (duration === "2 Days") {
+      items.push({ 
+        name: "SkyBags Backpack Medium Green", 
+        quantity: qty, 
+        variantId: 31,
+        icon: "🎒"
+      });
+    } else if (duration === "1 Week") {
+      items.push({ 
+        name: "BlackVoyage Travel Hydraulic Packing Cube", 
+        quantity: qty, 
+        variantId: 14,
+        icon: "📦"
+      });
+    } else {
+      items.push({ 
+        name: "SAFARI Small Cabin Luggage (Trolley)", 
+        quantity: qty, 
+        variantId: 33,
+        icon: "🧳"
+      });
+    }
+
+    // Water Bottle
+    items.push({ 
+      name: "Thor Bottle Test (750ml Water Bottle)", 
+      quantity: qty, 
+      variantId: 7,
+      icon: "💧"
+    });
+
+    // Power bank capacity based on duration
+    if (isShort) {
+      items.push({ 
+        name: "Samsung Wireless Power Bank (6000mAh)", 
+        quantity: qty, 
+        variantId: 23,
+        icon: "🔋"
+      });
+    } else {
+      items.push({ 
+        name: "Samsung Wireless Power Bank (10000mAh)", 
+        quantity: qty, 
+        variantId: 22,
+        icon: "🔋"
+      });
+    }
+
+    // Include Toiletry Kit only for Family trips (excluded for 2 days)
+    if (isFamily && !isShort) {
+      items.push({ 
+        name: "BUYPLEX Travel Toiletry Kits", 
+        quantity: qty, 
+        variantId: 37,
+        icon: "🧴"
+      });
+    }
+
+    // Include Accessories for 1 Week and 2+ Weeks trips
+    if (!isShort) {
+      items.push({ 
+        name: "Afast Glass Bottles Set (Travel Accessories)", 
+        quantity: qty, 
+        variantId: 9,
+        icon: "🧦"
+      });
+    }
+
+    setGeneratedKit({
+      who: travellingWith,
+      duration: duration,
+      items: items
+    });
+  };
+
+  const handleAddAllToCart = async () => {
+    if (!generatedKit) return;
+    try {
+      setAddingToCart(true);
+      
+      const fallbackMap = {
+        33: [34, 31, 32], // Luggage/Backpack fallbacks
+        31: [32, 18, 33], // Backpack fallbacks
+        14: [15, 37],     // Organizer/Toiletry fallbacks
+        7: [8, 9, 10, 13], // Water Bottle fallbacks
+        23: [25, 22, 24],  // Power Bank small fallbacks
+        22: [24, 23, 25],  // Power Bank large fallbacks
+        37: [14, 15],      // Toiletry kit fallbacks
+        9: [10, 13, 7]     // Accessories fallbacks
+      };
+
+      for (const item of generatedKit.items) {
+        let success = false;
+        const currentVariantId = item.variantId;
+        const tryVariants = [currentVariantId, ...(fallbackMap[currentVariantId] || [])];
+        
+        for (const vid of tryVariants) {
+          try {
+            await addToCart(vid, item.quantity);
+            success = true;
+            break; // Success, proceed to next item
+          } catch (err) {
+            console.warn(`Failed to add variant ${vid} to cart, trying fallback...`, err);
+          }
+        }
+
+        if (!success) {
+          throw new Error(`Could not add ${item.name} or any of its category alternatives to cart.`);
+        }
+      }
+      
+      toast.success("Successfully added your curated kit (including available alternatives) to cart! 🎒");
+    } catch (err) {
+      console.error("Error adding kit items to cart:", err);
+      toast.error(err.message || "Failed to add all items to cart. Please try again.");
+    } finally {
+      setAddingToCart(false);
+    }
+  };
 
   // Dynamic recommendations for AI Concierge mockup preview
   const recommendations = {
@@ -134,17 +270,6 @@ function Home() {
           </p>
           <div className="hero-button-group font-inter">
             <button className="btn-primary-action" onClick={() => window.location.href = "/shop"}>Shop New Gear</button>
-            {/* <button 
-              className="btn-secondary-action" 
-              onClick={() => {
-                const element = document.getElementById("ai-packing-assistant");
-                if (element) {
-                  element.scrollIntoView({ behavior: "smooth" });
-                }
-              }}
-            >
-              AI Gear Builder
-            </button> */}
           </div>
         </div>
 
@@ -267,7 +392,7 @@ function Home() {
 
         <div className="categories-mosaic-grid font-inter">
           <Link 
-            to="/shop?cat=bags" 
+            to="/categories?cat=bags" 
             className="mosaic-node-card large"
             style={{ backgroundImage: "url('https://images.unsplash.com/photo-1547949003-9792a18a2601?w=600&auto=format&fit=crop&q=80')" }}
           >
@@ -278,7 +403,7 @@ function Home() {
           </Link>
 
           <Link 
-            to="/shop?cat=luggage" 
+            to="/categories?cat=luggage" 
             className="mosaic-node-card"
             style={{ backgroundImage: "url('https://images.unsplash.com/photo-1565026057447-bc90a3dceb87?w=600&auto=format&fit=crop&q=80')" }}
           >
@@ -289,7 +414,7 @@ function Home() {
           </Link>
 
           <Link 
-            to="/shop?cat=accessories" 
+            to="/categories?cat=travel-accessories" 
             className="mosaic-node-card"
             s        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&auto=format&fit=crop&q=80')" }}
           >
@@ -302,10 +427,10 @@ function Home() {
       </section>
 
       {/* INTELLIGENT AI PACKING PLATFORM MODULE */}
-      {/* <section id="ai-packing-assistant" className="home-section-container">
+      <section id="ai-packing-assistant" className="home-section-container">
         <div className="ai-concierge-platform-card">
           <div className="ai-platform-left-controls font-inter">
-            <h3 className="ai-platform-title font-plus-jakarta">AI Concierge:<br />Define Your Path.</h3>
+            <h3 className="ai-platform-title font-plus-jakarta">Design Your Trip:<br />Define Your Path.</h3>
             
             <div className="ai-interactive-selectors-stack">
               <div className="ai-field-wrapper">
@@ -326,31 +451,67 @@ function Home() {
               </div>
             </div>
 
-            <button className="btn-ai-trigger-generate font-inter" onClick={() => window.location.href = `/shop?search=${selectedRec.query}`}>
-              <span>Generate My Kit</span>
+            <button className="btn-ai-trigger-generate font-inter" onClick={handleCreateKit}>
+              <span>Create My Travel Kit</span>
               <ArrowRight size={16} />
             </button>
           </div>
 
           <div className="ai-platform-right-mockup">
-            <div className="mockup-header-node">
-              <div className="mockup-avatar-circle" />
-              <div className="mockup-line-skeleton-header" />
-            </div>
-            <div className="mockup-line-skeleton first-line" />
-            <div className="mockup-line-skeleton second-line" />
-            <div className="mockup-line-skeleton third-line" />
-            <div className="mockup-box-grid">
-              <div className="mockup-data-item-box">
-                {selectedRec.iconLeft}
+            {generatedKit ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <span style={{ fontSize: "11px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "1.5px", color: "#8A9FC2" }}>
+                    👉 Curated for your trip
+                  </span>
+                  <h4 className="font-plus-jakarta" style={{ fontSize: "22px", fontWeight: "800", margin: "4px 0 0 0", color: "#FFFFFF", letterSpacing: "-0.5px" }}>
+                    🧳 Your Travel Kit
+                  </h4>
+                  <span style={{ fontSize: "13px", color: "#8A9FC2" }}>
+                    ({generatedKit.who} • {generatedKit.duration})
+                  </span>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", margin: "4px 0" }}>
+                  {generatedKit.items.map((item, idx) => (
+                    <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "6px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <span style={{ fontSize: "16px" }}>
+                          {item.icon}
+                        </span>
+                        <span style={{ fontSize: "13px", fontWeight: "500", color: "#FFFFFF" }}>{item.name}</span>
+                      </div>
+                      <span style={{ fontSize: "12px", fontWeight: "700", color: "#818cf8", background: "rgba(99, 102, 241, 0.15)", padding: "1px 6px", borderRadius: "4px" }}>
+                        {item.quantity}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <button 
+                  className="btn-ai-trigger-generate font-inter" 
+                  style={{ width: "100%", marginTop: "8px", background: "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)", justifyContent: "center" }}
+                  onClick={handleAddAllToCart}
+                  disabled={addingToCart}
+                >
+                  <span>{addingToCart ? "Adding to Cart..." : "Add All to Cart"}</span>
+                  {!addingToCart && <ArrowRight size={16} />}
+                </button>
               </div>
-              <div className="mockup-data-item-box">
-                {selectedRec.iconRight}
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px", justifyContent: "center", height: "100%", minHeight: "220px", textAlign: "center", alignItems: "center" }}>
+                <div style={{ fontSize: "36px" }}>🧳</div>
+                <h4 className="font-plus-jakarta" style={{ fontSize: "18px", fontWeight: "700", margin: 0, color: "#FFFFFF" }}>
+                  Your travel kit will appear here
+                </h4>
+                <p style={{ fontSize: "13px", color: "#8A9FC2", margin: 0, maxWidth: "280px", lineHeight: "1.4" }}>
+                  Select your journey constraints on the left and click "Create My Travel Kit".
+                </p>
               </div>
-            </div>
+            )}
           </div>
         </div>
-      </section> */}
+      </section>
 
       {/* MERCHANDISE SHOWCASE NEW ARRIVALS GRID */}
       <section className="home-section-container">
@@ -397,12 +558,25 @@ function Home() {
           className="engagement-closing-banner-card"
           style={{ backgroundImage: "url('https://images.unsplash.com/photo-1506012787146-f92b2d7d6d96?w=1200&auto=format&fit=crop&q=80')" }}
         >
-          <div className="engagement-card-content font-inter">
-            <span className="engagement-tag-pill">TravelKart Gold Membership</span>
-            <h2 className="engagement-card-title font-plus-jakarta">Go Gold.<br />Travel Without Limits.</h2>
-            <p className="engagement-card-description">Upgrade to Gold Membership today to unlock elite benefits: absolutely free delivery charges on all orders, guaranteed 2-day delivery, and early access to premium travel collections.</p>
-            <button className="btn-engagement-action" onClick={() => window.location.href = "/signup"}>Upgrade to Gold</button>
-          </div>
+          {isGold ? (
+            <div className="engagement-card-content font-inter">
+              <span className="engagement-tag-pill" style={{ background: "rgba(212, 175, 55, 0.2)", color: "#FFD700", border: "1px solid rgba(212, 175, 55, 0.4)" }}>
+                ★ TravelKart Gold Explorer
+              </span>
+              <h2 className="engagement-card-title font-plus-jakarta">You're Premium.<br />Enjoy the Gold Privilege.</h2>
+              <p className="engagement-card-description">Your active Gold Membership unlocks all travel upgrades: zero delivery fees, priority 2-day shipping, and early access to limited luxury collections. Happy exploring!</p>
+              <button className="btn-engagement-action" style={{ background: "linear-gradient(135deg, #FFD700 0%, #FFA500 100%)", color: "#001B54" }} onClick={() => window.location.href = "/shop"}>
+                Shop Gold Collection
+              </button>
+            </div>
+          ) : (
+            <div className="engagement-card-content font-inter">
+              <span className="engagement-tag-pill">TravelKart Gold Membership</span>
+              <h2 className="engagement-card-title font-plus-jakarta">Go Gold.<br />Travel Without Limits.</h2>
+              <p className="engagement-card-description">Upgrade to Gold Membership today to unlock elite benefits: absolutely free delivery charges on all orders, guaranteed 2-day delivery, and early access to premium travel collections.</p>
+              <button className="btn-engagement-action" onClick={() => window.location.href = "/signup"}>Upgrade to Gold</button>
+            </div>
+          )}
         </div>
       </section>
 

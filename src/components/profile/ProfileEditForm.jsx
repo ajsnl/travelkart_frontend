@@ -38,6 +38,14 @@ const ProfileEditForm = ({ user, onSubmit, onClose }) => {
     return `${year}-${month}-${day}`;
   };
 
+  const getDobMaxStr = () => {
+    const today = new Date();
+    const year = today.getFullYear() - 13;
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -53,10 +61,30 @@ const ProfileEditForm = ({ user, onSubmit, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // First / Last Name validation
+    const nameRegex = /^[A-Za-z\s]+$/;
+    if (form.first_name && !nameRegex.test(form.first_name.trim())) {
+      toast.error("First name must contain only letters and spaces");
+      return;
+    }
+    if (form.last_name && !nameRegex.test(form.last_name.trim())) {
+      toast.error("Last name must contain only letters and spaces");
+      return;
+    }
+
+    // Phone validation
+    const phoneRegex = /^\d{10}$/;
+    if (form.phone && !phoneRegex.test(form.phone)) {
+      toast.error("Phone number must be exactly 10 digits");
+      return;
+    }
+
+    // DOB validation
     if (form.dob) {
-      const todayStr = getTodayStr();
-      if (form.dob > todayStr) {
-        toast.error("Date of Birth cannot be in the future");
+      const dobMaxStr = getDobMaxStr();
+      if (form.dob > dobMaxStr) {
+        toast.error("You must be at least 13 years old");
         return;
       }
     }
@@ -185,7 +213,7 @@ const ProfileEditForm = ({ user, onSubmit, onClose }) => {
                 type="date"
                 value={form.dob}
                 onChange={handleChange}
-                max={getTodayStr()}
+                max={getDobMaxStr()}
                 className={`form-input ${fieldErrors.dob ? "error-border" : ""}`}
               />
               {fieldErrors.dob && (

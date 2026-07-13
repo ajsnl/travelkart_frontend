@@ -78,24 +78,13 @@ export default function Categories() {
   const [loading, setLoading] = useState(true);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
 
-  // Fetch Categories on mount
+  // Fetch Categories on mount (only once)
   useEffect(() => {
     const loadCategories = async () => {
       setCategoriesLoading(true);
       try {
         const res = await fetchCategories({ page_size: 100 });
-        const categoriesList = res.data.results || [];
-        setCategories(categoriesList);
-
-        // If a category slug query exists in the URL, match and select it
-        if (catQuery && categoriesList.length > 0) {
-          const matched = categoriesList.find(
-            (c) => c.slug.toLowerCase() === catQuery.toLowerCase()
-          );
-          if (matched) {
-            setSelectedCategory(matched);
-          }
-        }
+        setCategories(res.data.results || []);
       } catch (err) {
         console.error("Error fetching categories:", err);
       } finally {
@@ -103,7 +92,23 @@ export default function Categories() {
       }
     };
     loadCategories();
-  }, [catQuery]);
+  }, []);
+
+  // Sync selectedCategory with catQuery URL param on navigation
+  useEffect(() => {
+    if (categories.length > 0) {
+      if (catQuery) {
+        const matched = categories.find(
+          (c) => c.slug.toLowerCase() === catQuery.toLowerCase()
+        );
+        setSelectedCategory(matched || null);
+      } else {
+        setSelectedCategory(null);
+      }
+    } else if (!categoriesLoading) {
+      setSelectedCategory(null);
+    }
+  }, [catQuery, categories, categoriesLoading]);
 
   // Fetch Brands on mount
   useEffect(() => {
@@ -156,7 +161,7 @@ export default function Categories() {
     } else {
       newParams.delete("cat");
     }
-    setSearchParams(newParams, { replace: true });
+    setSearchParams(newParams);
   };
 
 

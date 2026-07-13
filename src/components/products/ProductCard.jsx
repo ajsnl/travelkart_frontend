@@ -76,22 +76,29 @@ export default function ProductCard({ product }) {
   const getProductImage = (targetVariant) => {
     if (!product) return "";
     
-    // 1. Try target variant's primary image
-    if (targetVariant && targetVariant.images && targetVariant.images.length > 0) {
+    // 1. If targetVariant is NOT the default primaryVariant and has images (explicit color select), use variant images
+    if (targetVariant && targetVariant !== primaryVariant && targetVariant.images && targetVariant.images.length > 0) {
       const primaryVarImg = targetVariant.images.find(img => img.is_primary);
       if (primaryVarImg) return primaryVarImg.image_url;
       return targetVariant.images[0].image_url;
     }
     
-    // 2. Try general primary image
+    // 2. Try general primary image (set by admin)
     const primaryGeneral = (product.images || []).find(img => img.is_primary && !img.variant);
     if (primaryGeneral) return primaryGeneral.image_url;
 
-    // 3. Try general fallback image
+    // 3. Fallback to target variant's primary or first image
+    if (targetVariant && targetVariant.images && targetVariant.images.length > 0) {
+      const primaryVarImg = targetVariant.images.find(img => img.is_primary);
+      if (primaryVarImg) return primaryVarImg.image_url;
+      return targetVariant.images[0].image_url;
+    }
+ 
+    // 4. Try general fallback image
     const generalImg = (product.images || []).find(img => !img.variant);
     if (generalImg) return generalImg.image_url;
-
-    // 4. Try any active variant images
+ 
+    // 5. Try any active variant images
     for (const variant of activeVariants) {
       if (variant.images && variant.images.length > 0) {
         return variant.images[0].image_url;

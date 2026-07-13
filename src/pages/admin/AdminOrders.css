@@ -469,3 +469,48 @@
   background-color: #2a3b56;
   border-radius: 3px;
 }
+
+/* CONTROLS FILTERS DRILL BAR ROW */
+.controls-bar-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.filter-select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.filter-leading-icon {
+  position: absolute;
+  left: 16px;
+  color: var(--admin-text-dimmed);
+  pointer-events: none;
+}
+
+.custom-filter-dropdown {
+  height: 44px;
+  background-color: #050811;
+  border: 1px solid var(--admin-border-gray);
+  border-radius: 8px;
+  padding: 0 40px 0 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--admin-text-dimmed);
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: all 0.2s ease;
+}
+
+.filter-select-wrapper .custom-filter-dropdown {
+  padding-left: 44px;
+}
+
+.custom-filter-dropdown:focus, .custom-filter-dropdown:hover {
+  border-color: #334155;
+  color: var(--admin-text-main);
+}

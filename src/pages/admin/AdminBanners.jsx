@@ -254,7 +254,7 @@ const AdminBanners = () => {
   };
 
   return (
-    <div className="admin-banners-page">
+    <div className="admin-container admin-banners-page">
       {/* HEADER SECTION */}
       <div className="banners-header-row">
         <div>
@@ -268,45 +268,45 @@ const AdminBanners = () => {
       </div>
 
       {/* STATS MATRIX SUMMARY */}
-      <div className="banners-stats-grid">
-        <div className="banner-stat-card">
-          <div className="stat-icon-wrapper blue">
-            <Layers size={20} />
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-card-row">
+            <div className="stat-icon-wrapper blue">
+              <Layers size={18} />
+            </div>
           </div>
-          <div className="stat-content">
-            <span className="stat-label">Total Banners</span>
-            <h3 className="stat-value">{stats.total_banners}</h3>
-          </div>
+          <span className="stat-label uppercase font-inter">Total Banners</span>
+          <span className="stat-value font-plus-jakarta">{stats.total_banners}</span>
         </div>
 
-        <div className="banner-stat-card">
-          <div className="stat-icon-wrapper green">
-            <CheckCircle size={20} />
+        <div className="stat-card">
+          <div className="stat-card-row">
+            <div className="stat-icon-wrapper green">
+              <CheckCircle size={18} />
+            </div>
           </div>
-          <div className="stat-content">
-            <span className="stat-label">Active Advertisements</span>
-            <h3 className="stat-value">{stats.active_banners}</h3>
-          </div>
+          <span className="stat-label uppercase font-inter">Active Advertisements</span>
+          <span className="stat-value font-plus-jakarta">{stats.active_banners}</span>
         </div>
 
-        <div className="banner-stat-card">
-          <div className="stat-icon-wrapper purple">
-            <ImageIcon size={20} />
+        <div className="stat-card">
+          <div className="stat-card-row">
+            <div className="stat-icon-wrapper purple">
+              <ImageIcon size={18} />
+            </div>
           </div>
-          <div className="stat-content">
-            <span className="stat-label">Hero Slot Banners</span>
-            <h3 className="stat-value">{stats.hero_banners}</h3>
-          </div>
+          <span className="stat-label uppercase font-inter">Hero Slot Banners</span>
+          <span className="stat-value font-plus-jakarta">{stats.hero_banners}</span>
         </div>
 
-        <div className="banner-stat-card">
-          <div className="stat-icon-wrapper orange">
-            <ExternalLink size={20} />
+        <div className="stat-card">
+          <div className="stat-card-row">
+            <div className="stat-icon-wrapper orange">
+              <ExternalLink size={18} />
+            </div>
           </div>
-          <div className="stat-content">
-            <span className="stat-label">Bottom Promo Banners</span>
-            <h3 className="stat-value">{stats.bottom_banners}</h3>
-          </div>
+          <span className="stat-label uppercase font-inter">Bottom Promo Banners</span>
+          <span className="stat-value font-plus-jakarta">{stats.bottom_banners}</span>
         </div>
       </div>
 
@@ -462,6 +462,11 @@ const AdminBanners = () => {
           </>
         )}
       </div>
+
+      {/* FOOTER ANCHOR */}
+      <footer className="admin-footer-branding font-inter">
+        <span>© 2026 TravelKart. All Rights Reserved.</span>
+      </footer>
 
       {/* CREATE & EDIT DIALOG MODAL */}
       {isModalOpen && (

@@ -57,6 +57,7 @@ const AdminCategory = () => {
   const [currentId, setCurrentId] = useState(null);
 
   const [allCategories, setAllCategories] = useState([]);
+  const [filterType, setFilterType] = useState("all");
   
   // Form State
   const [formData, setFormData] = useState({
@@ -75,6 +76,7 @@ const AdminCategory = () => {
       const res = await adminFetchCategories({
         search,
         page,
+        type: filterType === "all" ? undefined : filterType,
       });
       setCategories(res.data.results);
       setCount(res.data.count);
@@ -97,12 +99,12 @@ const AdminCategory = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [search]);
+  }, [search, filterType]);
 
   useEffect(() => {
     loadCategories();
     fetchAllCategories();
-  }, [search, page]);
+  }, [search, page, filterType]);
 
   // Handle Input Changes
   const handleInputChange = (e) => {
@@ -308,6 +310,57 @@ const AdminCategory = () => {
             {allCategories.filter(c => c.parent).length.toLocaleString()}
           </span>
         </div>
+      </div>
+ 
+      {/* FILTERS PANEL */}
+      <div className="product-filters-row font-inter" style={{
+        display: 'flex',
+        gap: '16px',
+        backgroundColor: '#0A0F1D',
+        border: '1px solid var(--admin-border-gray)',
+        borderRadius: '12px',
+        padding: '16px 20px',
+        marginBottom: '20px',
+        alignItems: 'center'
+      }}>
+        <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '200px' }}>
+          <label className="form-field-label" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Category Type</label>
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="form-field-input"
+            style={{ width: '100%', height: '38px', padding: '0 12px' }}
+          >
+            <option value="all">All</option>
+            <option value="category">Category</option>
+            <option value="subcategory">Sub Category</option>
+          </select>
+        </div>
+        
+        {filterType !== "all" && (
+          <button
+            type="button"
+            onClick={() => setFilterType("all")}
+            className="btn-cancel font-inter"
+            style={{
+              height: '38px',
+              alignSelf: 'flex-end',
+              padding: '0 16px',
+              fontSize: '12px',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              border: '1px dashed #ef4444',
+              color: '#ef4444',
+              borderRadius: '8px',
+              backgroundColor: 'transparent',
+              cursor: 'pointer'
+            }}
+          >
+            Reset Filters
+          </button>
+        )}
       </div>
 
       {/* CORE DATA TABLE MODULE WRAPPER */}

@@ -71,7 +71,25 @@ function Signup() {
     return `${year}-${month}-${day}`;
   };
 
+  const getDobMaxStr = () => {
+    const today = new Date();
+    const year = today.getFullYear() - 13;
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const validateForm = () => {
+    const nameRegex = /^[A-Za-z\s]+$/;
+    if (formData.first_name && !nameRegex.test(formData.first_name.trim())) {
+      toast.error("First name must contain only letters and spaces");
+      return false;
+    }
+    if (formData.last_name && !nameRegex.test(formData.last_name.trim())) {
+      toast.error("Last name must contain only letters and spaces");
+      return false;
+    }
+
     if (formData.password !== formData.confirm_password) {
       toast.error("Passwords do not match");
       return false;
@@ -86,9 +104,9 @@ function Signup() {
       return false;
     }
     if (formData.dob) {
-      const todayStr = getTodayStr();
-      if (formData.dob > todayStr) {
-        toast.error("Date of Birth cannot be in the future");
+      const dobMaxStr = getDobMaxStr();
+      if (formData.dob > dobMaxStr) {
+        toast.error("You must be at least 13 years old to register");
         return false;
       }
     }
@@ -228,7 +246,7 @@ function Signup() {
                   required
                   value={formData.dob}
                   onChange={handleChange}
-                  max={getTodayStr()}
+                  max={getDobMaxStr()}
                   className="signup-input-field"
                 />
               </div>
