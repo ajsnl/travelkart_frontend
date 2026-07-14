@@ -1,0 +1,123 @@
+/* Sales Report styling layout */
+.reports-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.reports-page-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--admin-text-main);
+  margin: 0;
+  letter-spacing: -1px;
+}
+
+.reports-page-subtitle {
+  font-size: 14px;
+  color: var(--admin-text-dimmed);
+  margin: 4px 0 0 0;
+}
+
+.btn-export-pdf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  background-color: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #EF4444;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-export-pdf:hover {
+  background-color: #EF4444;
+  color: #FFF;
+}
+
+.btn-export-excel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  background-color: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10B981;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-export-excel:hover {
+  background-color: #10B981;
+  color: #FFF;
+}
+
+.reports-filter-card {
+  background-color: var(--admin-surface-card);
+  border: 1px solid var(--admin-border-gray);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.reports-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+  align-items: flex-end;
+}
+
+.filter-input-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94A3B8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.reports-select, .reports-date-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  background-color: #050811;
+  border: 1px solid var(--admin-border-gray);
+  border-radius: 8px;
+  color: #FFF;
+  font-size: 14px;
+  outline: none;
+  font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
+}
+
+.reports-select:focus, .reports-date-input:focus {
+  border-color: var(--figma-standard-blue);
+}
+
+.btn-fetch-report {
+  height: 40px;
+  padding: 0 20px;
+  background-color: var(--figma-standard-blue);
+  color: #FFF;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-fetch-report:hover {
+  background-color: #2563EB;
+}

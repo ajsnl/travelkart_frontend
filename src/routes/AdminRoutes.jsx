@@ -8,6 +8,8 @@ import AdminProduct from "../pages/admin/AdminProduct";
 import AdminOrders from "../pages/admin/AdminOrders";
 import AdminCoupons from "../pages/admin/AdminCoupons";
 import AdminBanners from "../pages/admin/AdminBanners";
+import AdminUsers from "../pages/admin/AdminUsers";
+import AdminSalesReport from "../pages/admin/AdminSalesReport";
 
 export default function AdminRoutes() {
   return (
@@ -20,11 +22,13 @@ export default function AdminRoutes() {
         }
       >
         <Route index element={<AdminDashboard />} />
+        <Route path="users" element={<AdminUsers />} />
         <Route path="categories" element={<AdminCategory />} />
         <Route path="products" element={<AdminProduct />} />
         <Route path ="orders" element={<AdminOrders/>} />
         <Route path="coupons" element={<AdminCoupons/>} />
         <Route path="banners" element={<AdminBanners/>} />
+        <Route path="sales-report" element={<AdminSalesReport />} />
       </Route>
     </Routes>
   );

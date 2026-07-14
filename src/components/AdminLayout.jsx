@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LogOut, Bell, Search, Users, FolderTree, Box, ShoppingBag, Ticket, Image } from "lucide-react";
+import { LogOut, Bell, Search, Users, FolderTree, Box, ShoppingBag, Ticket, Image, LayoutDashboard, TrendingUp } from "lucide-react";
 import { logoutUser } from "../services/authService";
 import TravelKartLogoMain from "./brand/TravelKartLogoMain";
 import "./AdminLayout.css";
@@ -155,6 +155,13 @@ const AdminLayout = () => {
               to="/admin" 
               className={`sidebar-nav-item ${location.pathname === "/admin" ? "active" : ""}`}
             >
+              <LayoutDashboard size={18} />
+              <span>Dashboard</span>
+            </Link>
+            <Link 
+              to="/admin/users" 
+              className={`sidebar-nav-item ${location.pathname.includes("users") ? "active" : ""}`}
+            >
               <Users size={18} />
               <span>Users</span>
             </Link>
@@ -192,6 +199,13 @@ const AdminLayout = () => {
             >
               <Image size={18} />
               <span>Banners</span>
+            </Link>
+            <Link 
+              to="/admin/sales-report" 
+              className={`sidebar-nav-item ${location.pathname.includes("sales-report") ? "active" : ""}`}
+            >
+              <TrendingUp size={18} />
+              <span>Sales Report</span>
             </Link>
           </nav>
         </aside>

@@ -34,3 +34,11 @@ export const approveItemReturn = (itemId) => {
 export const rejectItemReturn = (itemId) => {
   return api.post(`admin/order-items/${itemId}/reject-return/`);
 };
+
+export const fetchDashboardStats = (params) => {
+  return api.get("admin/dashboard-stats/", { params });
+};
+
+export const fetchSalesReport = (params) => {
+  return api.get("admin/sales-report/", { params });
+};
