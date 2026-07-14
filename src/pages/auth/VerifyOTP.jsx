@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import { BASE_URL } from "../../api/axios";
 
 import "./VerifyOTP.css";
 // Shares the exact same background image composition as your forgot password file
@@ -29,7 +30,7 @@ function VerifyOTP() {
     if (!confirmed) return;
 
     try {
-      await axios.post("http://localhost:8000/api/auth/verify-forgot-otp/", {
+      await axios.post(`${BASE_URL}/api/auth/verify-forgot-otp/`, {
         email: email || "",
         otp,
       });

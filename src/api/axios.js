@@ -1,10 +1,22 @@
 import axios from "axios";
 
+const getBaseURL = () => {
+  const hostname = window.location.hostname;
+  if (hostname.includes("devtunnels.ms")) {
+    const newHostname = hostname.replace("-5173", "-8000");
+    return `https://${newHostname}`;
+  }
+  if (hostname !== "localhost" && hostname !== "127.0.0.1" && !hostname.includes("devtunnels.ms")) {
+    return `http://${hostname}:8000`;
+  }
+  return "http://localhost:8000";
+};
 
+export const BASE_URL = getBaseURL();
 
 const api = axios.create({
-  baseURL: "http://localhost:8000/api",
-  withCredentials: true, // 
+  baseURL: `${BASE_URL}/api`,
+  withCredentials: true,
 });
 
 // CSRF config
@@ -17,7 +29,7 @@ let csrfRequestPromise = null;
 const fetchCsrfToken = () => {
   if (!csrfRequestPromise) {
     // Use the clean global axios instance to bypass custom interceptors and prevent deadlock/recursion
-    csrfRequestPromise = axios.get("http://localhost:8000/api/auth/csrf/", { withCredentials: true })
+    csrfRequestPromise = axios.get(`${BASE_URL}/api/auth/csrf/`, { withCredentials: true })
       .catch((err) => {
         console.error("Error fetching CSRF token", err);
       })

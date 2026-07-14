@@ -17,6 +17,8 @@ import Checkout from "../pages/Checkout";
 import OrderTracking from "../pages/OrderTracking";
 import MyOrders from "../pages/MyOrders";
 import PaymentError from "../pages/PaymentError";
+import PlaceholderPage from "../pages/PlaceholderPage";
+
 
 
 
@@ -99,6 +101,12 @@ export default function UserRoutes() {
       <Route path="/categories" element={<Categories />} />
       <Route path="/shop" element={<Categories />} />
       <Route path="/product/:id" element={<ProductDetail />} />
+       {/* Footer corporate links mapping */}
+      <Route path="/help" element={<PlaceholderPage />} />
+      <Route path="/returns" element={<PlaceholderPage />} />
+      <Route path="/about" element={<PlaceholderPage />} />
+      <Route path="/privacy" element={<PlaceholderPage />} />
+      <Route path="/terms" element={<PlaceholderPage />} />
     </Routes>
   );
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import { BASE_URL } from "../../api/axios";
 
 import "./ForgotPassword.css";
 import forgotBg from "../../assets/images/forgotpasswordpage.png";
@@ -25,7 +26,7 @@ function ForgotPassword() {
     setLoading(true);
 
     try {
-      await axios.post("http://localhost:8000/api/auth/forgot-password/", {
+      await axios.post(`${BASE_URL}/api/auth/forgot-password/`, {
         email,
       });
 

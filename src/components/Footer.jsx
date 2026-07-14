@@ -42,7 +42,7 @@ export default function Footer() {
         <div className="footer-links-column">
           <span className="footer-column-heading">Support</span>
           <Link to="/help" className="footer-anchor-link">Help Center</Link>
-          <Link to="/shipping" className="footer-anchor-link">Track Orders</Link>
+          <Link to="/orders" className="footer-anchor-link">Track Orders</Link>
           <Link to="/returns" className="footer-anchor-link">Returns Policy</Link>
         </div>
 

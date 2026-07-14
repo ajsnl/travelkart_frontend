@@ -853,6 +853,7 @@ const AdminOrders = () => {
                               }
                             }
                           }}
+                          disabled={selectedOrder.status === "returned" || selectedOrder.status === "cancelled"}
                           className="modal-select-field"
                         >
                           <option value="processing" disabled={selectedOrder.status === "delivered"}>Processing</option>

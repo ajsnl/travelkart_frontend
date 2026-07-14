@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
+import { BASE_URL } from "../../api/axios";
 import { toast } from "react-toastify";
 import { useCustomDialog } from "../../components/CustomDialog";
 
@@ -48,7 +49,7 @@ function ResetPassword() {
       setLoading(true);
 
       await axios.post(
-        "http://localhost:8000/api/auth/reset-password/",
+        `${BASE_URL}/api/auth/reset-password/`,
         {
           email,
           new_password: newPassword,

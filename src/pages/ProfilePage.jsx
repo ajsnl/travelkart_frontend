@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { BASE_URL } from "../api/axios";
 import { 
   LayoutDashboard, 
   Settings, 
@@ -209,7 +210,7 @@ const ProfilePage = () => {
     if (!user || !user.profile_picture) return "https://cdn-icons-png.flaticon.com/512/149/149071.png";
     let url = user.profile_picture;
     if (!url.startsWith("http://") && !url.startsWith("https://")) {
-      url = `http://localhost:8000${url.startsWith("/") ? "" : "/"}${url}`;
+      url = `${BASE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
     }
     const ts = user.updated_at ? new Date(user.updated_at).getTime() : new Date().getTime();
     return `${url}?t=${ts}`;
