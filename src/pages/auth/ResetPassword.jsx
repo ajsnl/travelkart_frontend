@@ -15,6 +15,7 @@ function ResetPassword() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resetCompleted, setResetCompleted] = useState(false);
 
   const navigate = useNavigate();
   const { showConfirm } = useCustomDialog();
@@ -22,11 +23,12 @@ function ResetPassword() {
   const otpVerified = localStorage.getItem("otpVerified");
 
   useEffect(() => {
+    if (resetCompleted) return;
     if (!email || otpVerified !== "true") {
       toast.error("Access denied. Please verify OTP first.");
       navigate("/forgot-password");
     }
-  }, [email, otpVerified, navigate]);
+  }, [email, otpVerified, navigate, resetCompleted]);
 
   const handleReset = async (e) => {
     e.preventDefault();
@@ -61,9 +63,10 @@ function ResetPassword() {
       );
 
       toast.success("Password reset successful 🎉");
+      setResetCompleted(true);
       localStorage.removeItem("resetEmail");
       localStorage.removeItem("otpVerified");
-      navigate("/");
+      navigate("/login");
     } catch (err) {
       toast.error(err.response?.data?.error || "Reset failed ❌");
     } finally {
