@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { BASE_URL } from "../../api/axios";
+import { Loader2 } from "lucide-react";
 
 import "./ForgotPassword.css";
 import forgotBg from "../../assets/images/forgotpasswordpage.png";
@@ -96,8 +97,9 @@ function ForgotPassword() {
 
             {/* Event Submission Processing buttons element */}
             <div style={{ marginTop: '8px' }}>
-              <button type="submit" className="forgot-submit-btn" disabled={loading}>
-                <span>{loading ? "Sending Link..." : "Send Reset Link"}</span>
+              <button type="submit" className="forgot-submit-btn" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                {loading && <Loader2 className="animate-spin" size={18} />}
+                <span>{loading ? "Sending OTP..." : "Send Reset Link"}</span>
                 {!loading && <span style={{ fontSize: '18px', lineHeight: 1 }}>→</span>}
               </button>
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, useNavigate, Link, useLocation } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react";
 import { loginUser, getCurrentUser, googleLogin } from "../../services/authService";
 import { setUser } from "../../features/auth/authSlice";
 import { GoogleLogin } from "@react-oauth/google";
@@ -150,9 +150,10 @@ function Login() {
                 </div>
               </div>
 
-              <button type="submit" className="login-submit-btn">
-                <span>Sign In</span>
-                <span style={{ fontSize: '20px', lineHeight: 1 }}>→</span>
+              <button type="submit" className="login-submit-btn" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                {loading && <Loader2 className="animate-spin" size={18} />}
+                <span>{loading ? "Signing In..." : "Sign In"}</span>
+                {!loading && <span style={{ fontSize: '20px', lineHeight: 1 }}>→</span>}
               </button>
             </form>
 

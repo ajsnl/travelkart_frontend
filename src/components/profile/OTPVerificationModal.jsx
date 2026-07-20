@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { resendEmailOTP } from "../../services/authService";
-import { ShieldCheck, RefreshCw } from "lucide-react";
+import { ShieldCheck, RefreshCw, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useCustomDialog } from "../CustomDialog";
 
@@ -9,6 +9,7 @@ const OTPVerificationModal = ({ email, onSubmit, onClose }) => {
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [resending, setResending] = useState(false);
   const { showConfirm } = useCustomDialog();
   
   // Timer for resend cooldown (60 seconds)
@@ -47,10 +48,11 @@ const OTPVerificationModal = ({ email, onSubmit, onClose }) => {
   };
 
   const handleResend = async () => {
-    if (cooldown > 0) return;
+    if (cooldown > 0 || resending) return;
     
     setError("");
     setSuccessMsg("");
+    setResending(true);
     try {
       await resendEmailOTP();
       setSuccessMsg("Verification code resent successfully!");
@@ -60,6 +62,8 @@ const OTPVerificationModal = ({ email, onSubmit, onClose }) => {
       console.error("Resend OTP error:", err);
       toast.error("Resend OTP error",err)
       setError(err.response?.data?.error || "Failed to resend verification code.");
+    } finally {
+      setResending(false);
     }
   };
 
@@ -123,20 +127,26 @@ const OTPVerificationModal = ({ email, onSubmit, onClose }) => {
               <button
                 type="button"
                 onClick={handleResend}
+                disabled={resending}
                 style={{
                   background: "none",
                   border: "none",
                   color: "var(--accent-orange)",
                   fontWeight: 600,
-                  cursor: "pointer",
+                  cursor: resending ? "not-allowed" : "pointer",
                   padding: 0,
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "4px",
+                  opacity: resending ? 0.7 : 1,
                 }}
               >
-                <RefreshCw size={12} />
-                <span>Resend Code</span>
+                {resending ? (
+                  <Loader2 className="animate-spin" size={12} />
+                ) : (
+                  <RefreshCw size={12} />
+                )}
+                <span>{resending ? "Resending..." : "Resend Code"}</span>
               </button>
             )}
           </div>
@@ -154,10 +164,11 @@ const OTPVerificationModal = ({ email, onSubmit, onClose }) => {
             <button
               type="submit"
               className="form-btn save-btn"
-              style={{ flex: 1, height: "48px" }}
+              style={{ flex: 1, height: "48px", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
               disabled={submitting}
             >
-              {submitting ? "Verifying..." : "Verify Code"}
+              {submitting && <Loader2 className="animate-spin" size={16} />}
+              <span>{submitting ? "Verifying..." : "Verify Code"}</span>
             </button>
           </div>
         </form>

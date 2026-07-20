@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import axios from "axios";
 import { BASE_URL } from "../../api/axios";
 import { toast } from "react-toastify";
@@ -158,7 +158,8 @@ function ResetPassword() {
 
             {/* Verification Button Triggers */}
             <div style={{ marginTop: '8px' }}>
-              <button type="submit" className="reset-submit-btn" disabled={loading}>
+              <button type="submit" className="reset-submit-btn" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                {loading && <Loader2 className="animate-spin" size={18} />}
                 <span>{loading ? "Resetting..." : "Reset Password"}</span>
                 {!loading && <span style={{ fontSize: '18px', lineHeight: 1 }}>→</span>}
               </button>

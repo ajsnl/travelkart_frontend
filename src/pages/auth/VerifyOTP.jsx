@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { BASE_URL } from "../../api/axios";
+import { Loader2 } from "lucide-react";
 
 import "./VerifyOTP.css";
 // Shares the exact same background image composition as your forgot password file
@@ -11,6 +12,7 @@ import { useCustomDialog } from "../../components/CustomDialog";
 
 function VerifyOTP() {
   const [otp, setOtp] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { showConfirm } = useCustomDialog();
 
@@ -30,6 +32,7 @@ function VerifyOTP() {
     if (!confirmed) return;
 
     try {
+      setLoading(true);
       await axios.post(`${BASE_URL}/api/auth/verify-forgot-otp/`, {
         email: email || "",
         otp,
@@ -40,6 +43,8 @@ function VerifyOTP() {
       navigate("/reset-password");
     } catch (err) {
       toast.error(err.response?.data?.error || "Invalid OTP ❌");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -97,9 +102,10 @@ function VerifyOTP() {
 
             {/* Verification Button Triggers */}
             <div style={{ marginTop: '8px' }}>
-              <button type="submit" className="verify-submit-btn">
-                <span>Verify OTP</span>
-                <span style={{ fontSize: '18px', lineHeight: 1 }}>→</span>
+              <button type="submit" className="verify-submit-btn" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                {loading && <Loader2 className="animate-spin" size={18} />}
+                <span>{loading ? "Verifying OTP..." : "Verify OTP"}</span>
+                {!loading && <span style={{ fontSize: '18px', lineHeight: 1 }}>→</span>}
               </button>
 
               <Link to="/forgot-password" className="verify-back-link">

@@ -26,7 +26,7 @@ export default function Categories() {
   const [products, setProducts] = useState([]);
   const [brands, setBrands] = useState([]);
 
-  const [selectedCategory, setSelectedCategory] = useState(null); // Full category object
+  const [selectedCategory, setSelectedCategory] = useState(null); 
   const [selectedBrand, setSelectedBrand] = useState("");
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
   const [isFeaturedOnly, setIsFeaturedOnly] = useState(false);
@@ -123,6 +123,17 @@ export default function Categories() {
     loadBrands();
   }, []);
 
+  //creating deBounced min and max price for avoid instant trigger
+  const [debounceMinPrice,setDebounceMinPrice]=useState(minPrice)
+  const [debounceMaxPrice,setDebounceMaxPrice]=useState(maxPrice)
+  useEffect(()=>{
+    const timer=setTimeout(()=>{
+      setDebounceMinPrice(minPrice);
+      setDebounceMaxPrice(maxPrice);
+    },700)
+    return ()=> clearTimeout(timer)
+  },[minPrice,maxPrice]);
+
   // Fetch products when filters/page changes
   useEffect(() => {
     const loadProducts = async () => {
@@ -135,8 +146,8 @@ export default function Categories() {
           brand: selectedBrand || undefined,
           is_featured: isFeaturedOnly ? "true" : undefined,
           ordering: sortBy || undefined,
-          min_price: minPrice || undefined,
-          max_price: maxPrice || undefined,
+          min_price: debounceMinPrice || undefined,
+          max_price: debounceMaxPrice || undefined,
         };
         const res = await fetchProducts(params);
         setProducts(res.data.results || []);
@@ -149,7 +160,9 @@ export default function Categories() {
       }
     };
     loadProducts();
-  }, [selectedCategory, selectedBrand, searchQuery, isFeaturedOnly, sortBy, minPrice, maxPrice, page]);
+  }, [selectedCategory, selectedBrand, searchQuery, isFeaturedOnly, debounceMaxPrice,debounceMinPrice, sortBy, page]);
+
+
 
   // Handle category selection
   const handleCategorySelect = (category) => {

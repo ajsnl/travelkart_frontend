@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, Navigate, useSearchParams } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { signupUser, googleLogin, getCurrentUser } from "../../services/authService";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "../../features/auth/authSlice";
@@ -324,8 +324,9 @@ function Signup() {
               </div>
             </div>
 
-            <button type="submit" className="signup-submit-btn">
-              Create Account
+            <button type="submit" className="signup-submit-btn" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              {loading && <Loader2 className="animate-spin" size={18} />}
+              <span>{loading ? "Creating Account..." : "Create Account"}</span>
             </button>
           </form>
 

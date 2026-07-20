@@ -73,6 +73,18 @@ api.interceptors.request.use(
 
 
 let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 api.interceptors.response.use(
   (response) => response,
@@ -103,9 +115,18 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    //  prevent multiple refresh calls
+    //  prevent multiple refresh calls by queueing concurrent requests
     if (isRefreshing) {
-      return Promise.reject(error);
+      return new Promise((resolve, reject) => {
+        failedQueue.push({
+          resolve: (token) => {
+            resolve(api(originalRequest));
+          },
+          reject: (err) => {
+            reject(err);
+          }
+        });
+      });
     }
 
     originalRequest._retry = true;
@@ -119,11 +140,13 @@ api.interceptors.response.use(
       isRefreshing = false;
 
       console.log(" Refresh success");
+      processQueue(null);
 
       return api(originalRequest);
 
     } catch (err) {
       isRefreshing = false;
+      processQueue(err);
 
       console.log(" Refresh failed → redirect login");
 
