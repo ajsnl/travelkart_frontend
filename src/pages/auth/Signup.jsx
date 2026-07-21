@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, Navigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { signupUser, googleLogin, getCurrentUser } from "../../services/authService";
+import { signupUser, googleLogin, getCurrentUser, sendSignupOTP, verifySignupOTP } from "../../services/authService";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "../../features/auth/authSlice";
 import { toast } from "react-toastify";
@@ -23,13 +23,7 @@ function Signup() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  if (!loading && isAuthenticated) {
-    if (user?.role === "admin") {
-      return <Navigate to="/admin" replace />;
-    }
-    return <Navigate to="/" replace />;
-  }
+  const [submitting, setSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -43,14 +37,45 @@ function Signup() {
     referral_code_used: refCodeParam || ""
   });
 
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [emailOtp, setEmailOtp] = useState("");
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+
+  useEffect(() => {
+    let timer;
+    if (countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [countdown]);
+
   useEffect(() => {
     if (refCodeParam) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData(prev => ({ ...prev, referral_code_used: refCodeParam }));
     }
   }, [refCodeParam]);
 
+  if (!loading && isAuthenticated) {
+    if (user?.role === "admin") {
+      return <Navigate to="/admin" replace />;
+    }
+    return <Navigate to="/" replace />;
+  }
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === "email") {
+      setEmailVerified(false);
+      setOtpSent(false);
+      setEmailOtp("");
+      setCountdown(0);
+    }
     setFormData((prev) => {
       const val = name === "referral_code_used" ? value.toUpperCase() : value;
       const updated = { ...prev, [name]: val };
@@ -63,13 +88,67 @@ function Signup() {
     });
   };
 
-  const getTodayStr = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
+    const getErrorMessage = (err, defaultMsg) => {
+    if (err.response?.data) {
+      const data = err.response.data;
+      if (typeof data === "string") return data;
+      if (typeof data === "object") {
+        if (data.error) {
+          return Array.isArray(data.error) ? data.error[0] : data.error;
+        }
+        if (data.email) {
+          return Array.isArray(data.email) ? data.email[0] : data.email;
+        }
+        const firstKey = Object.keys(data)[0];
+        if (firstKey) {
+          const val = data[firstKey];
+          return Array.isArray(val) ? val[0] : val;
+        }
+      }
+    }
+    return defaultMsg;
   };
+
+  const handleSendOTP = async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email || !emailRegex.test(formData.email.trim())) {
+      toast.error("Please enter a valid email address first");
+      return;
+    }
+
+    setOtpSending(true);
+    try {
+      await sendSignupOTP(formData.email.trim());
+      toast.success("Verification OTP sent to your email!");
+      setOtpSent(true);
+      setCountdown(60);
+    } catch (err) {
+      console.error("Error sending OTP:", err);
+       toast.error(getErrorMessage(err, "Failed to send OTP. Please try again."));
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (!emailOtp || emailOtp.length !== 6) {
+      toast.error("Please enter a 6-digit OTP");
+      return;
+    }
+
+    setOtpVerifying(true);
+    try {
+      await verifySignupOTP(formData.email.trim(), emailOtp);
+      toast.success("Email verified successfully! 🎉");
+      setEmailVerified(true);
+    } catch (err) {
+      console.error("Error verifying OTP:", err);
+      toast.error(getErrorMessage(err, "Invalid or expired OTP"));
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
+
 
   const getDobMaxStr = () => {
     const today = new Date();
@@ -120,6 +199,7 @@ function Signup() {
     const confirmed = await showConfirm("Are you sure you want to register?", "Register Account", "info");
     if (!confirmed) return;
 
+    setSubmitting(true);
     try {
       const res = await signupUser(formData);
       console.log(res.data);
@@ -170,6 +250,8 @@ function Signup() {
       } else {
         toast.error("Signup failed ❌");
       }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -264,8 +346,51 @@ function Signup() {
                   value={formData.email}
                   onChange={handleChange}
                   className="signup-input-field"
+                  style={{ paddingRight: emailVerified ? "120px" : "120px" }}
                 />
+                
+                <div style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center", zIndex: 10 }}>
+                  {emailVerified ? (
+                    <span style={{ color: "#10B981", fontWeight: "600", fontSize: "14px", display: "flex", alignItems: "center", gap: "4px" }}>
+                      ✓ Verified
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleSendOTP}
+                      disabled={otpSending || !formData.email || countdown > 0}
+                      className="signup-otp-btn"
+                    >
+                      {otpSending && <Loader2 className="animate-spin" size={12} />}
+                      {otpSent ? (countdown > 0 ? `${countdown}s` : "Resend") : "Send OTP"}
+                    </button>
+                  )}
+                </div>
               </div>
+
+              {otpSent && !emailVerified && (
+                <div className="signup-otp-verify-row">
+                  <div className="signup-input-container" style={{ flex: 1, height: "45px" }}>
+                    <input
+                      type="text"
+                      placeholder="Enter 6-digit OTP"
+                      value={emailOtp}
+                      maxLength={6}
+                      onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, ""))}
+                      className="signup-input-field"
+                      style={{ height: "100%", fontSize: "14px" }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleVerifyOTP}
+                    disabled={otpVerifying || emailOtp.length !== 6}
+                    className="signup-otp-verify-btn"
+                  >
+                    {otpVerifying ? <Loader2 className="animate-spin" size={16} /> : "Verify"}
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Field Capture Block: Password Entry */}
@@ -324,9 +449,9 @@ function Signup() {
               </div>
             </div>
 
-            <button type="submit" className="signup-submit-btn" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              {loading && <Loader2 className="animate-spin" size={18} />}
-              <span>{loading ? "Creating Account..." : "Create Account"}</span>
+            <button type="submit" className="signup-submit-btn" disabled={loading || submitting || !emailVerified} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              {(loading || submitting) && <Loader2 className="animate-spin" size={18} />}
+              <span>{submitting ? "Creating Account..." : loading ? "Loading..." : "Create Account"}</span>
             </button>
           </form>
 

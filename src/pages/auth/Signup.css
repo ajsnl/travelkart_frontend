@@ -296,3 +296,79 @@
   color: #757682;
   text-decoration: none;
 }
+
+.signup-submit-btn:disabled {
+  background-color: #A3A4AE;
+  color: #FFFFFF;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.signup-otp-btn {
+  background-color: #00236F;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.signup-otp-btn:hover:not(:disabled) {
+  background-color: #001D5C;
+}
+
+.signup-otp-btn:disabled {
+  background-color: #C0C2CC;
+  color: #757682;
+  cursor: not-allowed;
+}
+
+.signup-otp-verify-row {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  animation: slideDown 0.3s ease-out;
+}
+
+.signup-otp-verify-btn {
+  height: 45px;
+  background-color: #10B981;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.signup-otp-verify-btn:hover:not(:disabled) {
+  background-color: #059669;
+}
+
+.signup-otp-verify-btn:disabled {
+  background-color: #A3A4AE;
+  cursor: not-allowed;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

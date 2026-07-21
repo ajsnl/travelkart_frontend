@@ -22,6 +22,13 @@ export const signupUser = (data)=>{
     return api.post("auth/signup/",data);
 };
 
+export const sendSignupOTP = (email) => {
+  return api.post("auth/signup-otp/send/", { email });
+};
+export const verifySignupOTP = (email, otp) => {
+  return api.post("auth/signup-otp/verify/", { email, otp });
+};
+
 export const getProfile = () => {
   return api.get("auth/profile/");
 };

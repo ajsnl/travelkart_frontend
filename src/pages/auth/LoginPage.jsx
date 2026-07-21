@@ -20,9 +20,11 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       console.log("Logging in...");
       await loginUser({ email, password });
@@ -44,6 +46,8 @@ function Login() {
                            err.response?.data?.non_field_errors?.[0] || 
                            (err.response?.data && typeof err.response.data === "object" ? Object.values(err.response.data).flat()[0] : null);
       toast.error(backendError || "Login failed");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -150,10 +154,10 @@ function Login() {
                 </div>
               </div>
 
-              <button type="submit" className="login-submit-btn" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                {loading && <Loader2 className="animate-spin" size={18} />}
-                <span>{loading ? "Signing In..." : "Sign In"}</span>
-                {!loading && <span style={{ fontSize: '20px', lineHeight: 1 }}>→</span>}
+               <button type="submit" className="login-submit-btn" disabled={loading || submitting} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                {(loading || submitting) && <Loader2 className="animate-spin" size={18} />}
+                <span>{submitting ? "Signing In..." : loading ? "Loading..." : "Sign In"}</span>
+                {!loading && !submitting && <span style={{ fontSize: '20px', lineHeight: 1 }}>→</span>}
               </button>
             </form>
 

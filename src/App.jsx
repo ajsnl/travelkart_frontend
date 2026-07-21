@@ -54,6 +54,7 @@ function App() {
               }
             } catch (err) {
               // Not logged in, let them access guest page
+              dispatch(logout());
             }
           }
         } else if (isHybridRoute(location.pathname)) {
@@ -66,6 +67,7 @@ function App() {
               }
             } catch (err) {
               // Not logged in, keep as guest
+              dispatch(logout())
             }
           }
         } else {

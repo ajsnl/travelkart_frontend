@@ -134,6 +134,7 @@ const ProfilePage = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [sendingVerifyOTP, setSendingVerifyOTP] = useState(false)
 
   const fetchUser = async () => {
     try {
@@ -158,12 +159,15 @@ const ProfilePage = () => {
   };
 
   const handleStartVerification = async () => {
+    setSendingVerifyOTP(true);
     try {
       await sendEmailOTP();
       setShowVerifyModal(true);
     } catch (err) {
       console.error("Error initiating email verification:", err);
       await showAlert(err.response?.data?.error || "Failed to send verification OTP.", "Verification Error", "error");
+    }finally{
+      setSendingVerifyOTP(false)
     }
   };
 
@@ -305,8 +309,14 @@ const ProfilePage = () => {
                   <AlertCircle size={18} className="alert-strip-icon-accent" />
                   <span>Please verify your email to start purchasing premium travel gear.</span>
                 </div>
-                <button className="alert-strip-action-btn font-inter" onClick={handleStartVerification}>
-                  Verify Now
+                <button 
+                  className="alert-strip-action-btn font-inter" 
+                  onClick={handleStartVerification}
+                  disabled={sendingVerifyOTP}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+                >
+                  {sendingVerifyOTP && <Loader2 className="animate-spin" size={14} />}
+                  <span>{sendingVerifyOTP ? "Sending OTP..." : "Verify Now"}</span>
                 </button>
               </div>
             )}

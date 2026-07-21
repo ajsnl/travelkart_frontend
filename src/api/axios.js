@@ -1,6 +1,9 @@
 import axios from "axios";
 
 const getBaseURL = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+   }
   const hostname = window.location.hostname;
   if (hostname.includes("devtunnels.ms")) {
     const newHostname = hostname.replace("-5173", "-8000");

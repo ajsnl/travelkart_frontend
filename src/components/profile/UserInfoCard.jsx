@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 import { Edit2 } from "lucide-react";
 import { uploadProfileImage } from "../../services/authService";
 import { toast } from "react-toastify";
+import { BASE_URL } from "../../api/axios";
 
 const UserInfoCard = ({ user, onEdit, refreshUser }) => {
   const fileInputRef = useRef();
@@ -17,7 +18,7 @@ const UserInfoCard = ({ user, onEdit, refreshUser }) => {
     if (!user || !user.profile_picture) return "https://cdn-icons-png.flaticon.com/512/149/149071.png";
     let url = user.profile_picture;
     if (!url.startsWith("http://") && !url.startsWith("https://")) {
-      url = `http://localhost:8000${url.startsWith("/") ? "" : "/"}${url}`;
+      url = `${BASE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
     }
     const ts = user.updated_at ? new Date(user.updated_at).getTime() : new Date().getTime();
     return `${url}?t=${ts}`;
