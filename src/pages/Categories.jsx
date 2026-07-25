@@ -52,6 +52,7 @@ export default function Categories() {
   const urlSearchQuery = searchParams.get("search") || "";
   useEffect(() => {
     setSearchQuery(urlSearchQuery);
+    setPage(1);
   }, [urlSearchQuery]);
 
   // Debounce sync searchQuery state back to URL
@@ -141,7 +142,7 @@ export default function Categories() {
       try {
         const params = {
           page,
-          search: searchQuery || undefined,
+          search: urlSearchQuery || undefined,
           category: selectedCategory?.id || undefined,
           brand: selectedBrand || undefined,
           is_featured: isFeaturedOnly ? "true" : undefined,
@@ -160,7 +161,7 @@ export default function Categories() {
       }
     };
     loadProducts();
-  }, [selectedCategory, selectedBrand, searchQuery, isFeaturedOnly, debounceMaxPrice,debounceMinPrice, sortBy, page]);
+   }, [selectedCategory, selectedBrand, urlSearchQuery, isFeaturedOnly, debounceMaxPrice, debounceMinPrice, sortBy, page]);
 
 
 
@@ -280,7 +281,7 @@ export default function Categories() {
                 className="search-input-field"
               />
               {searchQuery && (
-                <button className="clear-search-btn" onClick={() => setSearchQuery("")}>
+                  <button className="clear-search-btn" onClick={() => { setSearchQuery(""); setPage(1); }}>
                   <X size={14} />
                 </button>
               )}
