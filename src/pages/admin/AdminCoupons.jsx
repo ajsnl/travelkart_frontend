@@ -10,7 +10,8 @@ import {
   Loader2, 
   Ticket, 
   Calendar,
-  Percent
+  Percent,
+  AlertCircle
 } from "lucide-react";
 import { 
   adminFetchCoupons, 
@@ -22,18 +23,21 @@ import { toast } from "react-toastify";
 import "./AdminCoupons.css";
 import { useCustomDialog } from "../../components/CustomDialog";
 
-const formatDateForTable = (dateString) => {
+// Helper: format dates nicely for the tables
+const formatTableDate = (dateString) => {
   if (!dateString) return "N/A";
   const date = new Date(dateString);
-  if (isNaN(date.getTime())) return "N/A";
-  return date.toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return isNaN(date.getTime()) 
+    ? "N/A" 
+    : date.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
 };
 
-const dateToLocalString = (dateString) => {
+// Helper: convert datetime strings for local form inputs
+const toLocalDateTimeString = (dateString) => {
   if (!dateString) return "";
   const date = new Date(dateString);
   const offset = date.getTimezoneOffset();
@@ -43,6 +47,9 @@ const dateToLocalString = (dateString) => {
 
 const AdminCoupons = () => {
   const { search } = useOutletContext();
+  const { showConfirm } = useCustomDialog();
+
+  // Core component states
   const [coupons, setCoupons] = useState([]);
   const [stats, setStats] = useState({
     total_active: 0,
@@ -51,19 +58,21 @@ const AdminCoupons = () => {
     expiring_soon: 0
   });
 
+  // pagination/ui states
   const [page, setPage] = useState(1);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
-  const { showConfirm } = useCustomDialog();
-
+  const [saving, setSaving] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("");
 
+  // Modal and form states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("create");
   const [currentId, setCurrentId] = useState(null);
+  const [errors, setErrors] = useState({});
 
-  const [formData, setFormData] = useState({
+  const initialFormState = {
     code: "",
     discount_type: "PERCENT",
     discount_value: "",
@@ -73,10 +82,9 @@ const AdminCoupons = () => {
     valid_from: "",
     valid_to: "",
     is_active: true
-  });
-  
-  const [errors, setErrors] = useState({});
-  const [saving, setSaving] = useState(false);
+  };
+
+  const [formData, setFormData] = useState(initialFormState);
 
   const loadCoupons = async () => {
     setLoading(true);
@@ -88,15 +96,11 @@ const AdminCoupons = () => {
         type: typeFilter || undefined
       });
       
-      if (res.data.results) {
-        setCoupons(res.data.results);
-        setCount(res.data.count);
-        if (res.data.stats) {
-          setStats(res.data.stats);
-        }
-      } else {
-        setCoupons(res.data.results || []);
-        setCount(0);
+      const { results, count: totalCount, stats: responseStats } = res.data || {};
+      setCoupons(results || []);
+      setCount(totalCount || 0);
+      if (responseStats) {
+        setStats(responseStats);
       }
     } catch (err) {
       console.error("Error loading coupons:", err);
@@ -114,19 +118,21 @@ const AdminCoupons = () => {
     loadCoupons();
   }, [page, search, statusFilter, typeFilter]);
 
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : name === "code" ? value.toUpperCase() : value
+    }));
+  };
+
   const handleOpenCreateModal = () => {
     setModalMode("create");
     setCurrentId(null);
     setFormData({
-      code: "",
-      discount_type: "PERCENT",
-      discount_value: "",
-      min_order_amount: "0",
-      max_discount: "",
-      usage_limit: "",
+      ...initialFormState,
       valid_from: new Date().toISOString().slice(0, 16),
-      valid_to: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
-      is_active: true
+      valid_to: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16)
     });
     setErrors({});
     setIsModalOpen(true);
@@ -142,8 +148,8 @@ const AdminCoupons = () => {
       min_order_amount: String(coupon.min_order_amount),
       max_discount: coupon.max_discount ? String(coupon.max_discount) : "",
       usage_limit: coupon.usage_limit ? String(coupon.usage_limit) : "",
-      valid_from: dateToLocalString(coupon.valid_from),
-      valid_to: dateToLocalString(coupon.valid_to),
+      valid_from: toLocalDateTimeString(coupon.valid_from),
+      valid_to: toLocalDateTimeString(coupon.valid_to),
       is_active: coupon.is_active
     });
     setErrors({});
@@ -153,23 +159,24 @@ const AdminCoupons = () => {
   const validateForm = () => {
     const tempErrors = {};
     if (!formData.code.trim()) tempErrors.code = "Coupon code is required.";
-    if (!formData.discount_value || isNaN(formData.discount_value) || Number(formData.discount_value) <= 0) {
-      tempErrors.discount_value = "Specify a valid positive discount value.";
-    }
     
-    if (formData.discount_type === "PERCENT" && Number(formData.discount_value) > 100) {
+    const valueNum = Number(formData.discount_value);
+    if (!formData.discount_value || isNaN(valueNum) || valueNum <= 0) {
+      tempErrors.discount_value = "Specify a valid positive discount value.";
+    } else if (formData.discount_type === "PERCENT" && valueNum > 100) {
       tempErrors.discount_value = "Percentage discount cannot exceed 100%.";
     }
 
-    if (!formData.min_order_amount || isNaN(formData.min_order_amount) || Number(formData.min_order_amount) < 0) {
+    const minAmount = Number(formData.min_order_amount);
+    if (!formData.min_order_amount || isNaN(minAmount) || minAmount < 0) {
       tempErrors.min_order_amount = "Specify a valid order threshold (min 0).";
     }
 
-    if (formData.max_discount && (isNaN(formData.max_discount) || Number(formData.max_discount) < 0)) {
+    if (formData.max_discount && (isNaN(Number(formData.max_discount)) || Number(formData.max_discount) < 0)) {
       tempErrors.max_discount = "Must be a positive number.";
     }
 
-    if (formData.usage_limit && (isNaN(formData.usage_limit) || Number(formData.usage_limit) <= 0)) {
+    if (formData.usage_limit && (isNaN(Number(formData.usage_limit)) || Number(formData.usage_limit) <= 0)) {
       tempErrors.usage_limit = "Must be a valid positive limit count.";
     }
 
@@ -247,13 +254,11 @@ const AdminCoupons = () => {
   };
 
   const totalPages = Math.ceil(count / 10);
-
   const startItemRange = (page - 1) * 10 + 1;
   const endItemRange = Math.min(page * 10, count);
 
   return (
     <div className="admin-container">
-      {/* Workspace Structural Section Title Header */}
       <div className="workspace-header-row category-header-flex">
         <div>
           <h1 className="workspace-title font-plus-jakarta">Coupons</h1>
@@ -267,7 +272,6 @@ const AdminCoupons = () => {
         </button>
       </div>
 
-      {/* METRIC SCOREBOARD */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-card-row">
@@ -312,7 +316,6 @@ const AdminCoupons = () => {
         </div>
       </div>
 
-      {/* FILTERS PANEL */}
       <div className="coupons-filters-bar">
         <div className="filters-left-group">
           <div className="filter-select-wrapper font-inter">
@@ -350,7 +353,6 @@ const AdminCoupons = () => {
         )}
       </div>
 
-      {/* CORE DATA TABLE MODULE WRAPPER */}
       <div className="table-card-frame">
         <table className="figma-dark-table font-inter">
           <thead>
@@ -420,7 +422,7 @@ const AdminCoupons = () => {
                     <td className="table-row-timestamp-text">
                       <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                         <Calendar size={13} style={{ color: "#64748B" }} />
-                        {formatDateForTable(coupon.valid_to)}
+                        {formatTableDate(coupon.valid_to)}
                       </span>
                     </td>
                     <td className="table-row-timestamp-text">
@@ -460,7 +462,6 @@ const AdminCoupons = () => {
           </tbody>
         </table>
 
-        {/* METRIC ADVANCEMENT PAGINATION CORE CONSOLE */}
         {totalPages > 1 && (
           <footer className="table-pagination-footer-console font-inter">
             <div className="pagination-range-counter-info">
@@ -506,7 +507,6 @@ const AdminCoupons = () => {
         <span>© 2026 TravelKart. All Rights Reserved.</span>
       </footer>
 
-      {/* DYNAMIC CRUD MODAL OVERLAY PORTAL */}
       {isModalOpen && (
         <div className="modal-portal-overlay">
           <div className="modal-dialog-frame font-inter">
@@ -514,7 +514,7 @@ const AdminCoupons = () => {
               <div className="modal-header-title-wrapper">
                 <Ticket className="modal-header-icon" size={18} />
                 <h3 className="modal-header-text">
-                  {modalMode === "create" ? "Create Coupon Cluster" : "Edit Coupon Registry"}
+                  {modalMode === "create" ? "Create Coupon" : "Edit Coupon"}
                 </h3>
               </div>
               <button className="modal-close-trigger" onClick={() => setIsModalOpen(false)}>
@@ -524,13 +524,13 @@ const AdminCoupons = () => {
             
             <form onSubmit={handleSaveCoupon} className="modal-dialog-form">
               <div className="form-fields-container">
-                {/* Coupon Code */}
                 <div className="form-input-group">
                   <label className="form-field-label">Coupon Code <span className="required-star">*</span></label>
                   <input 
                     type="text" 
+                    name="code"
                     value={formData.code}
-                    onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                    onChange={handleInputChange}
                     placeholder="e.g. VOYAGE10"
                     className={`form-field-input ${errors.code ? "input-field-error" : ""}`}
                     disabled={modalMode === "edit"}
@@ -545,12 +545,12 @@ const AdminCoupons = () => {
                 </div>
 
                 <div className="form-row-double">
-                  {/* Discount Type */}
                   <div className="form-input-group">
                     <label className="form-field-label">Discount Type</label>
                     <select 
+                      name="discount_type"
                       value={formData.discount_type}
-                      onChange={(e) => setFormData({ ...formData, discount_type: e.target.value })}
+                      onChange={handleInputChange}
                       className="form-field-input"
                     >
                       <option value="PERCENT">Percentage (%)</option>
@@ -558,13 +558,13 @@ const AdminCoupons = () => {
                     </select>
                   </div>
                   
-                  {/* Discount Value */}
                   <div className="form-input-group">
                     <label className="form-field-label">Discount Value <span className="required-star">*</span></label>
                     <input 
                       type="number"
+                      name="discount_value"
                       value={formData.discount_value}
-                      onChange={(e) => setFormData({ ...formData, discount_value: e.target.value })}
+                      onChange={handleInputChange}
                       placeholder={formData.discount_type === "PERCENT" ? "10" : "150"}
                       className={`form-field-input ${errors.discount_value ? "input-field-error" : ""}`}
                       required
@@ -579,13 +579,13 @@ const AdminCoupons = () => {
                 </div>
 
                 <div className="form-row-double">
-                  {/* Min Purchase Requirement */}
                   <div className="form-input-group">
                     <label className="form-field-label">Min. Purchase Requirement (₹)</label>
                     <input 
                       type="number" 
+                      name="min_order_amount"
                       value={formData.min_order_amount}
-                      onChange={(e) => setFormData({ ...formData, min_order_amount: e.target.value })}
+                      onChange={handleInputChange}
                       placeholder="0"
                       className={`form-field-input ${errors.min_order_amount ? "input-field-error" : ""}`}
                     />
@@ -597,13 +597,13 @@ const AdminCoupons = () => {
                     )}
                   </div>
 
-                  {/* Max Discount Cap */}
                   <div className="form-input-group">
                     <label className="form-field-label">Max Discount Cap (₹)</label>
                     <input 
                       type="number" 
+                      name="max_discount"
                       value={formData.max_discount}
-                      onChange={(e) => setFormData({ ...formData, max_discount: e.target.value })}
+                      onChange={handleInputChange}
                       placeholder="Unlimited"
                       className={`form-field-input ${errors.max_discount ? "input-field-error" : ""}`}
                       disabled={formData.discount_type === "FLAT"}
@@ -618,13 +618,13 @@ const AdminCoupons = () => {
                 </div>
 
                 <div className="form-row-double">
-                  {/* Valid From */}
                   <div className="form-input-group">
                     <label className="form-field-label">Valid From <span className="required-star">*</span></label>
                     <input 
                       type="datetime-local" 
+                      name="valid_from"
                       value={formData.valid_from}
-                      onChange={(e) => setFormData({ ...formData, valid_from: e.target.value })}
+                      onChange={handleInputChange}
                       className={`form-field-input ${errors.valid_from ? "input-field-error" : ""}`}
                       required
                     />
@@ -636,13 +636,13 @@ const AdminCoupons = () => {
                     )}
                   </div>
 
-                  {/* Valid To */}
                   <div className="form-input-group">
                     <label className="form-field-label">Valid To <span className="required-star">*</span></label>
                     <input 
                       type="datetime-local" 
+                      name="valid_to"
                       value={formData.valid_to}
-                      onChange={(e) => setFormData({ ...formData, valid_to: e.target.value })}
+                      onChange={handleInputChange}
                       className={`form-field-input ${errors.valid_to ? "input-field-error" : ""}`}
                       required
                     />
@@ -656,13 +656,13 @@ const AdminCoupons = () => {
                 </div>
 
                 <div className="form-row-double" style={{ alignItems: "center" }}>
-                  {/* Usage Limit */}
                   <div className="form-input-group">
                     <label className="form-field-label">Total Usage Limit (Optional)</label>
                     <input 
                       type="number" 
+                      name="usage_limit"
                       value={formData.usage_limit}
-                      onChange={(e) => setFormData({ ...formData, usage_limit: e.target.value })}
+                      onChange={handleInputChange}
                       placeholder="Unlimited"
                       className={`form-field-input ${errors.usage_limit ? "input-field-error" : ""}`}
                     />
@@ -674,7 +674,6 @@ const AdminCoupons = () => {
                     )}
                   </div>
 
-                  {/* Status Toggle control */}
                   <div className="form-toggle-group" style={{ alignSelf: "flex-end", height: "44px", width: "100%", boxSizing: "border-box", padding: "0 16px" }}>
                     <div className="toggle-label-column">
                       <span className="toggle-label-title" style={{ fontSize: "13px" }}>Status Control</span>
@@ -684,7 +683,7 @@ const AdminCoupons = () => {
                         type="checkbox" 
                         name="is_active"
                         checked={formData.is_active}
-                        onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                        onChange={handleInputChange}
                       />
                       <span className="switch-toggle-slider" />
                     </label>
@@ -692,7 +691,6 @@ const AdminCoupons = () => {
                 </div>
               </div>
 
-              {/* Modal footer actions */}
               <div className="modal-dialog-footer">
                 <button 
                   type="button" 

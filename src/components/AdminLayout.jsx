@@ -32,6 +32,10 @@ const AdminLayout = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    setSearch("");
+  },[location.pathname]);
+
   const handleLogout = async () => {
     const confirmed = await showConfirm("Are you sure you want to log out?", "Logout", "warning");
     if (confirmed) {
@@ -66,6 +70,15 @@ const AdminLayout = () => {
     }
     if (location.pathname.includes("orders")) {
       return "Search orders by tracking ID, email, name, or city...";
+    }
+    if (location.pathname.includes("coupons")){
+      return "Search coupons by code...";
+    }
+    if (location.pathname.includes("banners")){
+      return "Search banners by title...";
+    }
+    if (location.pathname.includes("users")){
+      return "Search users by name,email, or role...";
     }
     return "Search elite members or logistics IDs...";
   };
