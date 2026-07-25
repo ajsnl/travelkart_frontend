@@ -44,8 +44,8 @@ export default function PaymentError() {
   const total = parseFloat(orderData.total_price || 0);
 
   const handleRetry = () => {
-    // Navigate back to checkout
-    navigate("/checkout");
+    // Navigate back to checkout with coupon code in state
+    navigate("/checkout", { state: { retryCouponCode: orderData.coupon_code } });
   };
 
   return (

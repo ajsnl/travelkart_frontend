@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Loader2 } from "lucide-react";
 import Navbar from "../components/Navbar";
@@ -27,6 +27,7 @@ import "./Checkout.css";
 
 export default function Checkout() {
   const navigate = useNavigate();
+  const location=useLocation();
   const dispatch = useDispatch();
   const { cart, loading: cartLoading } = useSelector((state) => state.cart);
   const { showConfirm, showAlert } = useCustomDialog();
@@ -155,6 +156,16 @@ export default function Checkout() {
     setAppliedCoupon(null);
     toast.info("Coupon removed.");
   };
+
+  useEffect(() => {
+    const retryCode = location.state?.retryCouponCode;
+    if (retryCode) {
+      handleApplyCoupon(retryCode);
+      // Clear navigation state to prevent re-application on subsequent renders
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate]);
+
 
   // Handle Add/Edit address saves
   const handleSaveAddress = async (formData) => {
