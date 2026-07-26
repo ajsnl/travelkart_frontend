@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useCustomDialog } from "../CustomDialog";
+import { Loader2 } from "lucide-react";
 
 const ProfileEditForm = ({ user, onSubmit, onClose }) => {
   const [form, setForm] = useState({
@@ -255,8 +256,10 @@ const ProfileEditForm = ({ user, onSubmit, onClose }) => {
               type="submit"
               className="form-btn save-btn"
               disabled={submitting}
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px", justifyContent: "center" }}
             >
-              {submitting ? "Saving..." : "Save Changes"}
+              {submitting && <Loader2 className="animate-spin" size={16} />}
+              <span>{submitting ? "Saving..." : "Save Changes"}</span>
             </button>
           </div>
         </form>

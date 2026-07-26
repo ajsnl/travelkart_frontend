@@ -22,6 +22,7 @@ import {
 import "./Cart.css";
 import Footer from "../components/Footer";
 import { useCustomDialog } from "../components/CustomDialog";
+import {toast} from "react-toastify";
 
 export default function Cart() {
   const dispatch = useDispatch();
@@ -36,6 +37,7 @@ export default function Cart() {
   const handleUpdateQuantity = (item, newQty) => {
     const variantId = item.variant?.id;
     const maxLimit = 10;
+    const avail = item.variant?.available_stock !== undefined ? item.variant.available_stock : item.variant?.stock;
 
     if (newQty <= 0) {
       handleRemoveItem(item);
@@ -43,6 +45,11 @@ export default function Cart() {
     }
 
     if (newQty > maxLimit) {
+      return;
+    }
+
+    if (avail !== undefined && newQty > avail) {
+      toast.error(`Only ${avail} unit(s) available in stock. ❌`);
       return;
     }
 
@@ -256,7 +263,8 @@ export default function Cart() {
                             disabled={
                               isUpdating || 
                               isInvalid || 
-                              item.quantity >= 10
+                              item.quantity >= 10 ||
+                              item.quantity >= (variant?.available_stock !== undefined ? variant.available_stock : variant?.stock)
                             } 
                             onClick={() => handleUpdateQuantity(item, item.quantity + 1)}
                             className="qty-adjust-btn"
