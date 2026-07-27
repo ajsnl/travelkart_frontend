@@ -27,53 +27,82 @@ export default function Categories() {
   const [brands, setBrands] = useState([]);
 
   const [selectedCategory, setSelectedCategory] = useState(null); 
-  const [selectedBrand, setSelectedBrand] = useState("");
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
-  const [isFeaturedOnly, setIsFeaturedOnly] = useState(false);
-  
-  // Sorting & Price Range States
-  const sortQuery = searchParams.get("sort");
-  const [sortBy, setSortBy] = useState(() => {
-    if (sortQuery === "newest") return "";
-    return sortQuery || "";
-  });
-  const [minPrice, setMinPrice] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
+  const [minPrice, setMinPrice] = useState(() => searchParams.get("min_price") || "");
+  const [maxPrice, setMaxPrice] = useState(() => searchParams.get("max_price") || "");
+
+  // Derived state from URL search parameters
+  const selectedBrand = searchParams.get("brand") || "";
+  const isFeaturedOnly = searchParams.get("featured") === "true";
+  const sortBy = searchParams.get("sort") || "";
+  const page = parseInt(searchParams.get("page") || "1", 10);
+
+  // Sync text inputs with URL params (e.g. for back/forward navigation)
+  useEffect(() => {
+    setSearchQuery(searchParams.get("search") || "");
+  }, [searchParams.get("search")]);
 
   useEffect(() => {
-    if (sortQuery === "newest") {
-      setSortBy("");
-    } else if (sortQuery) {
-      setSortBy(sortQuery);
-    }
-  }, [sortQuery]);
+    setMinPrice(searchParams.get("min_price") || "");
+  }, [searchParams.get("min_price")]);
 
-  // Sync searchQuery state with URL search param
-  const urlSearchQuery = searchParams.get("search") || "";
   useEffect(() => {
-    setSearchQuery(urlSearchQuery);
-    setPage(1);
-  }, [urlSearchQuery]);
+    setMaxPrice(searchParams.get("max_price") || "");
+  }, [searchParams.get("max_price")]);
 
-  // Debounce sync searchQuery state back to URL
+  // Debounce sync searchQuery back to URL
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      const newParams = new URLSearchParams(searchParams);
-      const currentSearch = newParams.get("search") || "";
+      const currentSearch = searchParams.get("search") || "";
       if (searchQuery !== currentSearch) {
+        const newParams = new URLSearchParams(searchParams);
         if (searchQuery) {
           newParams.set("search", searchQuery);
         } else {
           newParams.delete("search");
         }
+        newParams.set("page", "1");
         setSearchParams(newParams, { replace: true });
       }
     }, 400);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery, setSearchParams]);
+  }, [searchQuery, searchParams, setSearchParams]);
 
-  const [page, setPage] = useState(1);
+  // Debounce sync minPrice and maxPrice back to URL
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      let updated = false;
+      const newParams = new URLSearchParams(searchParams);
+
+      const currentMin = newParams.get("min_price") || "";
+      if (minPrice !== currentMin) {
+        if (minPrice) {
+          newParams.set("min_price", minPrice);
+        } else {
+          newParams.delete("min_price");
+        }
+        updated = true;
+      }
+
+      const currentMax = newParams.get("max_price") || "";
+      if (maxPrice !== currentMax) {
+        if (maxPrice) {
+          newParams.set("max_price", maxPrice);
+        } else {
+          newParams.delete("max_price");
+        }
+        updated = true;
+      }
+
+      if (updated) {
+        newParams.set("page", "1");
+        setSearchParams(newParams, { replace: true });
+      }
+    }, 700);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [minPrice, maxPrice, searchParams, setSearchParams]);
   const [totalPages, setTotalPages] = useState(1);
   const [productsCount, setProductsCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -124,31 +153,26 @@ export default function Categories() {
     loadBrands();
   }, []);
 
-  //creating deBounced min and max price for avoid instant trigger
-  const [debounceMinPrice,setDebounceMinPrice]=useState(minPrice)
-  const [debounceMaxPrice,setDebounceMaxPrice]=useState(maxPrice)
-  useEffect(()=>{
-    const timer=setTimeout(()=>{
-      setDebounceMinPrice(minPrice);
-      setDebounceMaxPrice(maxPrice);
-    },700)
-    return ()=> clearTimeout(timer)
-  },[minPrice,maxPrice]);
+  const setPage = (pageNum) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("page", pageNum.toString());
+    setSearchParams(newParams);
+  };
 
-  // Fetch products when filters/page changes
+  // Fetch products when selectedCategory, categoriesLoading, or searchParams change
   useEffect(() => {
     const loadProducts = async () => {
       setLoading(true);
       try {
         const params = {
           page,
-          search: urlSearchQuery || undefined,
+          search: searchParams.get("search") || undefined,
           category: selectedCategory?.id || undefined,
           brand: selectedBrand || undefined,
           is_featured: isFeaturedOnly ? "true" : undefined,
           ordering: sortBy || undefined,
-          min_price: debounceMinPrice || undefined,
-          max_price: debounceMaxPrice || undefined,
+          min_price: searchParams.get("min_price") || undefined,
+          max_price: searchParams.get("max_price") || undefined,
         };
         const res = await fetchProducts(params);
         setProducts(res.data.results || []);
@@ -160,35 +184,29 @@ export default function Categories() {
         setLoading(false);
       }
     };
-    loadProducts();
-   }, [selectedCategory, selectedBrand, urlSearchQuery, isFeaturedOnly, debounceMaxPrice, debounceMinPrice, sortBy, page]);
-
-
+    if (!categoriesLoading) {
+      loadProducts();
+    }
+  }, [selectedCategory, categoriesLoading, searchParams]);
 
   // Handle category selection
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
-    setPage(1);
     const newParams = new URLSearchParams(searchParams);
     if (category) {
       newParams.set("cat", category.slug);
     } else {
       newParams.delete("cat");
     }
+    newParams.set("page", "1");
     setSearchParams(newParams);
   };
 
-
   const clearAllFilters = () => {
-    setSelectedCategory(null);
-    setSelectedBrand("");
     setSearchQuery("");
-    setIsFeaturedOnly(false);
-    setSortBy("");
     setMinPrice("");
     setMaxPrice("");
     setSearchParams({});
-    setPage(1);
   };
 
   return (
@@ -277,23 +295,32 @@ export default function Categories() {
                 type="text" 
                 placeholder="Search products..." 
                 value={searchQuery}
-                onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="search-input-field"
               />
               {searchQuery && (
-                  <button className="clear-search-btn" onClick={() => { setSearchQuery(""); setPage(1); }}>
+                <button className="clear-search-btn" onClick={() => setSearchQuery("")}>
                   <X size={14} />
                 </button>
               )}
             </div>
           </div>
-
+ 
           {/* Brand Selection Filters */}
           <div className="sidebar-section">
             <h3 className="sidebar-section-title">Brands</h3>
             <select 
               value={selectedBrand} 
-              onChange={(e) => { setSelectedBrand(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                const newParams = new URLSearchParams(searchParams);
+                if (e.target.value) {
+                  newParams.set("brand", e.target.value);
+                } else {
+                  newParams.delete("brand");
+                }
+                newParams.set("page", "1");
+                setSearchParams(newParams);
+              }}
               className="brand-select-dropdown"
             >
               <option value="">All Brands</option>
@@ -302,7 +329,7 @@ export default function Categories() {
               ))}
             </select>
           </div>
-
+ 
           {/* Price Range Filters */}
           <div className="sidebar-section">
             <h3 className="sidebar-section-title">Price Range</h3>
@@ -311,7 +338,7 @@ export default function Categories() {
                 type="number" 
                 placeholder="Min Price" 
                 value={minPrice}
-                onChange={(e) => { setMinPrice(e.target.value); setPage(1); }}
+                onChange={(e) => setMinPrice(e.target.value)}
                 className="price-range-field"
               />
               <span className="price-range-divider">to</span>
@@ -319,12 +346,12 @@ export default function Categories() {
                 type="number" 
                 placeholder="Max Price" 
                 value={maxPrice}
-                onChange={(e) => { setMaxPrice(e.target.value); setPage(1); }}
+                onChange={(e) => setMaxPrice(e.target.value)}
                 className="price-range-field"
               />
             </div>
           </div>
-
+ 
           {/* Special Toggle Filters */}
           <div className="sidebar-section">
             <h3 className="sidebar-section-title">Additional Filters</h3>
@@ -332,20 +359,29 @@ export default function Categories() {
               <input 
                 type="checkbox" 
                 checked={isFeaturedOnly}
-                onChange={(e) => { setIsFeaturedOnly(e.target.checked); setPage(1); }}
+                onChange={(e) => {
+                  const newParams = new URLSearchParams(searchParams);
+                  if (e.target.checked) {
+                    newParams.set("featured", "true");
+                  } else {
+                    newParams.delete("featured");
+                  }
+                  newParams.set("page", "1");
+                  setSearchParams(newParams);
+                }}
                 className="filter-checkbox"
               />
               <span>Featured Only</span>
             </label>
           </div>
-
+ 
           {/* Reset Filters */}
           <button className="reset-filters-btn" onClick={clearAllFilters}>
             <SlidersHorizontal size={14} />
             <span>Reset All Filters</span>
           </button>
         </aside>
-
+ 
         {/* Product Catalog Results */}
         <section className="product-results-catalog">
           <div className="catalog-status-header">
@@ -357,7 +393,16 @@ export default function Categories() {
               <span className="sort-label">Sort By:</span>
               <select 
                 value={sortBy}
-                onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
+                onChange={(e) => {
+                  const newParams = new URLSearchParams(searchParams);
+                  if (e.target.value) {
+                    newParams.set("sort", e.target.value);
+                  } else {
+                    newParams.delete("sort");
+                  }
+                  newParams.set("page", "1");
+                  setSearchParams(newParams);
+                }}
                 className="catalog-sort-dropdown"
               >
                 <option value="">Newest Arrivals</option>

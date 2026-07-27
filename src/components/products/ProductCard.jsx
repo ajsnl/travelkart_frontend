@@ -16,7 +16,7 @@ export default function ProductCard({ product }) {
 
   // Pick primary variant as first active variant
   const activeVariants = (product.variants || []).filter(v => v.is_active !== false);
-  const primaryVariant = activeVariants[0] || (product.variants && product.variants[0]) || null;
+  const primaryVariant = activeVariants.find(v => v.stock > 0) || activeVariants[0] || (product.variants && product.variants[0]) || null;
 
   // Selected variant state for this card
   const [selectedCardVariant, setSelectedCardVariant] = React.useState(primaryVariant);
@@ -223,7 +223,10 @@ export default function ProductCard({ product }) {
   const offerTag = getOfferTagLabel();
 
   return (
-    <Link to={`/product/${product.id}`} className="product-card-anchor-wrapper">
+     <Link 
+      to={`/product/${product.id}${selectedCardVariant ? `?variant=${selectedCardVariant.id}` : ""}`} 
+      className="product-card-anchor-wrapper"
+    >
       <article className="unified-product-card font-inter">
         {/* Product Image and Badges */}
         <div className="product-card-image-wrapper">

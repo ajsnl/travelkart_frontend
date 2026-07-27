@@ -105,10 +105,19 @@ export default function ProductDetail() {
         const blocked = data.is_active === false || data.category_active === false;
         setIsUnavailable(blocked);
 
-        // Find default variant: active variant takes priority, otherwise any available variant
+        // Find default variant: prioritize variant query parameter, active variant, then any available variant
         const allVariants = data.variants || [];
         const activeVariants = allVariants.filter(v => v.is_active !== false);
-        const defaultVariant = activeVariants.length > 0 ? activeVariants[0] : allVariants[0];
+        
+        const queryParams = new URLSearchParams(window.location.search);
+        const variantIdParam = queryParams.get("variant");
+        let defaultVariant = null;
+        if (variantIdParam) {
+          defaultVariant = allVariants.find(v => String(v.id) === variantIdParam);
+        }
+        if (!defaultVariant) {
+          defaultVariant = activeVariants.find(v => v.stock > 0) || activeVariants[0] || allVariants[0];
+        }
         
         if (defaultVariant) {
           setSelectedVariant(defaultVariant);
