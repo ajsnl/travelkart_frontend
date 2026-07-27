@@ -18,6 +18,7 @@ import OrderTracking from "../pages/OrderTracking";
 import MyOrders from "../pages/MyOrders";
 import PaymentError from "../pages/PaymentError";
 import PlaceholderPage from "../pages/PlaceholderPage";
+import WalletHistory from "../pages/WalletHistory";
 
 
 
@@ -46,6 +47,14 @@ export default function UserRoutes() {
             <ProfilePage />
           </ProtectedRoute>
         }
+      />
+      <Route
+      path="/wallet-history"
+      element={
+        <ProtectedRoute>
+          <WalletHistory/>
+        </ProtectedRoute>
+      }
       />
       <Route
         path="/wishlist"

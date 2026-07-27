@@ -1,28 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { Wallet, X, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Wallet, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { fetchWalletDetails, addWalletMoney, verifyWalletPayment } from "../../services/walletService";
 
 const WalletCard = () => {
+  const navigate = useNavigate();
   const [balance, setBalance] = useState(0);
-  const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [amount, setAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // Filters State
-  const [filterType, setFilterType] = useState("");
-  const [filterStartDate, setFilterStartDate] = useState("");
-  const [filterEndDate, setFilterEndDate] = useState("");
-
-  const loadWallet = async (filters = {}) => {
+  const loadWallet = async () => {
     try {
       setLoading(true);
-      const res = await fetchWalletDetails(filters);
+      const res = await fetchWalletDetails();
       setBalance(parseFloat(res.data.balance));
-      setTransactions(res.data.transactions);
     } catch (err) {
       console.error("Failed to fetch wallet details:", err);
       toast.error("Failed to load wallet balance.");
@@ -31,14 +25,9 @@ const WalletCard = () => {
     }
   };
 
-  // Re-fetch transactions whenever filters change
   useEffect(() => {
-    loadWallet({
-      type: filterType,
-      startDate: filterStartDate,
-      endDate: filterEndDate
-    });
-  }, [filterType, filterStartDate, filterEndDate]);
+    loadWallet();
+  }, []);
 
   // Load Razorpay SDK Script dynamically
   const loadRazorpayScript = () => {
@@ -94,7 +83,7 @@ const WalletCard = () => {
             setBalance(parseFloat(verifyRes.data.balance));
             setShowAddModal(false);
             setAmount("");
-            loadWallet(); // refresh transactions list
+            loadWallet(); // refresh balance
           } catch (err) {
             console.error("Wallet signature verification failed:", err);
             toast.error("Verification failed. Please contact support.");
@@ -145,7 +134,7 @@ const WalletCard = () => {
           <button className="wallet-action-trigger-btn font-inter" onClick={() => setShowAddModal(true)}>
             Add Funds
           </button>
-          <button className="wallet-action-trigger-btn font-inter" onClick={() => setShowHistoryModal(true)}>
+          <button className="wallet-action-trigger-btn font-inter" onClick={() => navigate("/wallet-history")}>
             History
           </button>
         </div>
@@ -192,111 +181,6 @@ const WalletCard = () => {
                 {submitting ? "Processing Payment..." : "Pay Now"}
               </button>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* HISTORY MODAL */}
-      {showHistoryModal && (
-        <div className="wallet-modal-overlay">
-          <div className="wallet-modal-content" style={{ maxWidth: "500px" }}>
-            <div className="wallet-modal-header">
-              <h3 className="wallet-modal-title font-plus-jakarta">Wallet Transaction History</h3>
-              <button className="wallet-modal-close-btn" onClick={() => setShowHistoryModal(false)}>
-                <X size={18} />
-              </button>
-            </div>
-            <div className="wallet-modal-body">
-              {/* FILTER CONTROLS */}
-              <div className="wallet-filters-row font-inter" style={{ display: "flex", gap: "10px", marginBottom: "16px", flexWrap: "wrap" }}>
-                <div style={{ flex: 1, minWidth: "120px", display: "flex", flexDirection: "column", gap: "4px" }}>
-                  <label style={{ fontSize: "11px", fontWeight: "600", color: "#64748B" }}>Type</label>
-                  <select
-                    value={filterType}
-                    onChange={(e) => setFilterType(e.target.value)}
-                    style={{ padding: "8px", borderRadius: "8px", border: "1px solid #E2E8F0", fontSize: "13px", fontWeight: "500", color: "#334155", outline: "none", backgroundColor: "#FFFFFF" }}
-                  >
-                    <option value="">All Types</option>
-                    <option value="CREDIT">Credits</option>
-                    <option value="DEBIT">Debits</option>
-                  </select>
-                </div>
-                <div style={{ flex: 1, minWidth: "120px", display: "flex", flexDirection: "column", gap: "4px" }}>
-                  <label style={{ fontSize: "11px", fontWeight: "600", color: "#64748B" }}>From Date</label>
-                  <input
-                    type="date"
-                    value={filterStartDate}
-                    onChange={(e) => setFilterStartDate(e.target.value)}
-                    style={{ padding: "7px 8px", borderRadius: "8px", border: "1px solid #E2E8F0", fontSize: "13px", fontWeight: "500", color: "#334155", outline: "none", backgroundColor: "#FFFFFF" }}
-                  />
-                </div>
-                <div style={{ flex: 1, minWidth: "120px", display: "flex", flexDirection: "column", gap: "4px" }}>
-                  <label style={{ fontSize: "11px", fontWeight: "600", color: "#64748B" }}>To Date</label>
-                  <input
-                    type="date"
-                    value={filterEndDate}
-                    onChange={(e) => setFilterEndDate(e.target.value)}
-                    style={{ padding: "7px 8px", borderRadius: "8px", border: "1px solid #E2E8F0", fontSize: "13px", fontWeight: "500", color: "#334155", outline: "none", backgroundColor: "#FFFFFF" }}
-                  />
-                </div>
-                {(filterType || filterStartDate || filterEndDate) && (
-                  <button
-                    onClick={() => { setFilterType(""); setFilterStartDate(""); setFilterEndDate(""); }}
-                    style={{ alignSelf: "flex-end", padding: "8px 12px", borderRadius: "8px", border: "none", backgroundColor: "#F1F5F9", color: "#475569", fontSize: "12px", fontWeight: "600", cursor: "pointer", height: "35px" }}
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-
-              <div className="wallet-transactions-list animate-fade-in">
-                {transactions.length === 0 ? (
-                  <div className="wallet-no-transactions font-inter">
-                    No transactions found yet. Add funds or place an order to get started!
-                  </div>
-                ) : (
-                  transactions.map((t) => (
-                    <div key={t.id} className={`wallet-transaction-item ${t.transaction_type === "CREDIT" ? "credit" : "debit"}`}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                        <div style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          width: "36px",
-                          height: "36px",
-                          borderRadius: "50%",
-                          backgroundColor: t.transaction_type === "CREDIT" ? "#E8F5E9" : "#FFEBEE",
-                          color: t.transaction_type === "CREDIT" ? "#2E7D32" : "#C62828",
-                          flexShrink: 0
-                        }}>
-                          {t.transaction_type === "CREDIT" ? <ArrowUpRight size={18} /> : <ArrowDownLeft size={18} />}
-                        </div>
-                        <div className="wallet-txn-meta">
-                          <span className="wallet-txn-reason font-inter">{t.reason}</span>
-                          <span className="wallet-txn-date font-inter">
-                            {new Date(t.created_at).toLocaleString("en-IN", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit"
-                            })}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="wallet-txn-amount-stack">
-                        <span className={`wallet-txn-amount font-inter ${t.transaction_type === "CREDIT" ? "credit" : "debit"}`}>
-                          {t.transaction_type === "CREDIT" ? "+" : "-"}₹{parseFloat(t.amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                        </span>
-                        <span className={`wallet-badge ${t.transaction_type === "CREDIT" ? "credit" : "debit"} font-inter`}>
-                          {t.transaction_type === "CREDIT" ? "Added / Refund" : "Paid"}
-                        </span>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
           </div>
         </div>
       )}

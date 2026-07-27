@@ -22,11 +22,13 @@ export default function BillingSummary({ order }) {
     0
   );
 
+  const displaySubtotal = originalPreDiscountSubtotal + cancelledTotal + returnedTotal;
+
   return (
     <div className="billing-totals-summary">
       <div className="totals-row">
         <span>Subtotal</span>
-        <span>₹{originalPreDiscountSubtotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
+        <span>₹{displaySubtotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
       </div>
       
       {productDiscount > 0 && (

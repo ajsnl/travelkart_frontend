@@ -56,10 +56,10 @@ const AddressForm = ({ onSubmit, initialData, onClose }) => {
 
     try {
       await onSubmit(form);
-      toast.success("Address Submitted")
+      toast.success("Address Saved Successfully!")
     } catch (err) {
       console.error("Address submission error:", err);
-      toast.error("Address Submission error occured",err)
+      toast.error("Failed to save address. Please check the errors below.");
       if (err.response && err.response.data) {
         const data = err.response.data;
         if (typeof data === "object" && !Array.isArray(data)) {

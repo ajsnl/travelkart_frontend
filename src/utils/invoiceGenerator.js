@@ -130,10 +130,12 @@ export const generateInvoicePDF = (order) => {
     0
   );
 
+  const displaySubtotal = originalPreDiscountSubtotal + cancelledTotal + returnedTotal
+
   let currentY = finalY;
 
   doc.text("Subtotal:", 135, currentY);
-  doc.text(`INR ${originalPreDiscountSubtotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, currentY, { align: "right" });
+  doc.text(`INR ${displaySubtotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`, 195, currentY, { align: "right" });
   currentY += 6;
 
   if (productDiscount > 0) {

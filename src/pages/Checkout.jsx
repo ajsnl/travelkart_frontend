@@ -169,28 +169,20 @@ export default function Checkout() {
 
   // Handle Add/Edit address saves
   const handleSaveAddress = async (formData) => {
-    try {
-      if (editAddressData) {
-        const res = await updateAddress(editAddressData.id, formData);
-        toast.success("Address updated successfully!");
-        if (selectedAddress?.id === editAddressData.id) {
-          setSelectedAddress(res.data);
-        }
-      } else {
-        const res = await addAddress(formData);
-        toast.success("Address added successfully!");
-        if (!selectedAddress || res.data.is_default) {
-          setSelectedAddress(res.data);
-        }
+    if (editAddressData) {
+      const res = await updateAddress(editAddressData.id, formData);
+      if (selectedAddress?.id === editAddressData.id) {
+        setSelectedAddress(res.data);
       }
-      setShowAddressForm(false);
-      setEditAddressData(null);
-      fetchAddresses();
-    } catch (err) {
-      console.error("Address submission error:", err);
-      const msg = err.response?.data ? JSON.stringify(err.response.data) : "Failed to save address.";
-      toast.error(msg);
+       } else {
+      const res = await addAddress(formData);
+      if (!selectedAddress || res.data.is_default) {
+        setSelectedAddress(res.data);
+      }
     }
+    setShowAddressForm(false);
+    setEditAddressData(null);
+    fetchAddresses();
   };
 
   const handleDeleteAddress = async (id, e) => {
