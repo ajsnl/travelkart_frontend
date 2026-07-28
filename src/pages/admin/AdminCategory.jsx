@@ -34,6 +34,15 @@ const formatDate = (dateString) => {
   });
 };
 
+const formatDateTimeLocal = (dateString) => {
+  if (!dateString) return "";
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return "";
+  const offset = d.getTimezoneOffset() * 60000;
+  const localISOTime = (new Date(d.getTime() - offset)).toISOString();
+  return localISOTime.substring(0, 16);
+};
+
 const slugify = (text) => {
   return text
     .toLowerCase()
@@ -66,6 +75,11 @@ const AdminCategory = () => {
     description: "",
     is_active: false,
     parent: "",
+    offer_type: "none",
+    offer_value: "",
+    max_discount: "",
+    min_product_price: "",
+    expiry_date: "",
   });
   const [errors, setErrors] = useState({});
   const isSlugManuallyEdited = useRef(false);
@@ -143,6 +157,11 @@ const AdminCategory = () => {
         description: category.description || "",
         is_active: category.is_active,
         parent: category.parent || "",
+        offer_type: category.offer_type || "none",
+        offer_value: category.offer_value || "",
+        max_discount: category.max_discount || "",
+        min_product_price: category.min_product_price || "",
+        expiry_date: formatDateTimeLocal(category.expiry_date),
       });
       isSlugManuallyEdited.current = true;
     } else {
@@ -153,6 +172,11 @@ const AdminCategory = () => {
         description: "",
         is_active: true,
         parent: "",
+        offer_type: "none",
+        offer_value: "",
+        max_discount: "",
+        min_product_price: "",
+        expiry_date: "",
       });
       isSlugManuallyEdited.current = false;
     }
@@ -168,6 +192,11 @@ const AdminCategory = () => {
       description: "",
       is_active: false,
       parent: "",
+      offer_type: "none",
+      offer_value: "",
+      max_discount: "",
+      min_product_price: "",
+      expiry_date: "",
     });
     setErrors({});
   };
@@ -187,6 +216,26 @@ const AdminCategory = () => {
       }
     }
     if (!formData.slug.trim()) newErrors.slug = "Slug is required.";
+
+    const valueNum = parseFloat(formData.offer_value);
+    if (formData.offer_type !== 'none') {
+      if (!formData.offer_value || isNaN(valueNum) || valueNum <= 0) {
+        newErrors.offer_value = "Offer value must be a number greater than 0.";
+      } else if (formData.offer_type === 'percentage' && valueNum > 100) {
+        newErrors.offer_value = "Percentage offer cannot exceed 100%.";
+      }
+      if (formData.max_discount && (isNaN(parseFloat(formData.max_discount)) || parseFloat(formData.max_discount) < 0)) {
+        newErrors.max_discount = "Max discount must be a non-negative number.";
+      }
+      if (formData.min_product_price && (isNaN(parseFloat(formData.min_product_price)) || parseFloat(formData.min_product_price) < 0)) {
+        newErrors.min_product_price = "Min product price must be a non-negative number.";
+      }
+       if (formData.expiry_date) {
+        if (new Date(formData.expiry_date) <= new Date()) {
+          newErrors.expiry_date = "Expiration date must be in the future.";
+        }
+      }
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -194,11 +243,19 @@ const AdminCategory = () => {
   // Submit Modal Form
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      toast.error("Please resolve the validation errors in the form.");
+      return;
+    }
 
     const parsedPayload = {
       ...formData,
-      parent: formData.parent ? parseInt(formData.parent) : null
+      parent: formData.parent ? parseInt(formData.parent) : null,
+      offer_type: formData.offer_type,
+      offer_value: formData.offer_type !== 'none' && formData.offer_value !== "" ? parseFloat(formData.offer_value) : 0.00,
+      max_discount: formData.offer_type === 'percentage' && formData.max_discount !== "" ? parseFloat(formData.max_discount) : null,
+      min_product_price: formData.offer_type !== 'none' && formData.min_product_price !== "" ? parseFloat(formData.min_product_price) : null,
+      expiry_date: formData.offer_type !== 'none' && formData.expiry_date ? new Date(formData.expiry_date).toISOString() : null,
     };
 
     try {
@@ -223,6 +280,18 @@ const AdminCategory = () => {
         toast.error("An unexpected error occurred.");
       }
     }
+  };
+
+  
+  const renderFieldError = (fieldName) => {
+    if (!errors[fieldName]) return null;
+    const errorMsg = Array.isArray(errors[fieldName]) ? errors[fieldName].join(' ') : errors[fieldName];
+    return (
+      <span className="field-error-message">
+        <AlertCircle size={12} />
+        <span>{errorMsg}</span>
+      </span>
+    );
   };
 
   // Delete Category
@@ -370,6 +439,7 @@ const AdminCategory = () => {
             <tr>
               <th className="uppercase">Category Details</th>
               <th className="uppercase">Slug Field</th>
+              <th className="uppercase">Active Offer</th>
               <th className="uppercase">Description</th>
               <th className="uppercase">Created Date</th>
               <th className="uppercase">Status</th>
@@ -379,13 +449,13 @@ const AdminCategory = () => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="6" className="table-empty-row text-center">
+                <td colSpan="7" className="table-empty-row text-center">
                   Loading categories from registry system...
                 </td>
               </tr>
             ) : categories.length === 0 ? (
               <tr>
-                <td colSpan="6" className="table-empty-row text-center">
+                <td colSpan="7" className="table-empty-row text-center">
                   No matching categories found.
                 </td>
               </tr>
@@ -402,6 +472,20 @@ const AdminCategory = () => {
                   {/* Slug column */}
                   <td>
                     <span className="category-cell-slug code-text">{c.slug}</span>
+                  </td>
+
+                  {/* Active Offer column */}
+                  <td>
+                    {c.offer_type && c.offer_type !== 'none' && c.offer_value > 0 ? (
+                      <span className="category-offer-badge">
+                        {c.offer_type === 'percentage' ? `${parseFloat(c.offer_value)}% Off` : `$${parseFloat(c.offer_value)} Off`}
+                        {c.expiry_date && new Date(c.expiry_date) < new Date() && (
+                          <span className="category-offer-badge-expired">(Expired)</span>
+                        )}
+                      </span>
+                    ) : (
+                      <span style={{ color: '#4B5563', fontSize: '12px' }}>No Offer</span>
+                    )}
                   </td>
 
                   {/* Description column */}
@@ -540,12 +624,7 @@ const AdminCategory = () => {
                     className={`form-field-input ${errors.name ? "input-field-error" : ""}`}
                     autoFocus
                   />
-                  {errors.name && (
-                    <span className="field-error-message">
-                      <AlertCircle size={12} />
-                      <span>{errors.name}</span>
-                    </span>
-                  )}
+                 {renderFieldError('name')}
                 </div>
 
                 {/* Slug Field */}
@@ -564,12 +643,7 @@ const AdminCategory = () => {
                       className={`form-field-input ${errors.slug ? "input-field-error" : ""}`}
                     />
                   </div>
-                  {errors.slug && (
-                    <span className="field-error-message">
-                      <AlertCircle size={12} />
-                      <span>{errors.slug}</span>
-                    </span>
-                  )}
+                  {renderFieldError('slug')}
                   <span className="field-helper-info">
                     Automated URL routing code generated from Name. Custom slugs are permitted.
                   </span>
@@ -613,6 +687,136 @@ const AdminCategory = () => {
                   <span className="field-helper-info">
                     Select a parent category if you are defining this as a subcategory.
                   </span>
+                </div>
+
+                 {/* OFFER & DISCOUNT SETTINGS */}
+               <div className="form-section-title">
+                  Offer & Discount Settings
+                </div>
+                 <div className="form-row-grid">
+                  {/* Offer Type */}
+                  <div className="form-input-group">
+                    <label htmlFor="category-offer-type" className="form-field-label">Offer Type</label>
+                    <select
+                      id="category-offer-type"
+                      name="offer_type"
+                      value={formData.offer_type || 'none'}
+                      onChange={handleInputChange}
+                      className="form-field-input w-full bg-slate-950 text-slate-300"
+                    >
+                      <option value="none">No Offer</option>
+                      <option value="percentage">Percentage Discount</option>
+                      <option value="flat">Flat Discount</option>
+                    </select>
+                  </div>
+                  {/* Offer Value */}
+                  <div className="form-input-group">
+                    <label htmlFor="category-offer-value" className="form-field-label">
+                      Offer Value {formData.offer_type !== 'none' && <span className="required-star">*</span>}
+                    </label>
+                    <input
+                      id="category-offer-value"
+                      type="number"
+                      step="0.01"
+                      name="offer_value"
+                      value={formData.offer_value || ''}
+                      onChange={handleInputChange}
+                      disabled={formData.offer_type === 'none'}
+                      placeholder={formData.offer_type === 'percentage' ? "e.g. 10 (%)" : "e.g. 100 ($)"}
+                      className={`form-field-input ${errors.offer_value ? "input-field-error" : ""}`}
+                    />
+                     {renderFieldError('offer_value')}
+                  </div>
+                </div>
+                 <div className="form-row-grid">
+                  {/* Smart CAP (Max Discount) */}
+                  <div className="form-input-group">
+                    <label htmlFor="category-max-discount" className="form-field-label">
+                      Smart CAP (Max Discount)
+                    </label>
+                    <input
+                      id="category-max-discount"
+                      type="number"
+                      step="0.01"
+                      name="max_discount"
+                      value={formData.max_discount || ''}
+                      onChange={handleInputChange}
+                      disabled={formData.offer_type !== 'percentage'}
+                      placeholder="e.g. 500 (Optional)"
+                      className={`form-field-input ${errors.max_discount ? "input-field-error" : ""}`}
+                    />
+                     {renderFieldError('max_discount')}
+                    <span className="field-helper-info">
+                      Only applies to Percentage type.
+                    </span>
+                  </div>
+                  {/* Min Product Price */}
+                  <div className="form-input-group">
+                    <label htmlFor="category-min-product-price" className="form-field-label">
+                      Min Product Price (Misuse Prevention)
+                    </label>
+                    <input
+                      id="category-min-product-price"
+                      type="number"
+                      step="0.01"
+                      name="min_product_price"
+                      value={formData.min_product_price || ''}
+                      onChange={handleInputChange}
+                      disabled={formData.offer_type === 'none'}
+                      placeholder="e.g. 1000 (Optional)"
+                      className={`form-field-input ${errors.min_product_price ? "input-field-error" : ""}`}
+                    />
+                     {renderFieldError('min_product_price')}
+                    <span className="field-helper-info">
+                      Prevents discount misuse on cheap products.
+                    </span>
+                  </div>
+                </div>
+                 {/* Expiry Date Checkbox & Calendar Row */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '12px' }}>
+                  {/* Never Expires Toggle */}
+                  <div className="form-toggle-group" style={{ padding: '10px 16px' }}>
+                    <div className="toggle-label-column">
+                      <span className="toggle-label-title" style={{ fontSize: '13px' }}>Offer Never Expires</span>
+                      <span className="toggle-label-desc" style={{ fontSize: '11px' }}>Check to run this offer indefinitely without an expiration date</span>
+                    </div>
+                    <label className="switch-toggle-node">
+                      <input
+                        type="checkbox"
+                        checked={!formData.expiry_date}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData(prev => ({ ...prev, expiry_date: "" }));
+                            if (errors.expiry_date) {
+                              setErrors(prev => ({ ...prev, expiry_date: "" }));
+                            }
+                          } else {
+                            const defaultExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+                            setFormData(prev => ({ ...prev, expiry_date: formatDateTimeLocal(defaultExpiry.toISOString()) }));
+                          }
+                        }}
+                        disabled={formData.offer_type === 'none'}
+                      />
+                      <span className="switch-toggle-slider" />
+                    </label>
+                  </div>
+                  {/* Expiry Date Input (shown only if not unlimited) */}
+                  {formData.expiry_date && (
+                    <div className="form-input-group">
+                      <label htmlFor="category-expiry-date" className="form-field-label">Offer Expiry Date & Time</label>
+                      <input
+                        id="category-expiry-date"
+                        type="datetime-local"
+                        name="expiry_date"
+                        value={formData.expiry_date || ''}
+                        onChange={handleInputChange}
+                        disabled={formData.offer_type === 'none'}
+                        min={formatDateTimeLocal(new Date().toISOString())}
+                        className={`form-field-input ${errors.expiry_date ? "input-field-error" : ""}`}
+                      />
+                      {renderFieldError('expiry_date')}
+                    </div>
+                  )}
                 </div>
 
                 {/* Status Toggle */}

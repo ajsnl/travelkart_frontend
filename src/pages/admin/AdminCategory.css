@@ -152,14 +152,17 @@
 }
 
 .modal-dialog-frame {
-  width: 100%;
-  max-width: 520px;
+  width: 95%;
+  max-width: 600px;
   background-color: #0A0F1D;
   border: 1px solid var(--admin-border-gray);
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
   animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
 }
 
 @keyframes slideUp {
@@ -212,22 +215,26 @@
 }
 
 .modal-dialog-form {
-  padding: 24px;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  overflow: hidden;
 }
 
 .form-fields-container {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  padding: 24px;
+  overflow-y: auto;
+  max-height: 55vh;
 }
 
 .form-input-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  
 }
 
 .form-field-label {
@@ -375,8 +382,8 @@ input:checked + .switch-toggle-slider:before {
   justify-content: flex-end;
   gap: 12px;
   border-top: 1px solid var(--admin-border-gray);
-  padding-top: 20px;
-  margin-top: 8px;
+  padding: 16px 24px;
+  background-color: #080D1A;
 }
 
 .btn-cancel {
@@ -421,3 +428,55 @@ input:checked + .switch-toggle-slider:before {
 .btn-submit:active {
   transform: translateY(0);
 }
+
+/* Category Offer Styles */
+.form-section-title {
+  margin-top: 24px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #1F2937;
+  padding-bottom: 8px;
+  color: #9CA3AF;
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+}
+.form-row-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 12px;
+}
+@media (max-width: 640px) {
+  .form-row-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+.category-offer-badge {
+  background-color: #0F172A;
+  color: #10B981;
+  border: 1px solid #047857;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-block;
+  transition: all 0.2s ease;
+}
+.category-offer-badge:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.25);
+}
+.category-offer-badge-expired {
+  color: #EF4444;
+  margin-left: 6px;
+  font-size: 9px;
+  font-weight: bold;
+  text-transform: uppercase;
+  background-color: rgba(239, 68, 68, 0.1);
+  padding: 1px 4px;
+  border-radius: 3px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
