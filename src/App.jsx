@@ -89,6 +89,47 @@ function App() {
     checkAuth();
   }, [location.pathname, dispatch, isAuthenticated, navigationType, user, navigate]);
 
+  useEffect(() => {
+    // Dynamic page title mapping based on route path
+    const getPageTitle = (path) => {
+      // 1. Admin Routes
+      if (path.startsWith("/admin")) {
+        if (path === "/admin" || path === "/admin/") return "Admin Dashboard | TravelKart";
+        if (path.includes("/products")) return "Manage Products | Admin | TravelKart";
+        if (path.includes("/categories")) return "Manage Categories | Admin | TravelKart";
+        if (path.includes("/orders")) return "Manage Orders | Admin | TravelKart";
+        if (path.includes("/users")) return "Manage Users | Admin | TravelKart";
+        if (path.includes("/coupons")) return "Manage Coupons | Admin | TravelKart";
+        if (path.includes("/banners")) return "Manage Banners | Admin | TravelKart";
+        if (path.includes("/sales-report")) return "Sales Report | Admin | TravelKart";
+        return "Admin Portal | TravelKart";
+      }
+      // 2. Auth Routes
+      if (path === "/login") return "Login | TravelKart";
+      if (path === "/signup") return "Create Account | TravelKart";
+      if (path === "/forgot-password") return "Forgot Password | TravelKart";
+      if (path === "/verify-otp") return "Verify OTP | TravelKart";
+      if (path === "/reset-password") return "Reset Password | TravelKart";
+      // 3. User Routes
+      if (path === "/") return "Home - Premium Travel & Adventure Gear | TravelKart";
+      if (path === "/cart") return "Shopping Cart | TravelKart";
+      if (path === "/checkout") return "Checkout | TravelKart";
+      if (path === "/profile") return "My Profile | TravelKart";
+      if (path === "/orders") return "My Orders | TravelKart";
+      if (path === "/wishlist") return "My Wishlist | TravelKart";
+      if (path === "/wallet") return "Wallet & Transactions | TravelKart";
+      if (path === "/categories") return "Browse Categories | TravelKart";
+      if (path === "/shop") return "Shop Products | TravelKart";
+      
+      // Dynamic detail views
+      if (path.startsWith("/product/")) return "Product Details | TravelKart";
+      if (path.startsWith("/order-tracking/")) return "Track Order | TravelKart";
+      return "TravelKart";
+    };
+    document.title = getPageTitle(location.pathname);
+  }, [location.pathname]);
+
+  
   return (
     <>
       <Routes>

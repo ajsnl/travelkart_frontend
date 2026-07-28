@@ -100,6 +100,7 @@ export default function ProductDetail() {
         const res = await fetchProductById(id);
         const data = res.data;
         setProduct(data);
+        document.title = `${data.name} | TravelKart`;
         
         // Check if product or its category is unlisted/blocked
         const blocked = data.is_active === false || data.category_active === false;
