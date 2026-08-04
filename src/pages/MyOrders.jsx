@@ -15,6 +15,7 @@ import OrderPagination from "../components/orders/OrderPagination";
 import ActionModal from "../components/orders/ActionModal";
 
 import "./MyOrders.css";
+import { useVisibilityPoll } from "../hooks/useVisibilityPoll";
 
 export default function MyOrders() {
   const navigate = useNavigate();
@@ -63,16 +64,20 @@ export default function MyOrders() {
   useEffect(() => {
     if (isAuthenticated) {
       loadOrders();
-
-      const interval = setInterval(() => {
-        loadOrders(true);
-      }, 4000);
-
-      return () => clearInterval(interval);
     } else {
       navigate("/login", { state: { from: "/orders" } });
     }
   }, [isAuthenticated, navigate]);
+
+  const activeStatuses = ["processing", "shipped", "out_for_delivery", "return_requested"];
+  const hasActiveOrders = orders.some(order => activeStatuses.includes(order.status));
+  
+  useVisibilityPoll(
+    () => loadOrders(true),
+    20000,
+    isAuthenticated && hasActiveOrders,
+    false
+  );
 
   
   const handleCancelOrder = (trackingId) => {

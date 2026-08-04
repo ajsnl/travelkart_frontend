@@ -18,6 +18,7 @@ import ActionModal from "../components/orders/ActionModal";
 import { generateInvoicePDF } from "../utils/invoiceGenerator";
 
 import "./OrderTracking.css";
+import { useVisibilityPoll } from "../hooks/useVisibilityPoll";
 
 export default function OrderTracking() {
   const { trackingId } = useParams();
@@ -60,13 +61,17 @@ export default function OrderTracking() {
 
   useEffect(() => {
     getOrderData();
+      }, [trackingId]);
 
-    const interval = setInterval(() => {
-      getOrderData(true);
-    }, 4000);
+  const activeStatuses = ["processing", "shipped", "out_for_delivery", "return_requested"];
+  const hasActiveOrder = order && activeStatuses.includes(order.status);
 
-    return () => clearInterval(interval);
-  }, [trackingId]);
+    useVisibilityPoll(
+    () => getOrderData(true),
+    20000,
+    !!hasActiveOrder,
+    false
+  );
 
   if (loading) {
     return (

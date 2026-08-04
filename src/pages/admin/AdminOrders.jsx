@@ -22,6 +22,7 @@ import { fetchAdminOrders, updateAdminOrderStatus, approveItemReturn, rejectItem
 import { toast } from "react-toastify";
 import "./AdminOrders.css";
 import { useCustomDialog } from "../../components/CustomDialog";
+import { useVisibilityPoll } from "../../hooks/useVisibilityPoll";
 
 const formatDate = (dateString) => {
   if (!dateString) return "N/A";
@@ -127,12 +128,14 @@ const AdminOrders = () => {
   useEffect(() => {
     loadOrders();
 
-    const interval = setInterval(() => {
-      loadOrders(true);
-    }, 4000);
-
-    return () => clearInterval(interval);
   }, [search, page, statusFilter, paymentFilter]);
+  
+    useVisibilityPoll(
+    () => loadOrders(true),
+    20000,
+    true,
+    false
+  );
 
   useEffect(() => {
     if (selectedOrder) {

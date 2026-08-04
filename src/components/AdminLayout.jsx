@@ -6,6 +6,7 @@ import TravelKartLogoMain from "./brand/TravelKartLogoMain";
 import "./AdminLayout.css";
 import { useCustomDialog } from "./CustomDialog";
 import { fetchNotifications, markNotificationsAsRead } from "../services/adminService";
+import { useVisibilityPoll } from "../hooks/useVisibilityPoll";
 
 const AdminLayout = () => {
   const [search, setSearch] = useState("");
@@ -24,13 +25,7 @@ const AdminLayout = () => {
     }
   };
 
-  useEffect(() => {
-    loadNotifications();
-    const interval = setInterval(() => {
-      loadNotifications();
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
+  useVisibilityPoll(loadNotifications, 25000);
 
   useEffect(() => {
     setSearch("");
