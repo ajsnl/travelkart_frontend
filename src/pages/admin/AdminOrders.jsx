@@ -73,6 +73,16 @@ const cancelReasonLabels = {
   other: "Other reason",
 };
 
+const ALLOWED_TRANSITIONS = {
+  processing: ["shipped", "cancelled"],
+  shipped: ["out_for_delivery", "cancelled"],
+  out_for_delivery: ["delivered", "cancelled"],
+  delivered: ["return_requested", "returned"],
+  return_requested: ["returned", "delivered"],
+  cancelled: [],
+  returned: []
+};
+
 const AdminOrders = () => {
   const { search } = useOutletContext();
   const { showConfirm } = useCustomDialog();
@@ -81,6 +91,13 @@ const AdminOrders = () => {
   const [count, setCount] = useState(0);
   const [statusFilter, setStatusFilter] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("");
+
+  const isStatusDisabled = (targetStatus) => {
+    if (!selectedOrder) return true;
+    if (selectedOrder.status === targetStatus) return false;
+    const allowed = ALLOWED_TRANSITIONS[selectedOrder.status] || [];
+    return !allowed.includes(targetStatus);
+  };
 
   // Stats
   const [stats, setStats] = useState({
@@ -129,7 +146,7 @@ const AdminOrders = () => {
     loadOrders();
 
   }, [search, page, statusFilter, paymentFilter]);
-  
+
     useVisibilityPoll(
     () => loadOrders(true),
     20000,
@@ -859,13 +876,13 @@ const AdminOrders = () => {
                           disabled={selectedOrder.status === "returned" || selectedOrder.status === "cancelled"}
                           className="modal-select-field"
                         >
-                          <option value="processing" disabled={selectedOrder.status === "delivered"}>Processing</option>
-                          <option value="shipped" disabled={selectedOrder.status === "delivered"}>Shipped</option>
-                          <option value="out_for_delivery" disabled={selectedOrder.status === "delivered"}>Out for Delivery</option>
-                          <option value="delivered">Delivered</option>
-                          <option value="cancelled">Cancelled</option>
-                          <option value="return_requested">Return Requested</option>
-                          <option value="returned">Returned</option>
+                          <option value="processing" disabled={isStatusDisabled("processing")}>Processing</option>
+                          <option value="shipped" disabled={isStatusDisabled("shipped")}>Shipped</option>
+                          <option value="out_for_delivery" disabled={isStatusDisabled("out_for_delivery")}>Out for Delivery</option>
+                          <option value="delivered" disabled={isStatusDisabled("delivered")}>Delivered</option>
+                          <option value="cancelled" disabled={isStatusDisabled("cancelled")}>Cancelled</option>
+                          <option value="return_requested" disabled={isStatusDisabled("return_requested")}>Return Requested</option>
+                          <option value="returned" disabled={isStatusDisabled("returned")}>Returned</option>
                         </select>
                       </div>
 
