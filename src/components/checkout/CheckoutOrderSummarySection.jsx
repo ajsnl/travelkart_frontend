@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Truck, Loader2, Lock, ArrowRight, ShieldCheck, Gift, Tag, X } from "lucide-react";
+import { Truck, Loader2, Lock, ArrowRight, ShieldCheck, Gift, Tag, X, AlertCircle } from "lucide-react";
 
 export default function CheckoutOrderSummarySection({
   items,
@@ -214,6 +214,24 @@ export default function CheckoutOrderSummarySection({
         </div>
 
         <div style={{ marginTop: "24px" }}>
+           {isCheckoutRestricted && (
+            <div className="checkout-restriction-box" style={{ 
+              display: "flex", 
+              gap: "12px", 
+              backgroundColor: "#FEF2F2", 
+              border: "1px solid #FCA5A5", 
+              borderRadius: "8px", 
+              padding: "12px", 
+              marginBottom: "16px",
+              color: "#991B1B"
+            }}>
+              <AlertCircle size={16} style={{ flexShrink: 0, marginTop: "2px" }} />
+              <div style={{ fontSize: "12px" }}>
+                <strong style={{ display: "block", fontWeight: "600", marginBottom: "4px" }}>Checkout Restricted</strong>
+                <span>Some items in your cart are currently unavailable or out of stock. Please return to the cart to review.</span>
+              </div>
+            </div>
+          )}
           <button
             disabled={
               isCheckoutRestricted ||

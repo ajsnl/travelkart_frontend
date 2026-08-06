@@ -23,6 +23,7 @@ import "./Cart.css";
 import Footer from "../components/Footer";
 import { useCustomDialog } from "../components/CustomDialog";
 import {toast} from "react-toastify";
+import { useVisibilityPoll } from "../hooks/useVisibilityPoll";
 
 export default function Cart() {
   const dispatch = useDispatch();
@@ -30,9 +31,10 @@ export default function Cart() {
   const { cart, loading, updatingItems, error } = useSelector((state) => state.cart);
   const { showConfirm } = useCustomDialog();
   
-  useEffect(() => {
+  // Refresh cart on focus and every 5 seconds 
+  useVisibilityPoll(() => {
     dispatch(getCart());
-  }, [dispatch]);
+  }, 5000);
 
   const handleUpdateQuantity = (item, newQty) => {
     const variantId = item.variant?.id;

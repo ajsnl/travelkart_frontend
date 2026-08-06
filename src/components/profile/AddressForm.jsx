@@ -48,6 +48,12 @@ const AddressForm = ({ onSubmit, initialData, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (form.phone && !phoneRegex.test(form.phone)) {
+      toast.error("Phone number must start with 6, 7, 8, or 9 and be exactly 10 digits");
+      return;
+    }
     const confirmed = await showConfirm("Are you sure you want to save this address?", "Save Address", "info");
     if (!confirmed) return;
     setSubmitting(true);

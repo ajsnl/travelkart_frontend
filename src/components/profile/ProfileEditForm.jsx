@@ -75,9 +75,9 @@ const ProfileEditForm = ({ user, onSubmit, onClose }) => {
     }
 
     // Phone validation
-    const phoneRegex = /^\d{10}$/;
+    const phoneRegex = /^[6-9]\d{9}$/;
     if (form.phone && !phoneRegex.test(form.phone)) {
-      toast.error("Phone number must be exactly 10 digits");
+      toast.error("Phone number must start with 6, 7, 8, or 9 and be exactly 10 digits");
       return;
     }
 

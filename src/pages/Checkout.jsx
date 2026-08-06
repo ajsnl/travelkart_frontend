@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { getCart, clearUserCart } from "../features/cart/cartSlice";
+import { useVisibilityPoll } from "../hooks/useVisibilityPoll";
 import {
   getAddresses,
   addAddress,
@@ -108,12 +109,16 @@ export default function Checkout() {
     }
   };
 
-  useEffect(() => {
+// Refresh cart on focus and every 5 seconds 
+  useVisibilityPoll(() => {
     dispatch(getCart());
+  }, 5000);
+
+  useEffect(() => {
     fetchAddresses();
     fetchProfile();
     fetchWallet();
-  }, [dispatch]);
+  }, []);
 
   const fetchAvailableCoupons = async () => {
     try {
