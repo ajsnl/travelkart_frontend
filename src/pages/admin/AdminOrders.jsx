@@ -77,7 +77,7 @@ const ALLOWED_TRANSITIONS = {
   processing: ["shipped", "cancelled"],
   shipped: ["out_for_delivery", "cancelled"],
   out_for_delivery: ["delivered", "cancelled"],
-  delivered: ["return_requested", "returned"],
+  delivered: ["returned"],
   return_requested: ["returned", "delivered"],
   cancelled: [],
   returned: []
@@ -173,6 +173,13 @@ const AdminOrders = () => {
     }
   }, [orders, selectedOrder]);
 
+  useEffect(() => {
+    if (editStatus === "cancelled" || editStatus === "returned") {
+      setEditPaymentStatus("refunded");
+    }
+  }, [editStatus]);
+
+
   const openOrderDetails = (order) => {
     setSelectedOrder(order);
     setEditStatus(order.status);
@@ -190,6 +197,13 @@ const AdminOrders = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     if (!selectedOrder) return;
+
+    if (editPaymentStatus === "refunded") {
+      if (editStatus !== "cancelled" && editStatus !== "returned") {
+        toast.error("Cannot set payment status to 'Refunded' unless the order is Cancelled or Returned.");
+        return;
+      }
+    }
 
     setIsSaving(true);
     try {
@@ -891,6 +905,11 @@ const AdminOrders = () => {
                         <select
                           value={editPaymentStatus}
                           onChange={(e) => setEditPaymentStatus(e.target.value)}
+                          disabled={
+                            selectedOrder.payment_status === "refunded" ||
+                            editStatus === "cancelled" ||
+                            editStatus === "returned"
+                          }
                           className="modal-select-field"
                         >
                           <option value="pending">Pending</option>
