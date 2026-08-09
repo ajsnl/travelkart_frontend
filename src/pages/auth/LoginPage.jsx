@@ -173,6 +173,7 @@ function Login() {
                 size="large"
                 text="signin_with"
                 shape="pill"
+                width="360"
                 onSuccess={async (credentialResponse) => {
                   try {
                     const token = credentialResponse.credential;

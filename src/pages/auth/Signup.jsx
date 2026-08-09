@@ -469,6 +469,7 @@ function Signup() {
             size="large"
             text="continue_with"
             shape="pill"
+            width="360"
             onSuccess={async (credentialResponse) => {
               try {
                 const token = credentialResponse.credential;

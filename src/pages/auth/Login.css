@@ -337,24 +337,20 @@
 
 .login-google-btn-wrapper {
   width: 100%;
-  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #FFFFFF;
-  border: 1px solid rgba(197, 197, 211, 0.3);
-  border-radius: 9999px;
-  overflow: hidden;
-  cursor: pointer;
+  margin: 6px 0;
 }
 
 .login-google-btn-wrapper > div {
   width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
 }
 
 .login-google-btn-wrapper iframe {
-  width: 100% !important;
-  height: 100% !important;
+ margin: 0 auto !important;
 }
 
 .login-footer-redirect {

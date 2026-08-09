@@ -14,7 +14,6 @@ export default function Navbar() {
   const { cart } = useSelector((state) => state.cart);
   const [searchVal, setSearchVal] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -30,9 +29,7 @@ export default function Navbar() {
     } else {
       setSearchVal("");
     }
-    // Close mobile menu on route changes
     setMobileMenuOpen(false);
-    setMobileSearchOpen(false);
   }, [location]);
 
   // Lock body scroll when mobile menu is open
@@ -50,7 +47,6 @@ export default function Navbar() {
   const handleSearchSubmit = (e) => {
     if (e.key === "Enter" || e.type === "click") {
       const trimmed = searchVal.trim();
-      setMobileSearchOpen(false);
       setMobileMenuOpen(false);
       if (trimmed) {
         navigate(`/categories?search=${encodeURIComponent(trimmed)}`);
@@ -118,7 +114,7 @@ export default function Navbar() {
           </li>
         </ul>
 
-        {/* Desktop Search Input */}
+        {/* Single Global Search Input */}
         <div className="navbar-search-container">
           <input
             type="text"
@@ -138,15 +134,6 @@ export default function Navbar() {
 
         {/* Actions */}
         <div className="navbar-actions">
-          {/* Mobile Search Toggle */}
-          <button 
-            className="navbar-action-btn mobile-search-btn"
-            onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-            aria-label="Search"
-          >
-            <Search size={20} />
-          </button>
-
           <Link 
             to={isAuthenticated ? "/cart" : "/login"} 
             state={isAuthenticated ? undefined : { from: "/cart" }}
@@ -175,29 +162,6 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Expandable Mobile Search Bar */}
-      {mobileSearchOpen && (
-        <div className="navbar-mobile-search-bar">
-          <div className="mobile-search-inner">
-            <input
-              type="text"
-              placeholder="Search gear, backpacks, tents..."
-              className="mobile-search-input"
-              value={searchVal}
-              onChange={(e) => setSearchVal(e.target.value)}
-              onKeyDown={handleSearchSubmit}
-              autoFocus
-            />
-            <button className="mobile-search-submit-btn" onClick={handleSearchSubmit}>
-              <Search size={18} />
-            </button>
-            <button className="mobile-search-close-btn" onClick={() => setMobileSearchOpen(false)}>
-              <X size={18} />
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Mobile Drawer Overlay */}
       <div 
         className={`navbar-drawer-overlay ${mobileMenuOpen ? "active" : ""}`}
@@ -218,6 +182,23 @@ export default function Navbar() {
           >
             <X size={22} />
           </button>
+        </div>
+
+        {/* Drawer Search Box */}
+        <div className="drawer-search-wrapper">
+          <input
+            type="text"
+            placeholder="Search gear, backpacks..."
+            className="drawer-search-input"
+            value={searchVal}
+            onChange={(e) => setSearchVal(e.target.value)}
+            onKeyDown={handleSearchSubmit}
+          />
+          <Search 
+            size={18} 
+            className="drawer-search-icon" 
+            onClick={handleSearchSubmit}
+          />
         </div>
 
         {/* User Card if Authenticated */}

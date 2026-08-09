@@ -241,32 +241,23 @@
 
 .signup-google-btn {
   width: 100%;
-  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #FFFFFF;
-  border: 1px solid #EAEBED;
-  border-radius: 20px;
-  font-size: 15px;
-  font-weight: 700;
-  color: #191C1D;
-  letter-spacing: 1.5px;
-  cursor: pointer;
-  text-transform: uppercase;
-  overflow: hidden; /* important */
+  margin: 6px 0;
 }
 
 /* Target Google button inside */
 .signup-google-btn > div {
-  width: 100% !important;  
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
   
 }
 
 /* Override iframe/button */
 .signup-google-btn iframe {
-  width: 100% !important;
-  height: 100% !important;
+  margin: 0 auto !important;
 }
 
 .signup-footer-redirect {
