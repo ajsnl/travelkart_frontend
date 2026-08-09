@@ -84,7 +84,7 @@ const WalletCard = () => {
               response.razorpay_order_id,
               response.razorpay_signature
             );
-            toast.success("Funds added successfully! 💵");
+            toast.success("Funds added successfully! ");
             setBalance(parseFloat(verifyRes.data.balance));
             setShowAddModal(false);
             setAmount("");
