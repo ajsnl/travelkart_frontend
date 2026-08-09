@@ -94,12 +94,32 @@
 }
 
 @media (max-width: 768px) {
+  .home-corporate-footer {
+    padding: 40px 20px 24px 20px;
+  }
+
   .footer-top-links-grid {
-    grid-template-columns: 1fr;
-    gap: 32px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px 20px;
+    margin-bottom: 32px;
+  }
+
+  .footer-brand-column {
+    grid-column: span 2;
+    max-width: 100%;
   }
   
   .footer-brand-tagline {
     max-width: 100%;
   }
 }
+@media (max-width: 480px) {
+  .footer-top-links-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .footer-brand-column {
+    grid-column: span 1;
+  }
+}
+

@@ -24,7 +24,8 @@
 /* Base Body Application Overrides */
 .profile-dashboard-layout {
   display: flex;
-  width: 100vw;
+  width: 100%;
+  max-width: 100%;
   min-height: 100vh;
   background-color: var(--bg-workspace);
   color: var(--text-dark-layout);
@@ -1291,3 +1292,117 @@ textarea.form-input {
   font-size: 14px;
 }
 
+
+@media (max-width: 992px) {
+  .profile-dashboard-layout {
+    flex-direction: column;
+  }
+  .layout-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-light-layout);
+    padding: 20px 16px 12px 16px;
+  }
+  .sidebar-brand-title {
+    margin-bottom: 16px;
+    font-size: 20px;
+  }
+  .sidebar-profile-capsule {
+    margin-bottom: 16px;
+  }
+  .sidebar-navigation-links {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .sidebar-navigation-links::-webkit-scrollbar {
+    display: none;
+  }
+  .nav-link-btn {
+    white-space: nowrap;
+    padding: 8px 14px;
+    font-size: 13px;
+    border-radius: 9999px;
+    background-color: var(--bg-workspace);
+    flex-shrink: 0;
+    width: auto;
+  }
+  .workspace-inner-bounds {
+    padding: 24px 16px;
+  }
+  .workspace-split-columns-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .workspace-inner-bounds {
+    padding: 16px 12px;
+    gap: 16px;
+  }
+  .workspace-hero-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .hero-identity-block {
+    gap: 14px;
+  }
+  .hero-avatar-wrapper {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+  }
+  .hero-profile-fullname {
+    font-size: 22px;
+    line-height: 28px;
+  }
+  .personal-information-data-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .email-alert-strip-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+  .alert-strip-action-btn {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+  .profile-data-display-card {
+    padding: 20px 16px;
+    border-radius: 12px;
+  }
+  .figma-membership-card,
+  .figma-wallet-gradient-card {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+  .membership-tier-title-display {
+    font-size: 28px;
+    margin: 8px 0 16px 0;
+  }
+  .wallet-amount-value-display {
+    font-size: 26px;
+  }
+  .wallet-interactive-actions-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+  /* Modal responsiveness */
+  .profile-modal-overlay {
+    padding: 12px;
+  }
+  .profile-edit-modal-card {
+    max-width: 100%;
+    max-height: 90vh;
+    padding: 20px 16px;
+  }
+}

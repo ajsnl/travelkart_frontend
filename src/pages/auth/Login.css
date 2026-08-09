@@ -2,8 +2,8 @@
 
 .login-viewport {
   display: flex;
-  width: 100vw;
-  min-height: 100vh;
+  width: 100%;
+  min-height: 100%;
   background-color: #F8F9FA;
   overflow-x: hidden;
   user-select: none;
@@ -383,4 +383,58 @@
 .login-footnote-link {
   color: #757682;
   text-decoration: none;
+}
+
+/* Mobile & Tablet Responsiveness */
+@media (max-width: 900px) {
+  .login-viewport {
+    flex-direction: column;
+  }
+  .login-left-banner {
+    width: 100%;
+    min-height: auto;
+    padding: 32px 20px;
+  }
+  .login-left-middle-stack,
+  .login-avatar-row {
+    display: none;
+  }
+  .login-left-logo {
+    justify-content: center;
+  }
+  .login-right-container {
+    width: 100%;
+    min-height: auto;
+    padding: 32px 20px 48px 20px;
+  }
+  .login-form-wrapper {
+    min-height: auto;
+    max-width: 100%;
+  }
+  .login-header-group > * + * {
+    margin-top: 1.5rem;
+  }
+  .login-heading {
+    font-size: 28px;
+    line-height: 34px;
+    text-align: center;
+  }
+  .login-subheading {
+    text-align: center;
+  }
+  .login-submit-btn {
+    height: 52px;
+    font-size: 16px;
+  }
+}
+@media (max-width: 480px) {
+  .login-left-banner {
+    padding: 24px 16px;
+  }
+  .login-right-container {
+    padding: 24px 16px 40px 16px;
+  }
+  .login-heading {
+    font-size: 24px;
+  }
 }

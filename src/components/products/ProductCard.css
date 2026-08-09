@@ -303,3 +303,43 @@
   outline: 2px solid var(--primary-deep);
   outline-offset: 2px;
 }
+
+@media (max-width: 640px) {
+  .unified-product-card {
+    padding: 8px;
+    border-radius: 14px;
+  }
+  .product-card-title {
+    font-size: 13px;
+  }
+  .product-card-description {
+    display: none;
+    height: 0;
+  }
+  .regular-price,
+  .active-offer-price {
+    font-size: 14px;
+  }
+  .quick-add-cart-btn {
+    width: 30px;
+    height: 30px;
+  }
+  .quick-add-cart-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+  .wishlist-overlay-button {
+    width: 26px;
+    height: 26px;
+    top: 6px;
+    right: 6px;
+  }
+  .wishlist-overlay-button svg {
+    width: 14px;
+    height: 14px;
+  }
+  .badge-tag {
+    font-size: 8px;
+    padding: 2px 6px;
+  }
+}

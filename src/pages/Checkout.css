@@ -1132,4 +1132,34 @@
   color: #991B1B;
 }
 
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+  .checkout-main-content {
+    padding: 20px 16px;
+  }
+  .checkout-title {
+    font-size: 24px;
+  }
+  .checkout-section-card {
+    padding: 20px 16px;
+    border-radius: 12px;
+  }
+  .checkout-section-title {
+    font-size: 17px;
+  }
+  .conf-order-meta-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .conf-action-btns-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .conf-action-btns-row button,
+  .conf-action-btns-row a {
+    width: 100%;
+    text-align: center;
+  }
+}
+
 
