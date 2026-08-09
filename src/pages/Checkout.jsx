@@ -304,6 +304,12 @@ export default function Checkout() {
 
     if (!confirmed) return;
 
+    if (paymentMethod === "razorpay" && finalTotal > 500000) {
+      toast.error("Online payments via Razorpay are limited to ₹5,00,000 per transaction. For orders above ₹5 Lakhs, please contact support or choose another payment method.");
+      return;
+    }
+
+
     try {
       setProcessing(true);
 

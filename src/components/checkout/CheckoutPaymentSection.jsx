@@ -14,13 +14,17 @@ export default function CheckoutPaymentSection({
   };
 
   const isInsufficient = walletBalance < finalTotal;
+  const isRazorpayExceeded = finalTotal > 500000;
 
   const paymentOptions = [
     {
       id: "razorpay",
       name: "Razorpay (Cards/UPI/Net)",
       icon: <CreditCard size={24} />,
-      status: "active",
+      status: isRazorpayExceeded ? "limit_exceeded" : "active",
+      message: isRazorpayExceeded 
+        ? "Razorpay transaction limit is ₹5,00,000 (5 Lakhs). For orders above ₹5 Lakhs, please contact support or select another payment method."
+        : null,
     },
     {
       id: "cod",
@@ -54,7 +58,7 @@ export default function CheckoutPaymentSection({
       <div className="checkout-payment-methods-grid">
         {paymentOptions.map((option) => {
           const isSelected = paymentMethod === option.id;
-          const isDisabled = option.status === "coming" || option.status === "insufficient";
+          const isDisabled = option.status === "coming" || option.status === "insufficient" || option.status === "limit_exceeded";
 
           return (
             <div
@@ -64,7 +68,7 @@ export default function CheckoutPaymentSection({
                 ${isDisabled ? "disabled" : ""}
               `}
               onClick={() => {
-                if (option.status === "coming") {
+                if (option.status === "coming" || option.status === "limit_exceeded") {
                   handleDisabledClick(option.message);
                 } else if (option.status === "insufficient") {
                   toast.error(option.message);
@@ -83,14 +87,22 @@ export default function CheckoutPaymentSection({
 
               <span
                 className={`payment-badge ${
-                  option.status === "active" ? "active" : option.status === "insufficient" ? "insufficient" : "coming"
+                  option.status === "active" 
+                    ? "active" 
+                    : option.status === "insufficient" 
+                      ? "insufficient" 
+                      : option.status === "limit_exceeded"
+                        ? "insufficient"
+                        : "coming"
                 }`}
               >
                 {option.status === "active" 
                   ? "Active" 
                   : option.status === "insufficient" 
                     ? `₹${walletBalance.toFixed(2)}` 
-                    : "Coming Soon"}
+                    : option.status === "limit_exceeded"
+                      ? "Max ₹5L"
+                      : "Coming Soon"}
               </span>
             </div>
           );

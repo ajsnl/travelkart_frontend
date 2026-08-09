@@ -49,6 +49,11 @@ const WalletCard = () => {
       return;
     }
 
+      if (cleanAmount > 500000) {
+      toast.error("The maximum deposit limit per transaction is ₹5,00,000 (5 Lakhs). Please enter an amount up to ₹5,00,000.");
+      return;
+    }
+
     try {
       setSubmitting(true);
       // 1. Get Razorpay Order ID from backend
@@ -160,9 +165,13 @@ const WalletCard = () => {
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   min="1"
+                  max="500000"
                   required
                   disabled={submitting}
                 />
+                <span style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', display: 'block' }}>
+                  Maximum limit per transaction: ₹5,00,000 (5 Lakhs)
+                </span>
               </div>
               <div className="wallet-quick-amounts">
                 {quickAmounts.map((q) => (
