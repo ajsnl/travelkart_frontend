@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, Navigate, useSearchParams } from "react-router-dom";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Check, X as XIcon, AlertCircle } from "lucide-react";
 import { signupUser, googleLogin, getCurrentUser, sendSignupOTP, verifySignupOTP } from "../../services/authService";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "../../features/auth/authSlice";
@@ -37,6 +37,7 @@ function Signup() {
     referral_code_used: refCodeParam || ""
   });
 
+  const [touched, setTouched] = useState({});
   const [emailVerified, setEmailVerified] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [emailOtp, setEmailOtp] = useState("");
@@ -68,6 +69,10 @@ function Signup() {
     return <Navigate to="/" replace />;
   }
 
+  const handleBlur = (field) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "email") {
@@ -88,7 +93,7 @@ function Signup() {
     });
   };
 
-    const getErrorMessage = (err, defaultMsg) => {
+  const getErrorMessage = (err, defaultMsg) => {
     if (err.response?.data) {
       const data = err.response.data;
       if (typeof data === "string") return data;
@@ -112,6 +117,7 @@ function Signup() {
   const handleSendOTP = async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email || !emailRegex.test(formData.email.trim())) {
+      setTouched(prev => ({ ...prev, email: true }));
       toast.error("Please enter a valid email address first");
       return;
     }
@@ -124,7 +130,7 @@ function Signup() {
       setCountdown(60);
     } catch (err) {
       console.error("Error sending OTP:", err);
-       toast.error(getErrorMessage(err, "Failed to send OTP. Please try again."));
+      toast.error(getErrorMessage(err, "Failed to send OTP. Please try again."));
     } finally {
       setOtpSending(false);
     }
@@ -149,7 +155,6 @@ function Signup() {
     }
   };
 
-
   const getDobMaxStr = () => {
     const today = new Date();
     const year = today.getFullYear() - 13;
@@ -158,45 +163,98 @@ function Signup() {
     return `${year}-${month}-${day}`;
   };
 
-  const validateForm = () => {
+  // Password Live Security Criteria
+  const pwd = formData.password || "";
+  const passwordCriteria = {
+    hasLength: pwd.length >= 8,
+    hasUpper: /[A-Z]/.test(pwd),
+    hasLower: /[a-z]/.test(pwd),
+    hasNumber: /[0-9]/.test(pwd),
+    hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(pwd)
+  };
+  const isPasswordSecure = Object.values(passwordCriteria).every(Boolean);
+
+  // Live Field Validation Errors
+  const getFieldErrors = () => {
+    const errs = {};
     const nameRegex = /^[A-Za-z\s]+$/;
-    if (formData.first_name && !nameRegex.test(formData.first_name.trim())) {
-      toast.error("First name must contain only letters and spaces");
-      return false;
-    }
-    if (formData.last_name && !nameRegex.test(formData.last_name.trim())) {
-      toast.error("Last name must contain only letters and spaces");
-      return false;
+
+    // First Name
+    if (!formData.first_name || !formData.first_name.trim()) {
+      errs.first_name = "First name is required";
+    } else if (!nameRegex.test(formData.first_name.trim())) {
+      errs.first_name = "Only letters and spaces allowed";
     }
 
-    if (formData.password !== formData.confirm_password) {
-      toast.error("Passwords do not match");
-      return false;
+    // Last Name
+    if (!formData.last_name || !formData.last_name.trim()) {
+      errs.last_name = "Last name is required";
+    } else if (!nameRegex.test(formData.last_name.trim())) {
+      errs.last_name = "Only letters and spaces allowed";
     }
-    if (formData.password.length < 8) {
-      toast.error("Password must be at least 8 characters");
-      return false;
+
+    // Date of Birth
+    if (!formData.dob) {
+      errs.dob = "Date of birth is required";
+    } else if (formData.dob > getDobMaxStr()) {
+      errs.dob = "You must be at least 13 years old to register";
     }
+
+    // Email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email || !emailRegex.test(formData.email.trim())) {
-      toast.error("Please enter a valid email address");
-      return false;
+    if (!formData.email || !formData.email.trim()) {
+      errs.email = "Email address is required";
+    } else if (!emailRegex.test(formData.email.trim())) {
+      errs.email = "Enter a valid email (e.g. name@domain.com)";
+    } else if (!emailVerified) {
+      errs.email = "Please verify your email with OTP";
     }
-    if (formData.dob) {
-      const dobMaxStr = getDobMaxStr();
-      if (formData.dob > dobMaxStr) {
-        toast.error("You must be at least 13 years old to register");
-        return false;
-      }
+
+    // Password
+    if (!pwd) {
+      errs.password = "Password is required";
+    } else if (!isPasswordSecure) {
+      errs.password = "Password must meet all security requirements";
     }
-    return true;
+
+    // Confirm Password
+    if (!formData.confirm_password) {
+      errs.confirm_password = "Confirm password is required";
+    } else if (formData.confirm_password !== formData.password) {
+      errs.confirm_password = "Passwords do not match";
+    }
+
+    return errs;
   };
+
+  const fieldErrors = getFieldErrors();
+  const hasErrors = Object.keys(fieldErrors).length > 0;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
 
-    const confirmed = await showConfirm("Are you sure you want to register?", "Register Account", "info");
+    // Mark all fields as touched to trigger inline warnings
+    setTouched({
+      first_name: true,
+      last_name: true,
+      dob: true,
+      email: true,
+      password: true,
+      confirm_password: true
+    });
+
+    if (hasErrors) {
+      if (!emailVerified) {
+        toast.error("Please verify your email address via OTP before continuing.");
+      } else if (!isPasswordSecure) {
+        toast.error("Please ensure your password satisfies all security criteria.");
+      } else {
+        toast.error("Please correct the errors indicated under each field.");
+      }
+      return;
+    }
+
+    const confirmed = await showConfirm("Are you sure you want to register this account?", "Register Account", "info");
     if (!confirmed) return;
 
     setSubmitting(true);
@@ -289,31 +347,48 @@ function Signup() {
             <h2 className="signup-heading font-plus-jakarta">Create your account</h2>
           </div>
 
-          <form onSubmit={handleSubmit} className="signup-form font-inter">
+          <form onSubmit={handleSubmit} className="signup-form font-inter" noValidate>
             
             {/* Compound Row Structure: Full Name Split Map Fields */}
             <div className="signup-field-wrapper">
               <label className="signup-input-label">Full Name</label>
               <div className="signup-fullname-row">
-                <div className="signup-input-container" style={{ flex: 1 }}>
-                  <input
-                    name="first_name"
-                    required
-                    placeholder="First Name"
-                    value={formData.first_name}
-                    onChange={handleChange}
-                    className="signup-input-field"
-                  />
+                <div className="signup-fullname-col">
+                  <div className="signup-input-container">
+                    <input
+                      name="first_name"
+                      required
+                      placeholder="First Name"
+                      value={formData.first_name}
+                      onChange={handleChange}
+                      onBlur={() => handleBlur("first_name")}
+                      className={`signup-input-field ${touched.first_name && fieldErrors.first_name ? "has-error" : ""}`}
+                    />
+                  </div>
+                  {touched.first_name && fieldErrors.first_name && (
+                    <span className="signup-field-warning">
+                      <AlertCircle size={13} /> {fieldErrors.first_name}
+                    </span>
+                  )}
                 </div>
-                <div className="signup-input-container" style={{ flex: 1 }}>
-                  <input
-                    name="last_name"
-                    required
-                    placeholder="Last Name"
-                    value={formData.last_name}
-                    onChange={handleChange}
-                    className="signup-input-field"
-                  />
+
+                <div className="signup-fullname-col">
+                  <div className="signup-input-container">
+                    <input
+                      name="last_name"
+                      required
+                      placeholder="Last Name"
+                      value={formData.last_name}
+                      onChange={handleChange}
+                      onBlur={() => handleBlur("last_name")}
+                      className={`signup-input-field ${touched.last_name && fieldErrors.last_name ? "has-error" : ""}`}
+                    />
+                  </div>
+                  {touched.last_name && fieldErrors.last_name && (
+                    <span className="signup-field-warning">
+                      <AlertCircle size={13} /> {fieldErrors.last_name}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -328,10 +403,16 @@ function Signup() {
                   required
                   value={formData.dob}
                   onChange={handleChange}
+                  onBlur={() => handleBlur("dob")}
                   max={getDobMaxStr()}
-                  className="signup-input-field"
+                  className={`signup-input-field ${touched.dob && fieldErrors.dob ? "has-error" : ""}`}
                 />
               </div>
+              {touched.dob && fieldErrors.dob && (
+                <span className="signup-field-warning">
+                  <AlertCircle size={13} /> {fieldErrors.dob}
+                </span>
+              )}
             </div>
 
             {/* Field Capture Block: Email Address */}
@@ -345,7 +426,8 @@ function Signup() {
                   placeholder="email@voyage.com"
                   value={formData.email}
                   onChange={handleChange}
-                  className="signup-input-field"
+                  onBlur={() => handleBlur("email")}
+                  className={`signup-input-field ${touched.email && fieldErrors.email ? "has-error" : ""}`}
                   style={{ paddingRight: emailVerified ? "120px" : "120px" }}
                 />
                 
@@ -367,6 +449,12 @@ function Signup() {
                   )}
                 </div>
               </div>
+
+              {touched.email && fieldErrors.email && (
+                <span className="signup-field-warning">
+                  <AlertCircle size={13} /> {fieldErrors.email}
+                </span>
+              )}
 
               {otpSent && !emailVerified && (
                 <div className="signup-otp-verify-row">
@@ -404,13 +492,46 @@ function Signup() {
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
-                  className="signup-input-field"
+                  onBlur={() => handleBlur("password")}
+                  className={`signup-input-field ${touched.password && fieldErrors.password ? "has-error" : ""}`}
                   style={{ paddingRight: '48px' }}
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="signup-password-toggle">
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
+
+              {touched.password && fieldErrors.password && (
+                <span className="signup-field-warning">
+                  <AlertCircle size={13} /> {fieldErrors.password}
+                </span>
+              )}
+
+              {/* Real-time Password Security Criteria Checklist */}
+              {(touched.password || formData.password.length > 0) && (
+                <div className="signup-password-criteria">
+                  <div className={`criteria-item ${passwordCriteria.hasLength ? "valid" : "invalid"}`}>
+                    {passwordCriteria.hasLength ? <Check size={13} /> : <XIcon size={13} />}
+                    <span>At least 8 characters</span>
+                  </div>
+                  <div className={`criteria-item ${passwordCriteria.hasUpper ? "valid" : "invalid"}`}>
+                    {passwordCriteria.hasUpper ? <Check size={13} /> : <XIcon size={13} />}
+                    <span>1 uppercase letter (A-Z)</span>
+                  </div>
+                  <div className={`criteria-item ${passwordCriteria.hasLower ? "valid" : "invalid"}`}>
+                    {passwordCriteria.hasLower ? <Check size={13} /> : <XIcon size={13} />}
+                    <span>1 lowercase letter (a-z)</span>
+                  </div>
+                  <div className={`criteria-item ${passwordCriteria.hasNumber ? "valid" : "invalid"}`}>
+                    {passwordCriteria.hasNumber ? <Check size={13} /> : <XIcon size={13} />}
+                    <span>1 number (0-9)</span>
+                  </div>
+                  <div className={`criteria-item ${passwordCriteria.hasSpecial ? "valid" : "invalid"}`} style={{ gridColumn: "span 2" }}>
+                    {passwordCriteria.hasSpecial ? <Check size={13} /> : <XIcon size={13} />}
+                    <span>1 special character (!@#$%^&*...)</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Field Capture Block: Confirm Passkeys Entry */}
@@ -424,13 +545,26 @@ function Signup() {
                   placeholder="••••••••"
                   value={formData.confirm_password}
                   onChange={handleChange}
-                  className="signup-input-field"
+                  onBlur={() => handleBlur("confirm_password")}
+                  className={`signup-input-field ${touched.confirm_password && fieldErrors.confirm_password ? "has-error" : ""}`}
                   style={{ paddingRight: '48px' }}
                 />
                 <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="signup-password-toggle">
                   {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
+
+              {touched.confirm_password && fieldErrors.confirm_password && (
+                <span className="signup-field-warning">
+                  <AlertCircle size={13} /> {fieldErrors.confirm_password}
+                </span>
+              )}
+
+              {touched.confirm_password && !fieldErrors.confirm_password && formData.confirm_password.length > 0 && (
+                <span className="signup-field-success">
+                  <Check size={13} /> Passwords match
+                </span>
+              )}
             </div>
 
             {/* Field Capture Block: Referral Code */}
@@ -449,7 +583,12 @@ function Signup() {
               </div>
             </div>
 
-            <button type="submit" className="signup-submit-btn" disabled={loading || submitting || !emailVerified} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <button 
+              type="submit" 
+              className="signup-submit-btn" 
+              disabled={loading || submitting} 
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+            >
               {(loading || submitting) && <Loader2 className="animate-spin" size={18} />}
               <span>{submitting ? "Creating Account..." : loading ? "Loading..." : "Create Account"}</span>
             </button>
@@ -464,39 +603,39 @@ function Signup() {
 
           {/* Google Actions Anchor */}
           <div className="signup-google-btn">
-          <GoogleLogin
-            theme="outline"
-            size="large"
-            text="continue_with"
-            shape="pill"
-            width="360"
-            onSuccess={async (credentialResponse) => {
-              try {
-                const token = credentialResponse.credential;
+            <GoogleLogin
+              theme="outline"
+              size="large"
+              text="continue_with"
+              shape="pill"
+              width="360"
+              onSuccess={async (credentialResponse) => {
+                try {
+                  const token = credentialResponse.credential;
 
-                const res = await googleLogin(token);
+                  const res = await googleLogin(token);
 
-                console.log("Google login success:", res.data);
+                  console.log("Google login success:", res.data);
 
-                const user = await getCurrentUser();
-                dispatch(setUser(user));
-                if (user?.role === "admin") {
-                  navigate("/admin");
-                } else {
-                  navigate("/");
+                  const user = await getCurrentUser();
+                  dispatch(setUser(user));
+                  if (user?.role === "admin") {
+                    navigate("/admin");
+                  } else {
+                    navigate("/");
+                  }
+
+                } catch (err) {
+                  console.error("Google login error:", err);
+                  const backendError = err.response?.data?.error || 
+                                       err.response?.data?.non_field_errors?.[0] || 
+                                       (err.response?.data && typeof err.response.data === "object" ? Object.values(err.response.data).flat()[0] : null);
+                  toast.error(backendError || "Google login failed ❌");
                 }
-
-              } catch (err) {
-                console.error("Google login error:", err);
-                const backendError = err.response?.data?.error || 
-                                     err.response?.data?.non_field_errors?.[0] || 
-                                     (err.response?.data && typeof err.response.data === "object" ? Object.values(err.response.data).flat()[0] : null);
-                toast.error(backendError || "Google login failed ❌");
-              }
-            }}
-            onError={() => console.log("Login Failed")}
-          />
-        </div>
+              }}
+              onError={() => console.log("Login Failed")}
+            />
+          </div>
 
           {/* Reverse Sign Route Context Anchor */}
           <p className="signup-footer-redirect font-inter">
