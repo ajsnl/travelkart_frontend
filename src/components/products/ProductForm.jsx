@@ -1,7 +1,23 @@
 import React, { useState, useRef, useEffect } from "react";
-import { ChevronLeft, AlertCircle, Plus, Trash2, Settings, Globe, Clock, Layers } from "lucide-react";
+import { ChevronLeft, AlertCircle, Plus, Trash2, Settings, Globe, Clock, Layers, Pencil, Check, X as XIcon, Palette  } from "lucide-react";
 import { toast } from "react-toastify";
 
+const PRESET_COLORS = [
+  { name: "Navy Blue", hex: "#0f2d70" },
+  { name: "Jet Black", hex: "#111111" },
+  { name: "Charcoal Gray", hex: "#2f3542" },
+  { name: "Olive Green", hex: "#556b2f" },
+  { name: "Crimson Red", hex: "#c62828" },
+  { name: "Tan Brown", hex: "#8d6e63" },
+  { name: "Silver Gray", hex: "#94a3b8" },
+  { name: "Alpine White", hex: "#f8f9fa" },
+  { name: "Sunset Orange", hex: "#ea580c" },
+  { name: "Rose Gold", hex: "#e0a899" },
+  { name: "Teal Green", hex: "#008080" },
+  { name: "Burgundy", hex: "#800020" },
+  { name: "Royal Blue", hex: "#2563eb" },
+  { name: "Forest Green", hex: "#15803d" }
+];
 const slugify = (text) => {
   return text
     .toLowerCase()
@@ -42,6 +58,7 @@ const ProductForm = ({
     { name: "Capacity", values: [] }
   ]);
   const [newOptionValue, setNewOptionValue] = useState({ 0: "", 1: "" });
+  const [editingOptionVal, setEditingOptionVal] = useState({ optIdx: null, valIdx: null, text: "" });
   const [errors, setErrors] = useState({});
   const isSlugManuallyEdited = useRef(false);
 
@@ -146,7 +163,7 @@ const ProductForm = ({
     const val = newOptionValue[index]?.trim();
     if (!val) return;
 
-    if (options[index].values.includes(val)) {
+    if (options[index].values.some(v => v.toLowerCase() === val.toLowerCase())) {
       toast.warning("Value already exists.");
       return;
     }
@@ -157,10 +174,44 @@ const ProductForm = ({
     setNewOptionValue(prev => ({ ...prev, [index]: "" }));
   };
 
+    const handleTogglePresetColor = (optIdx, colorName) => {
+    const currentValues = options[optIdx].values;
+    const existingIdx = currentValues.findIndex(v => v.toLowerCase() === colorName.toLowerCase());
+    const updatedOptions = [...options];
+    if (existingIdx !== -1) {
+      updatedOptions[optIdx].values.splice(existingIdx, 1);
+      toast.info(`Removed ${colorName}`);
+    } else {
+      updatedOptions[optIdx].values.push(colorName);
+      toast.success(`Added ${colorName}`);
+    }
+    setOptions(updatedOptions);
+  };
+
   const handleRemoveOptionValue = (optIndex, valIndex) => {
     const updatedOptions = [...options];
     updatedOptions[optIndex].values.splice(valIndex, 1);
     setOptions(updatedOptions);
+    if (editingOptionVal.optIdx === optIndex && editingOptionVal.valIdx === valIndex) {
+      setEditingOptionVal({ optIdx: null, valIdx: null, text: "" });
+    }
+  };
+
+  const handleStartEditOptionValue = (optIdx, valIdx, currentVal) => {
+    setEditingOptionVal({ optIdx, valIdx, text: currentVal });
+  };
+  const handleSaveEditedOptionValue = () => {
+    if (editingOptionVal.optIdx === null || editingOptionVal.valIdx === null) return;
+    const trimmed = editingOptionVal.text.trim();
+    if (!trimmed) {
+      toast.warning("Value cannot be empty.");
+      return;
+    }
+    const updatedOptions = [...options];
+    updatedOptions[editingOptionVal.optIdx].values[editingOptionVal.valIdx] = trimmed;
+    setOptions(updatedOptions);
+    toast.success("Option value updated!");
+    setEditingOptionVal({ optIdx: null, valIdx: null, text: "" });
   };
 
   const handleAddOptionField = () => {
@@ -356,26 +407,120 @@ const ProductForm = ({
                     )}
                   </div>
 
+                  {/* Preset Color Swatches (Shown when option is Color) */}
+                  {option.name.trim().toLowerCase() === "color" && (
+                    <div className="option-color-palette-section">
+                      <div className="palette-header-label">
+                        <Palette size={13} className="text-blue-400" />
+                        <span>Quick Color Palette (Click to add / remove / change)</span>
+                      </div>
+                      <div className="option-color-swatches-grid">
+                        {PRESET_COLORS.map((preset) => {
+                          const isSelected = option.values.some(v => v.toLowerCase() === preset.name.toLowerCase());
+                          return (
+                            <button
+                              key={preset.name}
+                              type="button"
+                              onClick={() => handleTogglePresetColor(optIdx, preset.name)}
+                              className={`color-swatch-chip ${isSelected ? "active" : ""}`}
+                              title={`${isSelected ? "Remove" : "Choose"} ${preset.name}`}
+                            >
+                              <span 
+                                className="color-swatch-dot" 
+                                style={{ backgroundColor: preset.hex, border: preset.name.toLowerCase().includes("white") ? "1px solid #94a3b8" : "none" }}
+                              />
+                              <span className="color-swatch-name">{preset.name}</span>
+                              {isSelected && <Check size={11} className="color-swatch-check" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Values pills row */}
                   <div className="option-values-container">
-                    {option.values.map((val, valIdx) => (
-                      <span key={valIdx} className="badge-option-value">
-                        {val}
-                        <button 
-                          type="button" 
-                          className="option-value-delete-cross"
-                          onClick={() => handleRemoveOptionValue(optIdx, valIdx)}
-                        >
-                          &times;
-                        </button>
-                      </span>
-                    ))}
+                  
+                   {option.values.map((val, valIdx) => {
+                      const isEditing = editingOptionVal.optIdx === optIdx && editingOptionVal.valIdx === valIdx;
+                      const matchedPreset = PRESET_COLORS.find(c => c.name.toLowerCase() === val.toLowerCase());
+                      if (isEditing) {
+                        return (
+                          <div key={valIdx} className="badge-option-value editing">
+                            <input
+                              type="text"
+                              value={editingOptionVal.text}
+                              onChange={(e) => setEditingOptionVal(prev => ({ ...prev, text: e.target.value }))}
+                              className="option-value-edit-input"
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  handleSaveEditedOptionValue();
+                                } else if (e.key === "Escape") {
+                                  setEditingOptionVal({ optIdx: null, valIdx: null, text: "" });
+                                }
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={handleSaveEditedOptionValue}
+                              className="option-value-edit-btn save"
+                              title="Save change"
+                            >
+                              <Check size={12} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingOptionVal({ optIdx: null, valIdx: null, text: "" })}
+                              className="option-value-edit-btn cancel"
+                              title="Cancel"
+                            >
+                              <XIcon size={12} />
+                            </button>
+                          </div>
+                        );
+                      }
+                      return (
+                        <span key={valIdx} className="badge-option-value">
+                          {matchedPreset && (
+                            <span 
+                              className="badge-color-dot" 
+                              style={{ backgroundColor: matchedPreset.hex, border: matchedPreset.name.toLowerCase().includes("white") ? "1px solid #cbd5e1" : "none" }} 
+                            />
+                          )}
+                          <span 
+                            className="badge-value-text"
+                            onClick={() => handleStartEditOptionValue(optIdx, valIdx, val)}
+                            title="Click to rename/change"
+                          >
+                            {val}
+                          </span>
+                          <button
+                            type="button"
+                            className="option-value-pencil-btn"
+                            onClick={() => handleStartEditOptionValue(optIdx, valIdx, val)}
+                            title="Edit / Change this color"
+                          >
+                            <Pencil size={11} />
+                          </button>
+                          <button 
+                            type="button" 
+                            className="option-value-delete-cross"
+                            onClick={() => handleRemoveOptionValue(optIdx, valIdx)}
+                            title="Remove value"
+                          >
+                            &times;
+                          </button>
+                        </span>
+                      );
+                    })}
                     <div className="option-value-add-box">
                       <input 
                         type="text"
                         value={newOptionValue[optIdx] || ""}
                         onChange={(e) => setNewOptionValue(prev => ({ ...prev, [optIdx]: e.target.value }))}
-                        placeholder="Add value..."
+                        placeholder={option.name.toLowerCase() === "color" ? "Add custom color..." : "Add value..."}
                         className="form-field-input option-value-input"
                         onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddOptionValue(optIdx))}
                       />

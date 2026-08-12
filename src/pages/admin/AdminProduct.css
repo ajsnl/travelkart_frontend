@@ -1299,6 +1299,74 @@ input:checked + .switch-toggle-slider:before {
   color: #F87171;
 }
 
+/* Color Swatches Palette for Product Creation */
+.option-color-palette-section {
+  margin-top: 12px;
+  padding: 12px;
+  background-color: #070B16;
+  border: 1px dashed #1E293B;
+  border-radius: 8px;
+}
+
+.palette-header-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #94A3B8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.option-color-swatches-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.color-swatch-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background-color: #0F172A;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #CBD5E1;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.color-swatch-chip:hover {
+  border-color: var(--figma-standard-blue);
+  background-color: #1E293B;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+.color-swatch-chip.active {
+  background-color: rgba(59, 130, 246, 0.15);
+  border-color: #3B82F6;
+  color: #93C5FD;
+  box-shadow: 0 0 0 1px #3B82F6;
+}
+
+.color-swatch-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.color-swatch-check {
+  color: #3B82F6;
+  margin-left: 2px;
+}
+
 /* Option Values Pill and Inputs */
 .option-values-container {
   display: flex;
@@ -1306,6 +1374,99 @@ input:checked + .switch-toggle-slider:before {
   align-items: center;
   gap: 8px;
   margin-top: 12px;
+}
+
+.badge-option-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background-color: #111A2E;
+  border: 1px solid #1E293B;
+  border-radius: 6px;
+  color: #E2E8F0;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.badge-option-value:hover {
+  border-color: #334155;
+}
+
+.badge-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.badge-value-text {
+  cursor: pointer;
+}
+
+.badge-value-text:hover {
+  color: #60A5FA;
+  text-decoration: underline;
+}
+
+.option-value-pencil-btn {
+  background: transparent;
+  border: none;
+  color: #64748B;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.2s ease;
+}
+
+.option-value-pencil-btn:hover {
+  color: #60A5FA;
+}
+
+.badge-option-value.editing {
+  background-color: #090E1A;
+  border-color: #3B82F6;
+  padding: 2px 4px;
+}
+
+.option-value-edit-input {
+  height: 26px;
+  width: 100px;
+  background-color: #020408;
+  border: 1px solid #3B82F6;
+  border-radius: 4px;
+  color: #FFFFFF;
+  font-size: 12px;
+  padding: 0 6px;
+  outline: none;
+}
+
+.option-value-edit-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 4px;
+}
+
+.option-value-edit-btn.save {
+  color: #10B981;
+}
+
+.option-value-edit-btn.save:hover {
+  background-color: rgba(16, 185, 129, 0.15);
+}
+
+.option-value-edit-btn.cancel {
+  color: #EF4444;
+}
+
+.option-value-edit-btn.cancel:hover {
+  background-color: rgba(239, 68, 68, 0.15);
 }
 
 .option-value-delete-cross {
@@ -1332,11 +1493,18 @@ input:checked + .switch-toggle-slider:before {
 
 .option-value-input {
   height: 32px;
-  width: 120px;
+  width: 140px;
   background-color: #020408;
   border: 1px solid var(--admin-border-gray);
+  border-radius: 6px;
   font-size: 12px;
+  color: #FFFFFF;
   padding: 0 10px;
+  outline: none;
+}
+
+.option-value-input:focus {
+  border-color: var(--figma-standard-blue);
 }
 
 .option-value-add-btn {
@@ -1355,6 +1523,18 @@ input:checked + .switch-toggle-slider:before {
 .option-value-add-btn:hover {
   background-color: #334155;
   border-color: #475569;
+}
+
+/* Variant Attributes Edit Strip in VariantCard */
+.variant-attributes-edit-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  padding: 12px;
+  background-color: #090E1A;
+  border: 1px solid #162238;
+  border-radius: 8px;
+  margin-bottom: 14px;
 }
 
 /* Helper Alert Box */

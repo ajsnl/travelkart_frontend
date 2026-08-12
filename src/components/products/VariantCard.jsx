@@ -12,6 +12,7 @@ const VariantCard = ({
 }) => {
   const [sku, setSku] = useState(variant.sku || "");
   const [price, setPrice] = useState(variant.price || "0.00");
+  const [attributes, setAttributes] = useState(variant.attributes || {});
   const [stock, setStock] = useState(variant.stock !== undefined ? variant.stock : 10);
   const [images, setImages] = useState(variant.images || []);
   const [isActive, setIsActive] = useState(variant.is_active !== undefined ? variant.is_active : false);
@@ -22,6 +23,7 @@ const VariantCard = ({
 
   useEffect(() => {
     setSku(variant.sku || "");
+    setAttributes(variant.attributes || {});
     setPrice(variant.price || "0.00");
     setStock(variant.stock !== undefined ? variant.stock : 10);
     setImages(variant.images || []);
@@ -162,6 +164,7 @@ const VariantCard = ({
     onSave({
       ...variant,
       sku: sku.trim(),
+      attributes,
       price: parseFloat(price).toFixed(2),
       stock: parseInt(stock),
       is_active: isActive,
@@ -171,16 +174,23 @@ const VariantCard = ({
     });
   };
 
+  const handleAttributeChange = (key, val) => {
+    setAttributes(prev => ({
+      ...prev,
+      [key]: val
+    }));
+  };
+
   return (
     <div className="variant-editor-card font-inter">
       {/* Card Header: Title details */}
       <div className="variant-card-header">
         <div className="variant-card-title-stack">
           <span className="variant-attr-title">
-            {Object.values(variant.attributes).join(" / ")}
+              {Object.values(attributes).filter(Boolean).join(" / ") || "Variant Configuration"}
           </span>
           <span className="variant-attr-subtitle">
-            {Object.entries(variant.attributes).map(([k, val]) => `${k}: ${val}`).join(", ")}
+             {Object.entries(attributes).map(([k, val]) => `${k}: ${val}`).join(", ")}
           </span>
         </div>
         
@@ -207,6 +217,24 @@ const VariantCard = ({
 
       {/* Card Body: Form Fields & Media */}
       <div className="variant-card-body">
+
+        {/* Attributes Configuration Row */}
+        {Object.keys(attributes).length > 0 && (
+          <div className="variant-attributes-edit-row">
+            {Object.entries(attributes).map(([attrKey, attrVal]) => (
+              <div key={attrKey} className="form-input-group">
+                <label className="form-field-label">{attrKey} (e.g. Color / Size)</label>
+                <input 
+                  type="text" 
+                  value={attrVal || ""} 
+                  onChange={(e) => handleAttributeChange(attrKey, e.target.value)} 
+                  className="form-field-input"
+                  placeholder={`e.g. ${attrKey === "Color" ? "Navy Blue" : "Value"}`}
+                />
+              </div>
+            ))}
+          </div>
+        )}
         
         {/* Fields row */}
         <div className="variant-fields-row">
