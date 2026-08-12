@@ -31,8 +31,19 @@ export default function ProductCard({ product }) {
   const colorVariants = React.useMemo(() => {
     const list = [];
     const seenColors = new Set();
-    activeVariants.forEach(v => {
-      const color = v.attributes?.Color || v.attributes?.color;
+     const allVars = product.variants || [];
+    const targetVariants = allVars.filter(v => v.is_active !== false);
+    const sourceVars = targetVariants.length > 0 ? targetVariants : allVars;
+    sourceVars.forEach(v => {
+      let color = null;
+      if (v.attributes && typeof v.attributes === "object") {
+        for (const [key, val] of Object.entries(v.attributes)) {
+          if (key.toLowerCase().includes("color") && val) {
+            color = val;
+            break;
+          }
+        }
+      }
       if (color) {
         const normalizedColor = String(color).trim().toLowerCase();
         if (!seenColors.has(normalizedColor)) {
@@ -45,7 +56,7 @@ export default function ProductCard({ product }) {
       }
     });
     return list;
-  }, [activeVariants]);
+  }, [product.variants]);
 
 
 
@@ -258,25 +269,36 @@ export default function ProductCard({ product }) {
           </p>
 
           {/* Color swatches selector */}
-          {colorVariants.length > 1 && (
+          {colorVariants.length > 0 && (
             <div className="product-card-swatches-row" onClick={(e) => e.preventDefault()}>
-              {colorVariants.map(({ color, variant }) => {
-                const isSelected = selectedCardVariant && 
-                  String(selectedCardVariant.attributes?.Color || selectedCardVariant.attributes?.color).toLowerCase() === color.toLowerCase();
-                return (
-                  <button
-                    key={color}
-                    className={`product-card-swatch-btn ${isSelected ? "active" : ""}`}
-                    style={getColorStyle(color)}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setSelectedCardVariant(variant);
-                    }}
-                    title={color}
-                  />
-                );
-              })}
+           <div className="product-card-swatches-list">
+                {colorVariants.map(({ color, variant }) => {
+                  const isSelected = selectedCardVariant && 
+                    (() => {
+                      const selAttrs = selectedCardVariant.attributes || {};
+                      const selColor = Object.entries(selAttrs).find(([k]) => k.toLowerCase().includes("color"))?.[1];
+                      return selColor && String(selColor).toLowerCase() === color.toLowerCase();
+                    })();
+                  return (
+                    <button
+                      key={color}
+                      className={`product-card-swatch-btn ${isSelected ? "active" : ""}`}
+                      style={getColorStyle(color)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setSelectedCardVariant(variant);
+                      }}
+                      title={`Color: ${color}`}
+                    />
+                  );
+                })}
+              </div>
+              {colorVariants.length > 1 && (
+                <span className="product-card-color-count">
+                  {colorVariants.length} Colors
+                </span>
+              )}
             </div>
           )}
 
