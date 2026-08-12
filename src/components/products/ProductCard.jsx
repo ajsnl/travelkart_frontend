@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { toggleWishlist } from "../../features/wishlist/wishlistSlice";
 import { addVariantToCart } from "../../features/cart/cartSlice";
 import "./ProductCard.css";
+import { getColorStyle } from "../../utils/colorUtils";
 
 export default function ProductCard({ product }) {
   const dispatch = useDispatch();
@@ -46,31 +47,7 @@ export default function ProductCard({ product }) {
     return list;
   }, [activeVariants]);
 
-  // Color mapping helper for circular pills
-  const getColorStyle = (value) => {
-    const val = String(value).toLowerCase();
-    const map = {
-      blue: "#0f2d70",
-      charcoal: "#2f3542",
-      grey: "#8e9aaf",
-      gray: "#8e9aaf",
-      silver: "#d3d3d3",
-      black: "#111111",
-      brown: "#6d4c41",
-      tan: "#d7ccc8",
-      olive: "#556b2f",
-      green: "#2e7d32",
-      red: "#c62828",
-      white: "#f8f9fa",
-      navy: "#1a237e",
-      pink: "#ffb6c1"
-    };
 
-    if (map[val]) {
-      return { backgroundColor: map[val], border: val === "white" ? "1px solid #cbd5e1" : "none" };
-    }
-    return { backgroundColor: val, border: "1px solid #cbd5e1" }; // Fallback to string literal
-  };
 
   // Helper to extract clean image url
   const getProductImage = (targetVariant) => {

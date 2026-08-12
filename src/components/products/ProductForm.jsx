@@ -1,23 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronLeft, AlertCircle, Plus, Trash2, Settings, Globe, Clock, Layers, Pencil, Check, X as XIcon, Palette  } from "lucide-react";
 import { toast } from "react-toastify";
+import { SUPPORTED_WEBSITE_COLORS, getColorStyle } from "../../utils/colorUtils";
 
-const PRESET_COLORS = [
-  { name: "Navy Blue", hex: "#0f2d70" },
-  { name: "Jet Black", hex: "#111111" },
-  { name: "Charcoal Gray", hex: "#2f3542" },
-  { name: "Olive Green", hex: "#556b2f" },
-  { name: "Crimson Red", hex: "#c62828" },
-  { name: "Tan Brown", hex: "#8d6e63" },
-  { name: "Silver Gray", hex: "#94a3b8" },
-  { name: "Alpine White", hex: "#f8f9fa" },
-  { name: "Sunset Orange", hex: "#ea580c" },
-  { name: "Rose Gold", hex: "#e0a899" },
-  { name: "Teal Green", hex: "#008080" },
-  { name: "Burgundy", hex: "#800020" },
-  { name: "Royal Blue", hex: "#2563eb" },
-  { name: "Forest Green", hex: "#15803d" }
-];
+
 const slugify = (text) => {
   return text
     .toLowerCase()
@@ -412,11 +398,13 @@ const ProductForm = ({
                     <div className="option-color-palette-section">
                       <div className="palette-header-label">
                         <Palette size={13} className="text-blue-400" />
-                        <span>Quick Color Palette (Click to add / remove / change)</span>
+                        <span>Supported Website Color Palette (Click to add / remove)</span>
                       </div>
                       <div className="option-color-swatches-grid">
-                        {PRESET_COLORS.map((preset) => {
+                        {SUPPORTED_WEBSITE_COLORS.map((preset) => {
                           const isSelected = option.values.some(v => v.toLowerCase() === preset.name.toLowerCase());
+                          const style = getColorStyle(preset.name);
+
                           return (
                             <button
                               key={preset.name}
@@ -427,7 +415,7 @@ const ProductForm = ({
                             >
                               <span 
                                 className="color-swatch-dot" 
-                                style={{ backgroundColor: preset.hex, border: preset.name.toLowerCase().includes("white") ? "1px solid #94a3b8" : "none" }}
+                                style={style}
                               />
                               <span className="color-swatch-name">{preset.name}</span>
                               {isSelected && <Check size={11} className="color-swatch-check" />}
@@ -443,7 +431,8 @@ const ProductForm = ({
                   
                    {option.values.map((val, valIdx) => {
                       const isEditing = editingOptionVal.optIdx === optIdx && editingOptionVal.valIdx === valIdx;
-                      const matchedPreset = PRESET_COLORS.find(c => c.name.toLowerCase() === val.toLowerCase());
+                      const isColorOpt = option.name.trim().toLowerCase() === "color";
+                      const colorStyle = isColorOpt ? getColorStyle(val) : null;
                       if (isEditing) {
                         return (
                           <div key={valIdx} className="badge-option-value editing">
@@ -483,10 +472,10 @@ const ProductForm = ({
                       }
                       return (
                         <span key={valIdx} className="badge-option-value">
-                          {matchedPreset && (
+                          {isColorOpt && (
                             <span 
                               className="badge-color-dot" 
-                              style={{ backgroundColor: matchedPreset.hex, border: matchedPreset.name.toLowerCase().includes("white") ? "1px solid #cbd5e1" : "none" }} 
+                              style={colorStyle} 
                             />
                           )}
                           <span 
