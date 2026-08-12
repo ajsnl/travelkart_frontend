@@ -85,25 +85,28 @@
 
 /* Main Grid Layout */
 .categories-container {
-  max-width: 1250px;
-  margin: 40px auto;
+  max-width: 1360px;
+  width: 100%;
+  margin: 36px auto;
   padding: 0 24px;
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 40px;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 32px;
+  box-sizing: border-box;
 }
 
 /* Sidebar Styling */
 .categories-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px;
+  min-width: 0;
 }
 
 .sidebar-section {
   background: var(--tk-white);
   border-radius: 16px;
-  padding: 24px;
+  padding: 20px;
   box-shadow: var(--tk-card-shadow);
   border: 1px solid var(--tk-border-soft);
   transition: transform 0.2s ease;
@@ -114,11 +117,11 @@
 }
 
 .sidebar-section-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--tk-blue-primary);
   margin-top: 0;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--tk-border-soft);
   text-transform: uppercase;
@@ -279,6 +282,9 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .catalog-status-header {
@@ -287,6 +293,8 @@
   align-items: center;
   padding-bottom: 16px;
   border-bottom: 1.5px solid var(--tk-border-soft);
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .catalog-counter {
@@ -313,8 +321,10 @@
 /* Product Grid */
 .product-grid-catalog {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Product cards */

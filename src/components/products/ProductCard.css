@@ -22,6 +22,9 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   padding: 12px; /* Elegant padded spacing around inner container */
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
@@ -270,6 +273,9 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   text-decoration: none;
   color: inherit;
 }
