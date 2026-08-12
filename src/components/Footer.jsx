@@ -34,9 +34,9 @@ export default function Footer() {
 
         <div className="footer-links-column">
           <span className="footer-column-heading">Shop</span>
-          <Link to="/categories?cat=bags" className="footer-anchor-link">All Backpacks</Link>
-          <Link to="/categories?cat=luggage" className="footer-anchor-link">Hardshell Luggage</Link>
-          <Link to="/categories?cat=accessories" className="footer-anchor-link">Accessories Kit</Link>
+          <Link to="/categories?cat=backpacks-rucksacks" className="footer-anchor-link">All Backpacks</Link>
+          <Link to="/categories?cat=luggage-suitcases" className="footer-anchor-link">Hardshell Luggage</Link>
+          <Link to="/categories?cat=travel-tech-gadgets" className="footer-anchor-link">Accessories Kit</Link>
         </div>
 
         <div className="footer-links-column">

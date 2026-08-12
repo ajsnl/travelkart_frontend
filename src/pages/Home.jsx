@@ -39,73 +39,78 @@ function Home() {
     
     const items = [];
 
-    // Luggage / Backpack based on duration
+    // 1. Primary Luggage / Bag based on duration
     if (duration === "2 Days") {
       items.push({ 
-        name: "SkyBags Backpack Medium Green", 
+        name: "Widraw Men & Women Travel Sling Bag (7L)", 
         quantity: qty, 
-        variantId: 31,
+        variantId: 4,
         icon: "🎒"
       });
     } else if (duration === "1 Week") {
       items.push({ 
-        name: "BlackVoyage Travel Hydraulic Packing Cube", 
+        name: "Safari Cabin Polypropylene Spinner (55 cm)", 
         quantity: qty, 
-        variantId: 14,
-        icon: "📦"
+        variantId: 1,
+        icon: "🧳"
       });
     } else {
       items.push({ 
-        name: "SAFARI Small Cabin Luggage (Trolley)", 
+        name: "SAFARI Hard Body 3-Set Luggage (77 cm)", 
         quantity: qty, 
-        variantId: 33,
+        variantId: 19,
         icon: "🧳"
       });
     }
-
-    // Water Bottle
     items.push({ 
-      name: "Thor Bottle Test (750ml Water Bottle)", 
-      quantity: qty, 
-      variantId: 7,
+      name: "SLOVIC Leak-Proof Travel Water Bottle (1000ml)", 
+      quantity: isFamily ? 2 : 1, 
+      variantId: 20,
       icon: "💧"
     });
 
-    // Power bank capacity based on duration
     if (isShort) {
       items.push({ 
-        name: "Samsung Wireless Power Bank (6000mAh)", 
+        name: "ZEBRONICS Wireless MagSafe Power Bank (10000 mAh)", 
         quantity: qty, 
-        variantId: 23,
+        variantId: 8,
         icon: "🔋"
       });
     } else {
       items.push({ 
-        name: "Samsung Wireless Power Bank (10000mAh)", 
+        name: "ZEBRONICS Wireless MagSafe Power Bank (10000 mAh)", 
         quantity: qty, 
-        variantId: 22,
+        variantId: 6,
         icon: "🔋"
       });
     }
 
-    // Include Toiletry Kit only for Family trips (excluded for 2 days)
-    if (isFamily && !isShort) {
+
+    if (!isShort) {
       items.push({ 
-        name: "BUYPLEX Travel Toiletry Kits", 
-        quantity: qty, 
-        variantId: 37,
+        name: "Godadi Wala Transparent Travel Pouches (Set of 3)", 
+        quantity: 1, 
+        variantId: 17,
         icon: "🧴"
       });
     }
 
-    // Include Accessories for 1 Week and 2+ Weeks trips
     if (!isShort) {
-      items.push({ 
-        name: "Afast Glass Bottles Set (Travel Accessories)", 
-        quantity: qty, 
-        variantId: 9,
-        icon: "🧦"
-      });
+      if (isFamily) {
+        items.push({ 
+          name: "BSB Blanket For Mild Winter (Warm Travel Double)", 
+          quantity: 1, 
+          variantId: 12,
+          icon: "🛋️"
+        });
+      } else {
+        items.push({ 
+          name: "J S R Neck Pillow & Eye Mask Combo", 
+          quantity: 1, 
+          variantId: 26,
+          icon: "💤"
+        });
+      }
     }
 
     setGeneratedKit({
@@ -121,15 +126,19 @@ function Home() {
       setAddingToCart(true);
       
       const fallbackMap = {
-        33: [34, 31, 32], // Luggage/Backpack fallbacks
-        31: [32, 18, 33], // Backpack fallbacks
-        14: [15, 37],     // Organizer/Toiletry fallbacks
-        7: [8, 9, 10, 13], // Water Bottle fallbacks
-        23: [25, 22, 24],  // Power Bank small fallbacks
-        22: [24, 23, 25],  // Power Bank large fallbacks
-        37: [14, 15],      // Toiletry kit fallbacks
-        9: [10, 13, 7]     // Accessories fallbacks
+        4: [5, 3, 1],        // Widraw Black Sling -> Red Sling -> Zudio Sling -> Safari Cabin
+        5: [4, 3, 1],        // Widraw Red Sling -> Black Sling
+        1: [2, 18, 19],      // Safari Cabin 55cm -> 65cm -> Safari Hard Body
+        19: [18, 2, 1],      // Safari Hard Body 77cm -> 55cm -> Safari Cabin
+        20: [21, 22, 23],    // Slovic Bottle Pack 1 -> Pack 2 -> Milton Copper Brown -> Red
+        8: [6, 7],           // Zebronics Black 10k -> White 10k -> White 12.5k
+        6: [8, 7],           // Zebronics White 10k -> Black 10k -> White 12.5k
+        16: [16],            // Homiture Lock Set
+        17: [17],            // Godadi Wala Organizer
+        26: [25, 24, 10, 11],// JSR Navy Pillow Combo -> Burgundy -> Charcoal -> Ymir Eye Mask
+        12: [14, 3, 15, 26]  // BSB Blanket Blue Double -> Red Double -> Blue Single -> Red Single
       };
+
 
       for (const item of generatedKit.items) {
         let success = false;
