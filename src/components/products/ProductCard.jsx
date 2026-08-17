@@ -8,7 +8,7 @@ import { addVariantToCart } from "../../features/cart/cartSlice";
 import "./ProductCard.css";
 import { getColorStyle } from "../../utils/colorUtils";
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product,isWishlistPage = false }) {
   const dispatch = useDispatch();
   const { wishlistedProductIds } = useSelector((state) => state.wishlist);
   const { isAuthenticated } = useSelector((state) => state.auth);
@@ -64,29 +64,29 @@ export default function ProductCard({ product }) {
   const getProductImage = (targetVariant) => {
     if (!product) return "";
     
-    // 1. If targetVariant is NOT the default primaryVariant and has images (explicit color select), use variant images
+    //  If targetVariant is NOT the default primaryVariant and has images (explicit color select), use variant images
     if (targetVariant && targetVariant !== primaryVariant && targetVariant.images && targetVariant.images.length > 0) {
       const primaryVarImg = targetVariant.images.find(img => img.is_primary);
       if (primaryVarImg) return primaryVarImg.image_url;
       return targetVariant.images[0].image_url;
     }
     
-    // 2. Try general primary image (set by admin)
+    //  Try general primary image (set by admin)
     const primaryGeneral = (product.images || []).find(img => img.is_primary && !img.variant);
     if (primaryGeneral) return primaryGeneral.image_url;
 
-    // 3. Fallback to target variant's primary or first image
+    // Fallback to target variant's primary or first image
     if (targetVariant && targetVariant.images && targetVariant.images.length > 0) {
       const primaryVarImg = targetVariant.images.find(img => img.is_primary);
       if (primaryVarImg) return primaryVarImg.image_url;
       return targetVariant.images[0].image_url;
     }
  
-    // 4. Try general fallback image
+    //  Try general fallback image
     const generalImg = (product.images || []).find(img => !img.variant);
     if (generalImg) return generalImg.image_url;
  
-    // 5. Try any active variant images
+    // Try any active variant images
     for (const variant of activeVariants) {
       if (variant.images && variant.images.length > 0) {
         return variant.images[0].image_url;
@@ -152,6 +152,10 @@ export default function ProductCard({ product }) {
       productId: product.id,
       productName: product.name
     }));
+    // Only remove from wishlist if product added to cart from wishlist
+    if (isWishlistPage) {
+      dispatch(toggleWishlist({ productId: product.id, productName: product.name }));
+    }
   };
 
   // Render stars based on rating

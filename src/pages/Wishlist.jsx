@@ -137,7 +137,7 @@ export default function Wishlist() {
           /* Wishlist Grid */
           <div className="wishlist-products-grid font-inter">
             {items.map((item) => (
-              <ProductCard key={item.id} product={item.product} />
+              <ProductCard key={item.id} product={item.product} isWishlistPage={true}/>
             ))}
           </div>
         )}
