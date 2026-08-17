@@ -204,6 +204,13 @@ const AdminOrders = () => {
         return;
       }
     }
+      
+    const confirmed = await showConfirm(
+      `Are you sure you want to save changes to order ${selectedOrder.tracking_id}?`,
+      "Save Order Changes",
+      "warning"
+    );
+    if (!confirmed) return;
 
     setIsSaving(true);
     try {
@@ -640,6 +647,12 @@ const AdminOrders = () => {
                                   <button
                                     onClick={async (e) => {
                                       e.stopPropagation();
+                                        const confirmed = await showConfirm(
+                                        `Are you sure you want to approve the return request for ${item.variant?.product_name || "this item"}?`,
+                                        "Approve Item Return Request",
+                                        "warning"
+                                      );
+                                      if (!confirmed) return;
                                       setIsSaving(true);
                                       try {
                                         const res = await approveItemReturn(item.id);
@@ -662,6 +675,12 @@ const AdminOrders = () => {
                                   <button
                                     onClick={async (e) => {
                                       e.stopPropagation();
+                                        const confirmed = await showConfirm(
+                                        `Are you sure you want to reject the return request for ${item.variant?.product_name || "this item"}?`,
+                                        "Reject Item Return Request",
+                                        "warning"
+                                      );
+                                      if (!confirmed) return;
                                       setIsSaving(true);
                                       try {
                                         const res = await rejectItemReturn(item.id);
@@ -817,6 +836,12 @@ const AdminOrders = () => {
                           <button
                             type="button"
                             onClick={async () => {
+                              const confirmed = await showConfirm(
+                                `Are you sure you want to accept the return request for order ${selectedOrder.tracking_id}? This will restore stock for returned items.`,
+                                "Accept Order Return Request",
+                                "warning"
+                              );
+                              if (!confirmed) return;
                               setIsSaving(true);
                               try {
                                 const res = await updateAdminOrderStatus(selectedOrder.tracking_id, {
@@ -842,6 +867,12 @@ const AdminOrders = () => {
                           <button
                             type="button"
                             onClick={async () => {
+                              const confirmed = await showConfirm(
+                                `Are you sure you want to reject the return request for order ${selectedOrder.tracking_id}?`,
+                                "Reject Order Return Request",
+                                "warning"
+                              );
+                              if (!confirmed) return;
                               setIsSaving(true);
                               try {
                                 const res = await updateAdminOrderStatus(selectedOrder.tracking_id, {
