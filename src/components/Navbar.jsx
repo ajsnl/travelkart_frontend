@@ -5,6 +5,7 @@ import { Search, ShoppingCart, CircleUser, Menu, X, Home, Compass, Heart, Packag
 import "./Navbar.css";
 import TravelKartLogoMain from "./brand/TravelKartLogoMain";
 import { getCart } from "../features/cart/cartSlice";
+import { getWishlist } from "../features/wishlist/wishlistSlice";
 
 export default function Navbar() {
   const location = useLocation();
@@ -12,12 +13,14 @@ export default function Navbar() {
   const dispatch = useDispatch();
   const { user, isAuthenticated } = useSelector((state) => state.auth);
   const { cart } = useSelector((state) => state.cart);
+  const { count: wishlistCount } = useSelector((state) => state.wishlist);
   const [searchVal, setSearchVal] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
       dispatch(getCart());
+      dispatch(getWishlist());
     }
   }, [dispatch, isAuthenticated]);
 
@@ -98,9 +101,12 @@ export default function Navbar() {
             <Link 
               to={isAuthenticated ? "/wishlist" : "/login"} 
               state={isAuthenticated ? undefined : { from: "/wishlist" }}
-              className={`navbar-link ${isActive("/wishlist") ? "active" : ""}`}
+              className={`navbar-link navbar-link-with-badge ${isActive("/wishlist") ? "active" : ""}`}
             >
-              Wishlist
+              <span>Wishlist</span>
+              {isAuthenticated && wishlistCount > 0 && (
+                <span className="navbar-wishlist-badge">{wishlistCount}</span>
+              )}
             </Link>
           </li>
           <li>
@@ -255,9 +261,15 @@ export default function Navbar() {
               state={isAuthenticated ? undefined : { from: "/wishlist" }}
               className={`drawer-nav-item ${isActive("/wishlist") ? "active" : ""}`}
               onClick={() => setMobileMenuOpen(false)}
+              style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
             >
-              <Heart size={20} />
-              <span>My Wishlist</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <Heart size={20} />
+                <span>My Wishlist</span>
+              </div>
+              {isAuthenticated && wishlistCount > 0 && (
+                <span className="navbar-wishlist-badge">{wishlistCount}</span>
+              )}
             </Link>
           </li>
           <li>

@@ -114,6 +114,8 @@ const wishlistSlice = createSlice({
         if (inWishlist) {
           if (!state.wishlistedProductIds.includes(productId)) {
             state.wishlistedProductIds.push(productId);
+            state.count = state.count + 1;
+            state.totalPages = Math.ceil(state.count / 8);
           }
         } else {
           state.wishlistedProductIds = state.wishlistedProductIds.filter(id => id !== productId);
